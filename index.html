@@ -1450,6 +1450,7 @@ function updateHits(dt) {
         h.hit.add(f);
         applyHit(h, f);
         if (h.onHit) h.onHit(h, f);
+        if (h.owner && h.owner.mir) alhaithamProject(h.owner, f, h);
         if (h.proj && !h.pierce) { h.dead = true; if (h.onEnd) h.onEnd(h); break; }
       }
     }
@@ -1547,7 +1548,7 @@ function applyHit(h, t) {
     puff(t.x, t.y - 34, '#d8f6ff', 20, 300, 0.6, 5);
     ftext(t.x, t.y - 96, '쇄빙!', EL.cryo.color, 24, 1.0);
   }
-  if (h.el) {
+  if (h.el && !h.noAura) {   // noAura: an element's damage that neither sticks nor reacts (what Kazuha's whirlwind took in)
     const au = t.aura;
     if (au && au.t > 0 && au.el !== h.el) {
       const r = reaction(o, t, au.el, h.el);
@@ -1957,8 +1958,6 @@ function doAttack(f) {
   f.combo = n; f.comboT = s.dur * slow + 0.3;
   startAct(f, 'atk', s.dur * slow, { slow: 0.3 });
   if (rainOn(f)) rainSwords(f);
-  if (f.buff && f.buff.mirror) hb({ owner: f, proj: true, anchor: true, shape: 'circle', r: 11, ox: 30, oy: 62, vx: f.dir * 880, vy: 70, delay: s.delay * slow + 0.05, life: 0.42,
-                                     dmg: 2.2, kb: 0.2, noKb: true, ang: 20, el: 'dendro', persist: true, vis: 'gem' });
   if (f.buff && f.buff.gun) { shootBullet(f, n, s); return; }   // Clorinde in her stance
   const blades = f.buff && f.buff.blades;   // Tartaglia's stance: melee instead of arrows
   if (!blades && WEAPON[f.def.id].cls === 'bow') { shootArrow(f, n, s); return; }
@@ -1972,7 +1971,7 @@ function doAttack(f) {
     SFX.play('swing'); return;
   }
   if (f.onGround) f.vx = f.dir * (n === 3 ? 280 : 150);
-  const bel = f.buff && f.buff.el;   // Hu Tao's buff puts her element on every hit
+  const bel = (f.buff && f.buff.el) || (f.mir && f.mir.n ? 'dendro' : null);   // Hu Tao's buff puts her element on every hit (and Alhaitham's mirrors make his dendro)
   const wide = f.buff && f.buff.reach || 1, rm = f.def.reach * wide;   // Nilou's skill doubles the reach of her basic attacks
   const mh = hb({ owner: f, follow: true, ox: s.ox * rm, oy: 34, w: s.w * rm, h: s.h * (wide > 1 ? 1.5 : 1), delay: s.delay * slow, life: s.life * slow, dmg: s.dmg * (heavy ? 1.4 : 1), kb: s.kb, ang: s.ang,
        el: bel || (n === 3 ? f.def.el : null), vis: f.def.id === 'arlecchino' ? (bel ? 'none' : 'slash') : f.def.id === 'nefer' ? 'kick' : f.buff && f.buff.jackal ? 'claw' : WEAPON[f.def.id].cls === 'polearm' && n < 3 && !(f.buff && f.buff.musou) ? 'thrust' : 'slash', color: bel || n === 3 ? EL[f.def.el].color : '#e8ecff',
@@ -2185,6 +2184,57 @@ function drawKinich(f, t) {
   ctx.fillStyle = full ? (Math.sin(t * 14) > 0 ? '#c8fff0' : '#5ef2c8') : '#3fbf9c'; rr(x, y, Math.max(3, w * q), 4, 2); ctx.fill();
   ctx.fillStyle = 'rgba(94,242,200,.8)'; ctx.fillRect(x, y + 6, w * clamp(k.t / KN_TIME, 0, 1), 1.5);   // how long the Blessing has left
   if (full) { ctx.font = '700 10px ' + BODY; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#c8fff0'; ctx.fillText('K: 비늘 관통포', f.x, y + 10); }
+  ctx.restore();
+}
+// Alhaitham's Chisel-Light Mirrors. His skill makes one (two if he has none); he holds three at most. They fade one at a time every
+// AL_LIFE seconds (getting a new one does not restart that, unless it was one too many), and all go when he is swapped out. While he holds
+// any, his attacks deal dendro, and his basic and charged attacks that land set off a Projection Attack: each mirror throws a hit of light
+// at whoever was struck. Projections come at most once every AL_GAP seconds.
+const AL_MAX = 3, AL_LIFE = 4, AL_GAP = 1.6;
+function alhaithamMirrors(f, add) {
+  const m = f.mir || (f.mir = { n: 0, t: AL_LIFE, gap: 0 });
+  if (m.n === 0 || m.n + add > AL_MAX) m.t = AL_LIFE;   // a fresh start, or one too many: the countdown starts over
+  m.n = Math.min(AL_MAX, m.n + add);
+  ftext(f.x, f.y - 100, '빛조각 ' + m.n, '#bff7dd', 15, 0.7);
+}
+const mirrorAt = (f, i, n, time) => { const a = time * 2.2 + i * Math.PI * 2 / n; return [f.x + Math.cos(a) * 36 * f.def.scale, f.y - 54 * f.def.scale + Math.sin(a) * 13]; };
+function alhaithamProject(o, t, h) {   // a hit of his landed: the mirrors answer it
+  const m = o.mir;
+  if (!m || !m.n || m.gap > 0 || h.mirrorShot || h.harmless || (h.src && h.src.kind !== 'heavy')) return;   // only his basic and charged attacks set it off
+  m.gap = AL_GAP;
+  for (let i = 0; i < m.n; i++) {
+    const [sx, sy] = mirrorAt(o, i, m.n, game.time), d = 0.05 + i * 0.07;
+    hb({ owner: o, x: sx, y: sy, w: 0, h: 0, ex: t.x, ey: t.y - 36 * t.def.scale, delay: d, life: 0.22, harmless: true, persist: true, vis: 'mirrorbeam' });
+    hb({ owner: o, shape: 'circle', x: t.x, y: t.y - 36 * t.def.scale, r: 48, delay: d + 0.03, life: 0.06, dmg: 2.2, kb: 0.15, ang: 30, el: 'dendro', persist: true, mirrorShot: true, vis: 'none',
+         onStart: hh => puff(hh.x, hh.y, '#d8ffe8', 6, 160, 0.3, 3) });
+  }
+}
+function alhaithamTick(f, dt) {
+  const m = f.mir;
+  m.gap = Math.max(0, m.gap - dt);
+  if (!m.n) return;
+  m.t -= dt;
+  if (m.t <= 0) {   // one fades
+    m.n--; m.t = AL_LIFE;
+    const [x, y] = mirrorAt(f, m.n, m.n + 1, game.time); puff(x, y, '#bff7dd', 6, 90, 0.4, 2.5);
+  }
+}
+function drawMirrors(f, t) {   // the mirrors circling him: small panes of green-white light, the next to fade blinking in its last moments
+  const m = f.mir, time = game.time;
+  ctx.save();
+  for (let i = 0; i < m.n; i++) {
+    const [x, y] = mirrorAt(f, i, m.n, time), fading = i === m.n - 1 && m.t < 0.8, al = fading ? 0.35 + 0.65 * (Math.sin(t * 30) > 0 ? 1 : 0) : 1;
+    const front = Math.sin(time * 2.2 + i * Math.PI * 2 / m.n) > 0;   // the near half of the circle is drawn bigger
+    ctx.save(); ctx.translate(x, y); ctx.scale(front ? 1 : 0.8, front ? 1 : 0.8); ctx.globalAlpha = al * (front ? 1 : 0.7);
+    ctx.globalCompositeOperation = 'lighter';
+    const gl = ctx.createRadialGradient(0, 0, 1, 0, 0, 16); gl.addColorStop(0, 'rgba(190,255,220,.6)'); gl.addColorStop(1, 'rgba(95,208,160,0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0, 0, 16, 0, 7); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(210,255,235,.55)'; ctx.strokeStyle = '#f4fffa'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(6, 0); ctx.lineTo(0, 10); ctx.lineTo(-6, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(95,208,160,.9)'; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 10); ctx.stroke();   // the facet line
+    ctx.restore();
+  }
   ctx.restore();
 }
 const SKILLS = {
@@ -2425,11 +2475,14 @@ const SKILLS = {
     startAct(f, 'dash', 0.22, { slow: 0 }); f.cd = 3; f.vx = f.dir * 900; f.vy = 0;
     hb({ owner: f, follow: true, ox: 26, oy: 34, w: 100, h: 60, life: 0.22, dmg: 6.5, kb: 0.9, ang: 32, el: 'cryo', vis: 'dash' });
   },
-  alhaitham(f) {   // mirrors of light: for 6 seconds every basic attack also fires a dendro bolt
-    startAct(f, 'skill', 0.3, { slow: 0.4 }); f.cd = 7;
-    f.buff = { t: 6, mul: 1, mirror: true };
-    hb({ owner: f, follow: true, ox: 50, oy: 36, w: 100, h: 66, delay: 0.1, life: 0.12, dmg: 5, kb: 0.8, ang: 35, el: 'dendro', vis: 'slash' });
-    ftext(f.x, f.y - 96, '빛의 거울', '#7ef0c0', 17, 1); puff(f.x, f.y - 60, '#7ef0c0', 14, 200, 0.5, 3);
+  alhaitham(f) {   // Universality: An Elaboration on Form — a quick dash, a burst of dendro around him at its end, and Chisel-Light Mirrors (see AL_)
+    f.cd = 5;
+    if (f.upHeld) { startAct(f, 'skill', 0.22, { slow: 0 }); f.vx = f.dir * 650; f.vy = -620; f.onGround = false; }   // W held: the dash aims up and forward
+    else { startAct(f, 'dash', 0.18, { slow: 0 }); f.vx = f.dir * 900; f.vy = 0; }
+    puff(f.x, f.y - 40, '#bff7dd', 10, 200, 0.35, 3);
+    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 40, r: 82, delay: 0.17, life: 0.1, dmg: 5, kb: 0.85, ang: 40, el: 'dendro', persist: true, vis: 'boom',
+         onStart: () => { puff(f.x, f.y - 40, '#9bf0c8', 16, 260, 0.45, 4); spark(f.x, f.y - 40, '#5fd0a0', 50); } });
+    alhaithamMirrors(f, f.mir && f.mir.n ? 1 : 2);
   },
   cyno(f) {   // a lunging thrust; stronger while his burst is active
     startAct(f, 'dash', 0.2, { slow: 0 }); f.cd = 3; f.vx = f.dir * 900; f.vy = 0;
@@ -2821,9 +2874,35 @@ const BURSTS = {
     puff(f.x, f.y - 34, '#ff4a3a', 40, 420, 0.9, 7, -150);
   } },
   kazuha: { name: '만엽일도', fn(f) {
-    hb({ owner: f, follow: true, ox: 170, oy: 40, w: 340, h: 110, delay: 0.06, life: 0.14, dmg: 14, kb: 1.6, ang: 35, el: 'anemo', persist: true, vis: 'slashbig',
-         onStart: () => { game.shake = Math.max(game.shake, 10); SFX.play('heavy'); } });
-    hb({ owner: f, shape: 'circle', x: clamp(f.x + f.dir * 170, -540, 1500), y: f.y - 50, r: 120, delay: 0.2, life: 1.6, rehit: 0.4, dmg: 2.5, kb: 0.3, ang: 80, el: 'anemo', pull: 160, persist: true, vis: 'tornado' });
+    // One great cut from high above straight down to the ground in front of him, throwing up red maple leaves; where it lands a field of wind
+    // (the Autumn Whirlwind) stays for 5 s, drawing the opponent in with a hit every second. The first time the opponent is in it carrying fire,
+    // water, lightning or ice, the field takes that element in: it turns that colour and from then on every hit also deals that element.
+    const fx = clamp(f.x + f.dir * 140, -540, 1500), gp = groundBelow({ x: fx, y: f.y - 10 }), gy = gp && gp.y - f.y < 200 ? gp.y : f.y;
+    const field = hb({ owner: f, shape: 'circle', x: fx, y: gy - 50, r: 130, delay: 0.3, life: 5, rehit: 1.0, dmg: 1.2, kb: 0.25, ang: 80, el: 'anemo', pull: 140, persist: true, vis: 'kazfield',
+         onTick: (h, dt) => {
+           const o = h.owner, foe = game.fighters[1 - o.idx];
+           if (foe.dead) return;
+           const near = Math.hypot(foe.x - h.x, foe.y - 34 - h.y) < h.r + 30;
+           if (!h.absorb && near && foe.aura && ['pyro', 'hydro', 'electro', 'cryo'].includes(foe.aura.el)) {   // takes the element in
+             h.absorb = foe.aura.el; ftext(h.x, h.y - 110, '원소 흡수: ' + EL[h.absorb].name, EL[h.absorb].color, 16, 1.1); puff(h.x, h.y, EL[h.absorb].color, 20, 260, 0.6, 4);
+           }
+           h.extra = (h.extra ?? 0.5) - dt;
+           if (h.absorb && near && h.extra <= 0) {   // the element it took, with each turn of the wind
+             h.extra = 1.0;
+             hb({ owner: o, shape: 'circle', x: h.x, y: h.y, r: h.r, life: 0.06, dmg: 0.8, kb: 0.1, ang: 80, el: h.absorb, noAura: true, persist: true, vis: 'none' });
+           }
+         } });
+    hb({ owner: f, follow: true, ox: 120, oy: 80, w: 220, h: 250, delay: 0.12, life: 0.12, dmg: 14, kb: 1.5, ang: 62, el: 'anemo', persist: true, vis: 'none',
+         onStart: () => {
+           const foe = game.fighters[1 - f.idx];   // the cut itself takes in an element it strikes (before the wind uses it up)
+           if (!foe.dead && foe.aura && ['pyro', 'hydro', 'electro', 'cryo'].includes(foe.aura.el) && Math.abs(foe.x - fx) < 160 && foe.y > gy - 260) {
+             field.absorb = foe.aura.el; ftext(fx, gy - 160, '원소 흡수: ' + EL[field.absorb].name, EL[field.absorb].color, 16, 1.1);
+           }
+           game.shake = Math.max(game.shake, 11); game.shakeA = Math.PI / 2; SFX.play('heavy');
+           for (let i = 0; i < 14; i++) game.particles.push({ k: 'leaf', x: fx + rnd(-60, 60), y: gy - rnd(10, 160), vx: rnd(-220, 220), vy: rnd(-260, -40), grav: 160, drag: 0.4, rot: rnd(0, 6.3), vr: rnd(-9, 9), ph: rnd(0, 6.3), life: rnd(0.8, 1.3), max: 1.3, size: rnd(4, 6.5), color: i % 3 ? '#e8452a' : '#f08a3a' });
+           puff(fx, gy - 6, '#dffff2', 16, 300, 0.4, 3); markGround(fx, gp, 'anemo', 1.3);
+         } });
+    hb({ owner: f, x: fx, y: gy, w: 0, h: 0, delay: 0.02, life: 0.42, harmless: true, persist: true, vis: 'kazslash', src0: f.x });
   } },
   furina: { name: '모두의 축제', fn(f) {
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 220, delay: 0, life: 0.14, dmg: 12, kb: 1.4, ang: 50, el: 'hydro', radial: true, persist: true, vis: 'boom' });
@@ -3365,7 +3444,7 @@ const KO_TIME = 3.0;   // how long the closing KO banner plays before the result
 function die(f) {
   const g = game, o = g.fighters[1 - f.idx];
   f.dead = true; f.stocks--; f.respawn = 1.3;
-  f.hang = null; f.blazeUntil = 0; f.aura = null; f.shield = 0; f.act = null; f.frozen = 0; f.suspend = 0; f.stone = 0; f.shock = 0; f.vuln = 0; f.hitstun = 0; f.drop = 0; f.burn = 0; f.quicken = 0; f.seed = 0; f.buff = null; f.lf = null; f.stack = 0; f.crystals = 0;
+  f.hang = null; f.blazeUntil = 0; f.aura = null; f.shield = 0; f.act = null; f.frozen = 0; f.suspend = 0; f.stone = 0; f.shock = 0; f.vuln = 0; f.hitstun = 0; f.drop = 0; f.burn = 0; f.quicken = 0; f.seed = 0; f.buff = null; f.lf = null; f.stack = 0; f.crystals = 0; f.mir = null;
   o.stat.kos++;
   for (const h of g.hits) if (h.owner === f && (!h.persist || h.follow)) h.dead = true;
   const ex = clamp(f.x, BLAST.l + 90, BLAST.r - 90), ey = clamp(f.y, BLAST.t + 90, BLAST.b - 170);
@@ -3412,7 +3491,7 @@ function trySwap(f) {
   m.jumps = Math.min(f.jumps, m.def.jumps);
   m.dead = false; m.hitstun = 0; m.act = null; m.combo = 0; m.comboT = 0; m.rot = 0; m.trail = []; m.inv = Math.max(m.inv, 0.25);
   for (const h of g.hits) if (h.owner === f && h.follow && !h.persist) h.dead = true;
-  f.act = null; f.trail = []; f.combo = 0; f.guarding = false; if (f.ks) { f.ks = null; f.cd = Math.max(f.cd, 6); }
+  f.act = null; f.trail = []; f.combo = 0; f.guarding = false; if (f.ks) { f.ks = null; f.cd = Math.max(f.cd, 6); } f.mir = null;
   g.fighters[f.idx] = m; g.swapCd[f.idx] = 1.0;
   const col = EL[m.def.el].color;
   puff(m.x, m.y - 34, col, 18, 240, 0.5, 4); spark(m.x, m.y - 34, col, 46);
@@ -3519,7 +3598,7 @@ function aiInput(f, foe, dt) {
           else if (d.id === 'mualani') ok = !f.buff && adx < 350;
           else if (d.id === 'citlali') ok = adx < 220;
           else if (d.id === 'skirk') ok = aligned && adx > 80 && adx < 300;
-          else if (d.id === 'alhaitham') ok = !f.buff && adx < 260;
+          else if (d.id === 'alhaitham') ok = (!f.mir || f.mir.n < 2) && adx < 300;
           else if (d.id === 'cyno') ok = aligned && adx > 70 && adx < 260;
           else if (d.id === 'aether') ok = aligned && adx < 150;
           else if (d.id === 'lumine') ok = aligned && adx > 60 && adx < 220;
@@ -3634,6 +3713,7 @@ function stepFighter(f, foe, dt) {
     ftext(f.x, f.y - 96, '탈출!', '#dff4ff', 18, 0.7); SFX.play('hit');
   }
   if (f.ks) kinichTick(f, foe, dt);
+  if (f.mir) alhaithamTick(f, dt);
   const free = f.hitstun <= 0 && f.frozen <= 0;
   if (inp.swap && free && live && !f.act && trySwap(f)) return;
   // Guard: held with H. It blocks hits but the meter wears down, both over time and with every blocked hit.
@@ -3811,7 +3891,7 @@ function stepVisual(f, dt) {
   if (f.def.id === 'diluc' && !f.act && Math.random() < 0.06) puff(f.x + f.dir * 22, f.y - 18, '#ff8a3d', 1, 20, 0.6, 2, -120);
   if (f.def.id === 'kazuha' && Math.random() < 0.03) puff(f.x - f.dir * 10, f.y - 50, '#e85a4f', 1, 30, 1.2, 3, 40);
   if (rainOn(f) && Math.random() < 0.3) puff(f.x + rnd(-24, 24), f.y - rnd(70, 96), '#9fd4ff', 1, 30, 0.45, 2.5, 320);
-  if (f.buff && f.buff.mirror && Math.random() < 0.3) puff(f.x + rnd(-26, 26), f.y - rnd(56, 96), '#7ef0c0', 1, 20, 0.5, 2.5, -40);
+  if (f.mir && f.mir.n && Math.random() < 0.25) puff(f.x + rnd(-30, 30), f.y - rnd(40, 80), '#bff7dd', 1, 20, 0.5, 2, -40);
   if (f.buff && f.buff.jackal && Math.random() < 0.12) { const sx = f.x + rnd(-20, 20), sy = f.y - rnd(10, 70); bolt(sx, sy, sx + rnd(-18, 18), sy + rnd(-18, 18), EL.electro.color); }
   if (f.buff && f.def.id === 'arlecchino' && Math.random() < 0.4) puff(f.x + rnd(-14, 14), f.y - rnd(10, 60), '#ff3a4a', 1, 30, 0.5, 3, -160);
   if (f.buff && f.buff.blades && Math.random() < 0.4) puff(f.x + rnd(-16, 16), f.y - rnd(10, 60), '#7fc8ff', 1, 30, 0.4, 2.5, 200);
@@ -6718,6 +6798,56 @@ function drawHits(t, under = false) {
         ctx.save(); ctx.scale(1, 0.12); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, 160 * g + 1, 0, 7); ctx.fill(); ctx.restore();
         break;
       }
+      case 'kazslash': {   // Kazuha's burst: one huge crescent cut coming down from high above to the ground, mint and white, with a gust line where it lands
+        ctx.scale(h.sdir, 1);
+        const sw = easeOut(clamp(k / 0.35, 0, 1)), fade = 1 - clamp((k - 0.45) / 0.55, 0, 1), R = 160, a0 = -1.6, a1 = a0 + 1.95 * sw, cx = -150, cy = -60, N = 18;   // from high over his head round to the ground at the far end
+        ctx.globalAlpha = fade;
+        for (let i = 0; i < N; i++) {   // drawn in slices so the tail thins and fades
+          const q = (i + 1) / N, b0 = lerp(a0, a1, i / N), b1 = lerp(a0, a1, q) + 0.01, w = 6 + 26 * q;
+          ctx.globalAlpha = fade * (0.25 + 0.75 * q);
+          ctx.fillStyle = q > 0.75 ? '#f4fffa' : '#9ff2d0';
+          ctx.beginPath(); ctx.arc(cx, cy, R, b0, b1); ctx.arc(cx, cy, R - w, b1, b0, true); ctx.closePath(); ctx.fill();
+        }
+        if (sw >= 1) {   // the gust running out along the ground where it struck
+          const g2 = clamp((k - 0.35) / 0.4, 0, 1);
+          ctx.globalAlpha = fade * (1 - g2); ctx.strokeStyle = '#dffff2'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.ellipse(0, 0, 40 + 150 * easeOut(g2), 8 + 10 * g2, 0, 0, 7); ctx.stroke();
+        }
+        break;
+      }
+      case 'kazfield': {   // the Autumn Whirlwind: rings of wind turning low over the ground, streaks rising through it, maple leaves caught in it;
+        // once it has taken an element in it turns that colour, with flame tongues (fire), droplets (water), sparks (lightning) or frost (ice)
+        const R = h.r, col = h.absorb ? EL[h.absorb].color : '#9ff2d0', al = Math.min(1, (h.age - h.delay) * 4, (h.delay + h.life - h.age) * 2), ground = 50, T = h.age;
+        ctx.globalAlpha = al; ctx.lineCap = 'round';
+        for (let i = 0; i < 4; i++) {   // flattened rings at different heights, each turning
+          const yy = ground - 14 - i * 26, rr2 = R * (1 - i * 0.16), a = T * (5 + i) * (i % 2 ? -1 : 1);
+          ctx.strokeStyle = i % 2 ? '#f4fffa' : col; ctx.lineWidth = 3 - i * 0.4;
+          ctx.beginPath(); ctx.ellipse(0, yy, rr2, rr2 * 0.22, 0, a, a + 3.6); ctx.stroke();
+        }
+        ctx.strokeStyle = col; ctx.lineWidth = 1.5;   // streaks rising
+        for (let i = 0; i < 8; i++) { const x = (hash1(i * 3.7) - 0.5) * R * 1.6, ph = (T * (0.9 + hash1(i)) + hash1(i * 5.1)) % 1, y0 = ground - ph * 150; ctx.globalAlpha = al * (1 - ph) * 0.8; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x + Math.sin(T * 6 + i) * 6, y0 - 22); ctx.stroke(); }
+        ctx.globalAlpha = al;
+        for (let i = 0; i < 6; i++) {   // maple leaves spinning round in it
+          const a = T * 3 + i * 1.05, x = Math.cos(a) * R * 0.75, y = ground - 30 - i * 14 + Math.sin(a) * 10, s2 = 4;
+          ctx.save(); ctx.translate(x, y); ctx.rotate(a * 2); ctx.fillStyle = i % 2 ? '#e8452a' : '#f08a3a';
+          ctx.beginPath(); ctx.moveTo(-s2, 0); ctx.quadraticCurveTo(0, -s2 * 0.8, s2, 0); ctx.quadraticCurveTo(0, s2 * 0.8, -s2, 0); ctx.fill(); ctx.restore();
+        }
+        if (h.absorb === 'pyro') for (let i = 0; i < 7; i++) {   // flame tongues along the ground
+          const x = (hash1(i * 2.3) - 0.5) * R * 1.5, fl = 10 + 8 * Math.abs(Math.sin(T * 9 + i * 1.7));
+          ctx.fillStyle = i % 2 ? '#ff8a3a' : '#ffd07a'; ctx.beginPath(); ctx.moveTo(x - 5, ground); ctx.quadraticCurveTo(x, ground - fl * 1.6, x + 5, ground); ctx.fill();
+        } else if (h.absorb) for (let i = 0; i < 8; i++) {   // its colour flickering through the wind
+          const a = T * 4 + i * 0.8, x = Math.cos(a) * R * 0.6, y = ground - 20 - (i * 17) % 90;
+          ctx.fillStyle = i % 2 ? col : '#ffffff'; ctx.fillRect(x - 2, y - 2, 4, 4);
+        }
+        break;
+      }
+      case 'mirrorbeam': {   // a Projection Attack: a thin shaft of light from a mirror to whoever was struck
+        const dx = h.ex - c.x, dy = h.ey - c.y, q = k, w = 5 * (1 - q) + 1;
+        ctx.lineCap = 'round'; ctx.globalAlpha = 1 - q * q;
+        ctx.strokeStyle = 'rgba(95,208,160,.7)'; ctx.lineWidth = w * 2.4; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(dx, dy); ctx.stroke();
+        ctx.strokeStyle = '#f4fffa'; ctx.lineWidth = w; ctx.stroke();
+        break;
+      }
       case 'ajawbeam': {   // Dragon's Breath: a flickering thin line marks the spot first, then a thick beam of dendro light pours down it
         const dx = h.ex - c.x, dy = h.ey - c.y, T = h.age - h.delay, fire = T >= 0.3, q = fire ? clamp((T - 0.3) / 0.25, 0, 1) : 0;
         ctx.lineCap = 'round';
@@ -8456,6 +8586,7 @@ function render(t) {
     for (const f of g.fighters) if (!f.dead) { drawSpin(f, t, true); if (flinsFire(f)) blueBlaze(f, t, flinsFire(f), true); }
     drawHits(t);
     for (const f of g.fighters) if (f.ks && !f.dead) drawKinich(f, t);
+    for (const f of g.fighters) if (f.mir && f.mir.n && !f.dead) drawMirrors(f, t);
     drawParticles();
     if (gfxHigh()) drawBloom(t);
     drawMapFx(t);
@@ -8655,7 +8786,7 @@ const KIT = {
   venti: { cd: 2.2, skill: '상승 기류로 자신은 높이(일반 점프보다 높게) 솟구치고 주변 적을 띄웁니다. 떨어질 때 복귀용으로도 씁니다.', burst: '1초 동안 적을 끌어모으는 회오리를 만든 뒤 크게 터뜨립니다.' },
   zhongli: { cd: 2.8, skill: '앞에 바위 기둥을 세워 적을 띄우고 방어막을 얻습니다.', burst: '적의 위치로 운석을 떨어뜨려 석화시키고, 1초 뒤 충격파로 날려 보냅니다.' },
   hutao: { cd: 6.0, skill: '피해 6%를 내주고 4초 동안 평타에 불이 실립니다. 피해 +25%, 이동 속도가 빨라집니다.', burst: '자신을 중심으로 바닥에 원형으로 불 충격파를 퍼뜨리고 회복합니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다. 피해가 80% 이상이면 더 세고 더 많이 회복합니다.' },
-  kazuha: { cd: 3.1, skill: '주변 적을 끌어당기며 높이 뛰어오릅니다.', burst: '큰 바람 베기 뒤, 1.6초 동안 적을 끌어모으는 바람 장막을 남깁니다.' },
+  kazuha: { cd: 3.1, skill: '주변 적을 끌어당기며 높이 뛰어오릅니다.', burst: '높은 곳에서 땅까지 내리긋는 거대한 일격 뒤, 그 자리에 5초 동안 바람 영역을 남깁니다. 바람은 상대를 끌어당기며 1초마다 피해를 주고, 불·물·번개·얼음 원소가 묻은 상대가 들어오면 그 원소를 흡수해 이후 그 원소 피해도 함께 줍니다.' },
   furina: { cd: 5.6, skill: '살롱 멤버 셋을 불러 3.5초 동안 적에게 물방울을 쏩니다.', burst: '주변에 물 폭발을 일으키고, 5초 동안 주는 피해가 30% 늘어납니다.' },
   nahida: { cd: 2.2, skill: '앞쪽 넓은 범위에 풀을 묻히고 10초짜리 씨앗 표식을 남깁니다. 표식 달린 적에게 원소 반응이 나면 추가 피해.', burst: '4초 동안 넓은 풀 결계를 펼쳐, 안에 있는 적에게 풀 원소와 씨앗 표식을 계속 붙입니다. 결계 안의 적은 가드를 올릴 수 없고, 아군이 쏜 투사체는 모두 그 적에게 날아가 반드시 맞습니다.' },
   eula: { cd: 2.8, skill: '앞을 크게 베어 얼음을 묻히고 냉기 각인을 1개 쌓습니다(최대 2개).', burst: '얼음 폭발과 함께 빛의 검을 세웁니다. 3초 동안 유라가 적중할 때마다 검이 강해지고, 각인 1개당 3단계 강해진 채로 시작합니다.' },
@@ -8676,7 +8807,7 @@ const KIT = {
   mualani: { cd: 5.0, skill: '3.5초 동안 파도를 타고 빠르게 달립니다. 달리며 적에 부딪힐 때마다 파도 기세가 쌓이고(최대 3), 다음 평타에 기세 1개당 피해가 6.5 늘어납니다(3개면 +19.5). 맞아서 밀려나도 파도타기는 끊기지 않습니다.', burst: '적을 향해 큰 물 덩어리를 쏩니다. 닿거나 끝까지 날아가면 크게 폭발합니다. 유도는 없습니다.' },
   citlali: { cd: 5.0, skill: '방어막을 얻고, 2초 동안 몸 주위의 서리 고리가 가까운 적에게 얼음을 묻힙니다.', burst: '적의 위치에 얼음 별을 떨어뜨려 얼리고, 주변에 얼음 폭발 세 번이 이어집니다.' },
   skirk: { cd: 4.2, skill: '앞으로 빠르게 돌진하며 얼음을 실어 벱니다. 공중에서도 쓸 수 있습니다.', burst: '앞쪽 허공을 베어 검은 균열을 엽니다. 균열은 열린 자리에 머물고, 그 안을 연속으로 벤 뒤 마지막 일격에 균열이 얼음처럼 깨지며 크게 날려 보냅니다.' },
-  alhaitham: { cd: 7.0, skill: '앞을 베며 6초 동안 빛의 거울을 띄웁니다. 그동안 평타를 칠 때마다 초록 다이아몬드가 앞으로 함께 날아갑니다.', burst: '제자리에서 다이아몬드 여섯 개를 상대에게 날립니다. 상대 자리에 짙은 초록색 기둥이 서고, 다이아몬드가 그 안에서 1초 동안 지그재그로 돌며 여러 번 맞힌 뒤 터지고 사라집니다.' },
+  alhaitham: { cd: 5.0, skill: '앞으로 빠르게 돌진한 뒤 주변에 풀 원소 피해를 주고 빛조각을 만듭니다(없으면 2개, 있으면 1개, 최대 3개). 빛조각은 4초마다 하나씩 사라지고 교체하면 모두 사라집니다. 빛조각이 있으면 공격이 풀 원소가 되고, 평타·강공격이 맞을 때마다 빛조각 수만큼 빛이 상대에게 투사됩니다(1.6초에 한 번). W를 누른 채 쓰면 위로 돌진합니다.', burst: '제자리에서 다이아몬드 여섯 개를 상대에게 날립니다. 상대 자리에 짙은 초록색 기둥이 서고, 다이아몬드가 그 안에서 1초 동안 지그재그로 돌며 여러 번 맞힌 뒤 터지고 사라집니다.' },
   cyno: { cd: 4.2, skill: '앞으로 돌진하며 번개를 실어 찌릅니다. 필살기가 켜져 있는 동안에는 더 아픕니다. 공중에서도 쓸 수 있습니다.', burst: '번개를 터뜨리며 승냥이의 모습으로 변신합니다. 7초 동안 창 대신 양손 발톱으로 번갈아 할퀴고, 모든 평타에 번개가 실립니다. 피해 +30%, 이동 속도와 밀쳐내는 힘이 커집니다.' },
   aether: { cd: 4.9, skill: '손앞에 바람 소용돌이를 만들어 0.55초 동안 적을 끌어당기며 맞히고, 터뜨려 밀쳐냅니다.', burst: '앞으로 천천히 나아가는 회오리를 보냅니다. 1.8초 동안 적을 끌고 가며 여러 번 맞히고, 사라질 때 터집니다.' },
   lumine: { cd: 4.2, skill: '한 걸음 앞에 바위를 떨어뜨려 적을 띄우고, 5초 동안 작은 방어막을 얻습니다.', burst: '자신을 중심으로 바닥에 바위 충격파를 세 번, 점점 넓게 퍼뜨립니다. 높이 떠 있는 적은 맞지 않습니다.' },
@@ -8729,7 +8860,7 @@ function fighterStatus(f) {
   if (f.lf) s.push('빛의 검 ' + f.lf.n + '중첩');
   if (game && rainOn(f)) s.push('비의 검');
   if (f.buff && f.buff.gun) s.push('사냥 태세');
-  if (f.buff && f.buff.mirror) s.push('빛의 거울');
+  if (f.mir && f.mir.n) s.push('빛조각 ' + f.mir.n + '개');
   if (f.buff && f.buff.musou) s.push('몽상의 일태도');
   if (f.buff && f.buff.syringe) s.push('과포화 주사');
   if (f.buff && f.buff.blades) s.push('마왕의 무장');
