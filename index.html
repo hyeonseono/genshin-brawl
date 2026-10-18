@@ -424,19 +424,46 @@ button { font-family: inherit; }
 .map-card span { color: var(--muted); font-size: clamp(10px, 1.2cqw, 12px); }
 .map-rule { margin: 0; min-height: 2.8em; max-width: 46em; color: #cdd5f7; font-size: clamp(11px, 1.4cqw, 13.5px); }
 .map-rule b { color: var(--fg); }
-/* screen changes: overlays ease in, and a slanted band sweeps across between select, map and fight */
+/* screen changes: overlays ease in. Between select, map and fight a night sky closes in from the edges like an eye, a gold star-compass with
+   the seven elements lights up in the middle, and the sky opens again from the centre onto the new screen (swapped while it is closed). */
 .ov { animation: ov-in .34s ease both; }
 @keyframes ov-in { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
-.wipe {
-  position: absolute; inset: 0; z-index: 6; transform: translateX(-135%) skewX(-12deg);
-  background: linear-gradient(100deg, #070b20 0%, #16225a 40%, var(--gold) 49%, #fff3c4 50%, var(--gold) 51%, #16225a 60%, #070b20 100%);
+@property --iris { syntax: '<percentage>'; inherits: true; initial-value: 100%; }
+.wipe { position: absolute; inset: 0; z-index: 6; pointer-events: none; --iris: 100%; }
+.wipe.run { animation: iris .9s cubic-bezier(.65, 0, .35, 1) forwards; }
+@keyframes iris { 0% { --iris: 100%; } 44%, 56% { --iris: 0%; } 100% { --iris: 100%; } }
+.wipe-sky, .wipe-rim { position: absolute; inset: 0; }
+.wipe-sky {   /* deep blue night with scattered stars, cut out by the opening of the eye */
+  background:
+    radial-gradient(1.5px 1.5px at 12% 22%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 27% 68%, #cfe0ff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 41% 14%, #fff6d8 50%, transparent 51%), radial-gradient(1px 1px at 58% 82%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 73% 30%, #ffe9a8 50%, transparent 51%), radial-gradient(1px 1px at 86% 61%, #cfe0ff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 92% 12%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 6% 84%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 35% 40%, #cfe0ff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 66% 55%, #fff 50%, transparent 51%),
+    radial-gradient(ellipse at 50% 50%, #1d2c66 0%, #0c1238 45%, #05071a 100%);
+  -webkit-mask-image: radial-gradient(circle farthest-corner at 50% 50%, transparent var(--iris), #000 calc(var(--iris) + .6%));
+  mask-image: radial-gradient(circle farthest-corner at 50% 50%, transparent var(--iris), #000 calc(var(--iris) + .6%));
 }
-.wipe.run { animation: wipe .8s cubic-bezier(.7, 0, .3, 1) forwards; }
-@keyframes wipe {
-  0% { transform: translateX(-135%) skewX(-12deg) scaleX(1.4); }
-  45%, 55% { transform: translateX(0) skewX(-12deg) scaleX(1.4); }
-  100% { transform: translateX(135%) skewX(-12deg) scaleX(1.4); }
+.wipe-rim {   /* a fine gold rim of light along the edge of the eye */
+  background: radial-gradient(circle farthest-corner at 50% 50%, transparent calc(var(--iris) - 1.4%), rgba(255, 226, 140, .95) var(--iris), rgba(255, 210, 77, .35) calc(var(--iris) + 1.2%), transparent calc(var(--iris) + 3%));
+  mix-blend-mode: screen;
 }
+.wipe-emblem { position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; translate: -50% -50%; overflow: visible; opacity: 0; }
+.wipe.run .wipe-emblem { animation: emblem .9s cubic-bezier(.4, 0, .2, 1) forwards; }
+@keyframes emblem {
+  0%, 18% { opacity: 0; transform: scale(.55) rotate(-50deg); }
+  44% { opacity: 1; transform: scale(1) rotate(0deg); }
+  56% { opacity: 1; transform: scale(1.04) rotate(6deg); }
+  100% { opacity: 0; transform: scale(2.3) rotate(34deg); }
+}
+.wipe-emblem .ring { fill: none; stroke: #ffd24d; }
+.wipe-emblem .ticks line { stroke: #ffe39a; stroke-width: 1; }
+.wipe.run .wipe-emblem .ticks { animation: spin .9s linear forwards; transform-origin: 0 0; }
+@keyframes spin { to { transform: rotate(-70deg); } }
+.wipe-emblem .star { transform-origin: 0 0; filter: drop-shadow(0 0 6px #ffe39a) drop-shadow(0 0 16px #ffd24d); }
+.wipe.run .wipe-emblem .star { animation: star .9s cubic-bezier(.3, 0, .2, 1) forwards; }
+@keyframes star { 0%, 30% { transform: scale(0) rotate(-45deg); } 46% { transform: scale(1.35) rotate(0deg); } 58% { transform: scale(1); } 100% { transform: scale(.9) rotate(20deg); } }
+.wipe-emblem .els circle { filter: drop-shadow(0 0 4px currentColor); }
 @media (max-width: 640px) { .maps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .ov { animation: none; } }
 .refs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
@@ -616,7 +643,14 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
       <p class="hint" id="netHint"></p>
     </div>
 
-    <div class="wipe" id="wipe" hidden></div>
+    <div class="wipe" id="wipe" hidden aria-hidden="true">
+      <div class="wipe-sky"></div><div class="wipe-rim"></div>
+      <svg class="wipe-emblem" viewBox="-120 -120 240 240">
+        <circle class="ring" r="100" stroke-width="1.6"/><circle class="ring" r="92" stroke-width=".8" opacity=".55"/><circle class="ring" r="58" stroke-width=".8" opacity=".45"/>
+        <g class="ticks"></g><g class="els"></g>
+        <path class="star" d="M0,-40 C4,-8 8,-4 40,0 C8,4 4,8 0,40 C-4,8 -8,4 -40,0 C-8,-4 -4,-8 0,-40Z" fill="#fff4cf"/>
+      </svg>
+    </div>
 
     <div class="ov" id="ovPause" hidden>
       <h2>일시정지</h2>
@@ -8595,8 +8629,24 @@ function transition(fn) {
   wiping = true;
   const w = $('wipe');
   w.hidden = false; w.classList.remove('run'); void w.offsetWidth; w.classList.add('run');
-  setTimeout(fn, 380);
-  setTimeout(() => { w.hidden = true; w.classList.remove('run'); wiping = false; }, 820);
+  setTimeout(fn, 420);   // while the sky is fully closed
+  setTimeout(() => { w.hidden = true; w.classList.remove('run'); wiping = false; }, 920);
+}
+{   // the compass of the transition: tick marks round the ring, long ones at the four points, and the seven elements spaced round inside it
+  const NS = 'http://www.w3.org/2000/svg', tk = document.querySelector('#wipe .ticks'), els = document.querySelector('#wipe .els');
+  for (let i = 0; i < 72; i++) {
+    const a = i / 72 * Math.PI * 2, long = i % 18 === 0, r0 = long ? 80 : i % 2 ? 92 : 88, l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', (Math.cos(a) * r0).toFixed(1)); l.setAttribute('y1', (Math.sin(a) * r0).toFixed(1));
+    l.setAttribute('x2', (Math.cos(a) * 100).toFixed(1)); l.setAttribute('y2', (Math.sin(a) * 100).toFixed(1));
+    if (long) l.setAttribute('stroke-width', '2');
+    tk.appendChild(l);
+  }
+  Object.values(EL).forEach((e, i) => {
+    const a = -Math.PI / 2 + i / 7 * Math.PI * 2, c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', (Math.cos(a) * 74).toFixed(1)); c.setAttribute('cy', (Math.sin(a) * 74).toFixed(1)); c.setAttribute('r', '5.5');
+    c.setAttribute('fill', e.color); c.style.color = e.color;
+    els.appendChild(c);
+  });
 }
 // Map card thumbnail: the map's picture with its platform layout over it (moving platforms drawn dashed)
 const MAP_CARD = {};
