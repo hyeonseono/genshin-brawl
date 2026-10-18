@@ -2087,6 +2087,19 @@ function lob(f, grav, oy) {
   return { vx: clamp(dx / T, -900, 900), vy: (dy - 0.5 * grav * T * T) / T, aimY: foe.y };
 }
 
+// Lyney's hat: a bomb left on the spot. It goes off after its fuse, or at once (a moment's click) when the opponent steps on it.
+function lyneyHat(f, x, y, fuse) {
+  const hat = hb({ owner: f, shape: 'circle', x, y, r: 80, delay: fuse, life: 0.1, dmg: 10, kb: 1.5, ang: 60, el: 'pyro', radial: true, persist: true, hat: true, vis: 'boom' });
+  hb({ owner: f, x, y, w: 0, h: 0, life: fuse, harmless: true, persist: true, vis: 'none',
+       onTick: t => {
+         const foe = game.fighters[1 - f.idx];
+         if (hat.dead || hat.age >= hat.delay - 0.07) { t.dead = true; return; }
+         if (!foe.dead && t.age > 0.15 && Math.abs(foe.x - x) < 30 && Math.abs(foe.y - (y + 14)) < 36) {   // stepped on (the first moment it lands, it cannot go off yet)
+           hat.delay = hat.age + 0.07; t.dead = true; puff(x, y, '#ffe08a', 8, 160, 0.25, 3); SFX.play('tick');
+         }
+       } });
+  return hat;
+}
 const SKILLS = {
   diluc(f) {
     startAct(f, 'skill', 0.38, { slow: 0.1 }); f.cd = 1.1;
@@ -2233,7 +2246,7 @@ const SKILLS = {
   lyney(f) {
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 2.8;
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 100, delay: 0.08, life: 0.1, dmg: 6, kb: 0.9, ang: 45, el: 'pyro', vis: 'boom' });
-    hb({ owner: f, shape: 'circle', x: f.x - f.dir * 30, y: f.y - 14, r: 80, delay: 1.4, life: 0.1, dmg: 5, kb: 1.0, ang: 50, el: 'pyro', radial: true, persist: true, hat: true, vis: 'boom' });
+    lyneyHat(f, f.x - f.dir * 30, f.y - 14, 1.4);
   },
   navia(f) {
     startAct(f, 'skill', 0.35, { slow: 0.1 }); f.cd = 2.2;
@@ -2786,13 +2799,14 @@ const BURSTS = {
   } },
   lyney: { name: '기적의 퍼레이드', fn(f) {
     const hx = f.x, hy = f.y;
-    startAct(f, 'dash', 0.3, { slow: 0 }); f.inv = 0.6;
-    hb({ owner: f, follow: true, ox: 10, oy: 34, w: 90, h: 60, life: 0.3, dmg: 5, kb: 0.6, ang: 30, el: 'pyro', persist: true, vis: 'dash',
+    startAct(f, 'dash', 0.45, { slow: 0, edgeStop: true }); f.inv = 0.75;   // edgeStop: a dash along the ground ends at the edge instead of running off it
+    hb({ owner: f, follow: true, ox: 10, oy: 34, w: 90, h: 60, life: 0.45, dmg: 10, kb: 0.6, ang: 30, el: 'pyro', persist: true, vis: 'dash', lyneyDash: true,
          onEnd: h => {
-           hb({ owner: h.owner, shape: 'circle', x: h.owner.x, y: h.owner.y - 34, r: 120, life: 0.12, dmg: 10, kb: 1.6, ang: 50, el: 'pyro', radial: true, persist: true, vis: 'boom' });
+           if (h.owner.act && h.owner.act.edgeStop) h.owner.act.t = Math.min(h.owner.act.t, 0.05);
+           hb({ owner: h.owner, shape: 'circle', x: h.owner.x, y: h.owner.y - 34, r: 120, life: 0.12, dmg: 20, kb: 1.6, ang: 50, el: 'pyro', radial: true, persist: true, vis: 'boom' });
            puff(h.owner.x, h.owner.y - 34, '#ffb04d', 30, 360, 0.7, 6, -150); game.shake = Math.max(game.shake, 10); SFX.play('heavy');
          } });
-    hb({ owner: f, shape: 'circle', x: hx, y: hy - 14, r: 80, delay: 1.0, life: 0.1, dmg: 5, kb: 1.0, ang: 50, el: 'pyro', radial: true, persist: true, hat: true, vis: 'boom' });
+    lyneyHat(f, hx, hy - 14, 1.0);
   } },
   navia: { name: '축포의 날', fn(f, foe) {
     // Six shells drop from the sky around where the opponent is and fall all the way to the ground. A shell does 10% to whoever it strikes on the
@@ -3583,9 +3597,15 @@ function stepFighter(f, foe, dt) {
     if (env.wind && (!f.onGround || env.ice)) f.vx += env.wind * dt * (f.onGround ? 0.5 : 1);
   }
 
-  const prevY = f.y, ledge = f.onGround && f.plat && f.act && f.act.kind === 'atk' && f.hitstun <= 0 ? f.plat : null;
+  const prevY = f.y, ledge = f.onGround && f.plat && f.act && (f.act.kind === 'atk' || f.act.edgeStop) && f.hitstun <= 0 ? f.plat : null;
   f.x += f.vx * dt; f.y += f.vy * dt;
-  if (ledge) { const nx = clamp(f.x, ledge.x0 + 4, ledge.x1 - 4); if (nx !== f.x) { f.x = nx; f.vx = 0; } }   // a ground attack stops at the ledge
+  if (ledge) {   // a ground attack stops at the ledge (and Lyney's burst dash: it ends right there and goes off)
+    const nx = clamp(f.x, ledge.x0 + 4, ledge.x1 - 4);
+    if (nx !== f.x) {
+      f.x = nx; f.vx = 0;
+      if (f.act.edgeStop) for (const h of g.hits) if (h.owner === f && h.lyneyDash && !h.dead && h.age >= h.delay) h.life = Math.min(h.life, h.age - h.delay);
+    }
+  }
   const wasPlat = f.plat;
   f.onGround = false; f.plat = null;
   if (f.vy >= 0) {
@@ -8508,7 +8528,7 @@ const KIT = {
   yae: { cd: 2.5, skill: '살생앵을 심습니다(최대 3그루, 6초). 근처 적에게 1초마다 번개를 떨어뜨립니다.', burst: '적의 위치에 천둥 세 번을 내리고, 심어 둔 살생앵 한 그루당 천둥이 한 번 더 떨어집니다.' },
   tighnari: { cd: 3.4, skill: '상대가 있는 자리를 겨냥해 씨앗을 포물선으로 던지고, 떨어진 곳에 4초 동안 풀의 지대를 만듭니다. 유도는 없습니다.', burst: '화살 여섯 발을 부채꼴로 연달아 쏩니다. 화살은 날아가며 상대를 자동으로 쫓아갑니다.' },
   neuvillette: { cd: 5.6, skill: '1초 동안 앞으로 긴 물줄기 광선을 쏴서 여러 번 맞힙니다. 쓰는 동안 움직일 수 없고, 맞으면 끊깁니다.', burst: '주변에 큰 물결을 일으키고, 적의 위치에 물기둥 두 개를 떨어뜨립니다.' },
-  lyney: { cd: 3.9, skill: '주변에 불꽃을 터뜨리고 그 자리에 모자를 남깁니다. 모자는 1.4초 뒤 폭발합니다.', burst: '잠시 무적이 되어 앞으로 질주한 뒤 멈춘 곳에서 크게 폭발합니다. 출발한 자리의 모자도 따라 터집니다.' },
+  lyney: { cd: 3.9, skill: '주변에 불꽃을 터뜨리고 그 자리에 모자 폭탄을 남깁니다. 모자는 1.4초 뒤, 또는 상대가 밟는 즉시 폭발해 크게 날려 보냅니다.', burst: '잠시 무적이 되어 앞으로 길게 질주한 뒤 멈춘 곳에서 크게 폭발합니다. 땅 위를 달리다 끝에 닿으면 그 자리에서 멈춰 터집니다. 출발한 자리의 모자 폭탄도 따라 터집니다.' },
   navia: { cd: 3.1, skill: '수정 파편 세 발을 부채꼴로 쏘고, 3초 동안 평타에 바위 원소가 실립니다. 결정 반응으로 생긴 결정을 주우면 1개당 다음 스킬 피해가 20% 늘어납니다(최대 6개, 쓰면 소모).', burst: '적 주변에 포탄 여섯 발이 하늘에서 지면까지 차례로 떨어집니다. 떨어지는 포탄에 직접 맞거나 땅에서 터질 때 휘말리면 한 발당 10% 바위 원소 피해를 받습니다(유도 없음, 한 발에 두 번 맞지는 않음). 적에게 불·물·번개·얼음이 묻어 있으면 맞을 때마다 결정이 생깁니다.' },
   wriothesley: { cd: 6.0, skill: '피해 4%를 내주고 4초 동안 주먹에 얼음이 실립니다. 피해 +30%, 밀쳐내는 힘이 커집니다.', burst: '앞으로 연속 주먹을 퍼붓고, 마지막에 거대한 얼음 주먹을 상대 쪽으로 날립니다. 주먹은 상대를 지나 멀리까지 날아가며 크게 날려 보냅니다.' },
   clorinde: { cd: 5.0, skill: '4초 동안 사냥 태세가 됩니다. 태세 중에는 평타가 상대 쪽으로 쏘는 번개 총알로 바뀝니다(유도 없음). 태세 중에 스킬을 다시 누르면 앞으로 찌르며 돌진합니다(재사용 1.2초). 태세가 끝나면 5초 뒤 다시 쓸 수 있습니다.', burst: '전장이 어두워지고 상대가 있던 자리에 별빛이 반짝입니다. 클로린드는 모습을 감추고(그동안 무적) 그 자리를 번개 빛줄기로 가른 뒤, 사방에서 다섯 번 빠르게 베고, 마지막에 빛의 고리를 터뜨려 날려 보냅니다. 끝나면 그 자리 옆에 다시 나타납니다. 자리를 따라가지 않습니다.' },
