@@ -1449,6 +1449,7 @@ function updateHits(dt) {
       if (overlaps(h, c, f)) {
         h.hit.add(f);
         applyHit(h, f);
+        if (h.onHit) h.onHit(h, f);
         if (h.proj && !h.pierce) { h.dead = true; if (h.onEnd) h.onEnd(h); break; }
       }
     }
@@ -1946,6 +1947,7 @@ function uppercut(f) {
   SFX.play('swing');
 }
 function doAttack(f) {
+  if (f.ks && !f.upHeld && kinichLoop(f)) return;   // Kinich in Nightsoul's Blessing: the Loop Shot (out of reach: his plain attack)
   if (f.buff && f.buff.yaksha && !f.onGround) { plunge(f); return; }
   if (f.upHeld) { uppercut(f); return; }
   if (f.downHeld && !f.onGround && highUp(f)) { plunge(f); return; }
@@ -2099,6 +2101,91 @@ function lyneyHat(f, x, y, fuse) {
          }
        } });
   return hat;
+}
+// Kinich, after Genshin's Canopy Hunter: Riding High. Close enough, his hook line catches the opponent and he enters Nightsoul's Blessing
+// for KN_TIME seconds: his basic attack becomes a Loop Shot (a leap over and round the opponent while firing at them), Nightsoul points
+// build up (2 a second, 1.5 for each Loop Shot hit, 4 for stepping into the blind spot that opens behind the opponent), and at KN_MAX the
+// skill key fires the Scalespiker Cannon. The line breaks past KN_LEASH and catches again with the next Loop Shot in reach.
+const KN_TIME = 8, KN_MAX = 20, KN_REACH = 460, KN_LEASH = 560;
+function kinichHook(f, x, y) {   // the hook line shooting out to a point, for a moment
+  hb({ owner: f, x, y, w: 0, h: 0, life: 0.28, harmless: true, persist: true, vis: 'knhook' });
+}
+function kinichBlind(f, foe) {   // the blind spot: on the far side of the opponent from him, on the ground
+  const side = sgn(foe.x - f.x) || 1, x = foe.x + side * 92, gp = groundBelow({ x, y: foe.y - 10 });
+  f.ks.blind = { x, y: gp && gp.y - foe.y < 140 ? gp.y : foe.y, t: 4 };
+}
+function kinichLoop(f) {   // the Loop Shot: up and over the opponent to the other side, two shots at them on the way
+  const k = f.ks, foe = game.fighters[1 - f.idx];
+  if (foe.dead) return false;
+  const d = Math.hypot(foe.x - f.x, foe.y - f.y);
+  if (!k.link) { if (d > KN_REACH) return false; k.link = true; kinichHook(f, foe.x, foe.y - 40); }
+  const side = sgn(foe.x - f.x) || f.dir, tx = foe.x + side * clamp(Math.abs(foe.x - f.x), 70, 150), T = 0.62, g = GRAV * f.def.grav * game.env.grav;
+  startAct(f, 'atk', 0.6, { slow: 0 }); f.combo = 1; f.comboT = 0;
+  f.vx = (tx - f.x) / T * 1.05; f.vy = -0.5 * g * T + (foe.y - f.y) / T * 0.5;   // lands just past them (1.05: the air slows him a little) f.onGround = false; f.dir = side;
+  for (const dl of [0.12, 0.3]) hb({ owner: f, x: f.x, y: f.y, w: 0, h: 0, delay: dl, life: 0.01, harmless: true, persist: true, vis: 'none',
+    onStart: () => {
+      const o = game.fighters[1 - f.idx]; if (o.dead || f.dead) return;
+      const sx = f.x, sy = f.y - 44, a = Math.atan2(o.y - 36 - sy, o.x - sx);
+      hb({ owner: f, proj: true, shape: 'circle', r: 11, x: sx, y: sy, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, life: 0.6, dmg: 3, kb: 0.3, ang: 40, el: 'dendro', persist: true,
+           vis: 'arrow', trail: true, color: '#5ef2c8', onHit: () => { if (f.ks) f.ks.pts = Math.min(KN_MAX, f.ks.pts + 1.5); } });
+      puff(sx, sy, '#5ef2c8', 4, 120, 0.25, 3); SFX.play('swing');
+    } });
+  return true;
+}
+function kinichCannon(f, foe) {   // the Scalespiker Cannon: all the points in one huge spike of dendro, then the line catches again
+  const k = f.ks; k.pts = 0; k.link = true;
+  startAct(f, 'skill', 0.45, { slow: 0 });
+  f.dir = sgn(foe.x - f.x) || f.dir;
+  const sx = f.x + f.dir * 20, sy = f.y - 46, a = Math.atan2(foe.y - 36 - sy, foe.x - sx);
+  f.vx = -Math.cos(a) * 260; f.vy = Math.min(f.vy, -Math.sin(a) * 260 - 120);   // the kick of the shot
+  hb({ owner: f, proj: true, shape: 'circle', r: 24, x: sx, y: sy, vx: Math.cos(a) * 1250, vy: Math.sin(a) * 1250, delay: 0.08, life: 0.7, dmg: 14, kb: 1.55, ang: 38, el: 'dendro', persist: true,
+       vis: 'scalespiker', onStart: () => { puff(sx, sy, '#5ef2c8', 18, 300, 0.4, 4); game.shake = Math.max(game.shake, 7); SFX.play('heavy'); },
+       onEnd: m => { puff(m.x, m.y, '#b8f07a', 22, 340, 0.5, 5); puff(m.x, m.y, '#5ef2c8', 12, 260, 0.45, 4); spark(m.x, m.y, '#8fd94a', 70); } });
+  kinichBlind(f, foe);
+  ftext(f.x, f.y - 108, '비늘 관통포!', '#b8f07a', 20, 0.9);
+}
+function kinichTick(f, foe, dt) {   // Nightsoul's Blessing while it lasts: points, the line, the blind spot
+  const k = f.ks;
+  k.t -= dt;
+  if (k.t <= 0 || f.dead) { f.ks = null; f.cd = Math.max(f.cd, 6); f.cdMax = f.cd; return; }
+  k.pts = Math.min(KN_MAX, k.pts + 2 * dt);
+  if (k.link && (foe.dead || Math.hypot(foe.x - f.x, foe.y - f.y) > KN_LEASH)) { k.link = false; ftext(f.x, f.y - 96, '연결 끊김', '#9fbfb0', 13, 0.6); }
+  const b = k.blind;
+  if (b) {
+    b.t -= dt;
+    if (b.t <= 0) k.blind = null;
+    else if (Math.abs(f.x - b.x) < 36 && f.y > b.y - 60 && f.y < b.y + 20) {   // he stepped into it
+      k.pts = Math.min(KN_MAX, k.pts + 4); k.blind = null;
+      puff(b.x, b.y - 10, '#5ef2c8', 14, 220, 0.4, 3, -120); ftext(b.x, b.y - 40, '사각지대 +4', '#5ef2c8', 14, 0.7);
+    }
+  }
+}
+// Drawn over the fight for Kinich in Nightsoul's Blessing: the line to the opponent, the blind spot on the ground, his points over his head
+function drawKinich(f, t) {
+  const k = f.ks, foe = game.fighters[1 - f.idx];
+  ctx.save(); ctx.lineCap = 'round';
+  if (k.blind) {   // a ring of teal light on the ground, pulsing, with a small mark at its centre
+    const b = k.blind, p = 0.5 + 0.5 * Math.sin(t * 7), al = Math.min(1, b.t * 2);
+    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = al;
+    ctx.strokeStyle = 'rgba(94,242,200,.85)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(b.x, b.y, 26 + 5 * p, 8 + 2 * p, 0, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(200,255,240,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(b.x, b.y, 16, 5, 0, 0, 7); ctx.stroke();
+    ctx.fillStyle = 'rgba(94,242,200,' + (0.25 + 0.25 * p) + ')'; ctx.fillRect(b.x - 1.5, b.y - 34, 3, 26);   // a column of light rising from it
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  }
+  if (k.link && !foe.dead) {   // the hook line: sagging a little, dark with a teal glow along it
+    const S = f.def.scale, x0 = f.x + f.dir * 12 * S, y0 = f.y - 46 * S, x1 = foe.x, y1 = foe.y - 40 * foe.def.scale, mx = (x0 + x1) / 2, my = (y0 + y1) / 2 + 26;
+    ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(94,242,200,.35)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(mx, my, x1, y1); ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = '#1d3a2c'; ctx.lineWidth = 1.8; ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = '#c8fff0'; ctx.beginPath(); ctx.arc(x1, y1, 3 + Math.sin(t * 12), 0, 7); ctx.fill();   // where the hook bites
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  // the Nightsoul points: a small bar under his feet (the tags over his head stay clear), glowing when full
+  const w = 44, x = f.x - w / 2, y = f.y + 9, q = k.pts / KN_MAX, full = q >= 1;
+  ctx.fillStyle = 'rgba(8,14,20,.75)'; rr(x - 2, y - 2, w + 4, 8, 4); ctx.fill();
+  ctx.fillStyle = full ? (Math.sin(t * 14) > 0 ? '#c8fff0' : '#5ef2c8') : '#3fbf9c'; rr(x, y, Math.max(3, w * q), 4, 2); ctx.fill();
+  ctx.fillStyle = 'rgba(94,242,200,.8)'; ctx.fillRect(x, y + 6, w * clamp(k.t / KN_TIME, 0, 1), 1.5);   // how long the Blessing has left
+  if (full) { ctx.font = '700 10px ' + BODY; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#c8fff0'; ctx.fillText('K: 비늘 관통포', f.x, y + 10); }
+  ctx.restore();
 }
 const SKILLS = {
   diluc(f) {
@@ -2303,16 +2390,25 @@ const SKILLS = {
     startAct(f, 'dash', 0.4, { slow: 0 }); f.cd = 2.6; f.vx = f.dir * 900; f.vy = 0;
     hb({ owner: f, follow: true, ox: 24, oy: 30, w: 110, h: 64, life: 0.4, dmg: 7, kb: 1.1, ang: 35, el: 'pyro', vis: 'dash' });
   },
-  kinich(f) {
-    const foe = game.fighters[1 - f.idx];
-    startAct(f, 'skill', 0.4, { slow: 1 }); f.cd = 2.2;
-    if (!foe.dead && Math.abs(foe.x - f.x) > 4) f.dir = sgn(foe.x - f.x);
-    f.vx = f.dir * 420; f.vy = -560; f.onGround = false;   // swing in toward the opponent
-    const sx = f.x, sy = f.y - 40;
-    for (let i = 0; i < 2; i++) {
-      const a = foe.dead ? (f.dir > 0 ? 0 : Math.PI) : Math.atan2(foe.y - 34 - sy, foe.x - sx) + (i ? 0.1 : -0.1);
-      hb({ owner: f, proj: true, anchor: true, shape: 'circle', r: 12, ox: 20, oy: 40, vx: Math.cos(a) * 760, vy: Math.sin(a) * 760, delay: 0.15 + i * 0.12, life: 0.7,
-           dmg: 4, kb: 0.5, ang: 30, el: 'dendro', vis: 'arrow' });
+  kinich(f) {   // Canopy Hunter: Riding High (see KN_ and kinichTick)
+    const foe = game.fighters[1 - f.idx], k = f.ks;
+    if (k) {   // already in Nightsoul's Blessing: with full points the Scalespiker Cannon, otherwise nothing yet
+      if (k.pts >= KN_MAX && !foe.dead) kinichCannon(f, foe);
+      else if (f.ctrl !== 'cpu') ftext(f.x, f.y - 100, '밤혼 ' + Math.floor(k.pts) + ' / ' + KN_MAX, '#5ef2c8', 13, 0.6);
+      f.cd = 0; return;
+    }
+    if (!foe.dead && Math.hypot(foe.x - f.x, foe.y - f.y) < KN_REACH) {   // the hook catches the opponent: Nightsoul's Blessing begins
+      f.dir = sgn(foe.x - f.x) || f.dir;
+      startAct(f, 'skill', 0.32, { slow: 0.3 }); f.cd = 0;
+      f.ks = { t: KN_TIME, pts: 0, link: true, blind: null };
+      kinichHook(f, foe.x, foe.y - 40);
+      hb({ owner: f, shape: 'circle', x: foe.x, y: foe.y - 36, r: 30, delay: 0.1, life: 0.06, dmg: 2, kb: 0.2, ang: 20, el: 'dendro', track: foe, trackY: true, persist: true, vis: 'none' });
+      kinichBlind(f, foe);
+      ftext(f.x, f.y - 104, '밤혼 가호', '#5ef2c8', 18, 1);
+    } else {   // nothing to catch: the hook flies ahead and up and he swings forward through the air, and the skill comes back much sooner
+      startAct(f, 'skill', 0.36, { slow: 0 }); f.cd = 1.2;
+      kinichHook(f, f.x + f.dir * 240, f.y - 230);
+      f.vx = f.dir * 720; f.vy = -640; f.onGround = false;
     }
   },
   mualani(f) {
@@ -3313,7 +3409,7 @@ function trySwap(f) {
   m.jumps = Math.min(f.jumps, m.def.jumps);
   m.dead = false; m.hitstun = 0; m.act = null; m.combo = 0; m.comboT = 0; m.rot = 0; m.trail = []; m.inv = Math.max(m.inv, 0.25);
   for (const h of g.hits) if (h.owner === f && h.follow && !h.persist) h.dead = true;
-  f.act = null; f.trail = []; f.combo = 0; f.guarding = false;
+  f.act = null; f.trail = []; f.combo = 0; f.guarding = false; if (f.ks) { f.ks = null; f.cd = Math.max(f.cd, 6); }
   g.fighters[f.idx] = m; g.swapCd[f.idx] = 1.0;
   const col = EL[m.def.el].color;
   puff(m.x, m.y - 34, col, 18, 240, 0.5, 4); spark(m.x, m.y - 34, col, 46);
@@ -3534,6 +3630,7 @@ function stepFighter(f, foe, dt) {
     elemHit(f.x, f.y - 36, 'cryo', 1.2, -Math.PI / 2); puff(f.x, f.y - 36, '#ffffff', 12, 240, 0.35, 3);
     ftext(f.x, f.y - 96, '탈출!', '#dff4ff', 18, 0.7); SFX.play('hit');
   }
+  if (f.ks) kinichTick(f, foe, dt);
   const free = f.hitstun <= 0 && f.frozen <= 0;
   if (inp.swap && free && live && !f.act && trySwap(f)) return;
   // Guard: held with H. It blocks hits but the meter wears down, both over time and with every blocked hit.
@@ -6616,6 +6713,23 @@ function drawHits(t, under = false) {
         ctx.save(); ctx.scale(1, 0.12); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, 160 * g + 1, 0, 7); ctx.fill(); ctx.restore();
         break;
       }
+      case 'knhook': {   // Kinich's hook line shooting out from his hand to its point
+        const o = h.owner, S = o.def.scale, x0 = o.x + o.dir * 12 * S - c.x, y0 = o.y - 46 * S - c.y, p = easeOut(clamp(k / 0.45, 0, 1)), fade = 1 - clamp((k - 0.6) / 0.4, 0, 1);
+        ctx.globalAlpha = fade; ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(94,242,200,.5)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 * (1 - p), y0 * (1 - p)); ctx.stroke();
+        ctx.strokeStyle = '#e8fff8'; ctx.lineWidth = 1.4; ctx.stroke();
+        ctx.fillStyle = '#c8fff0'; ctx.beginPath(); ctx.arc(x0 * (1 - p), y0 * (1 - p), 4, 0, 7); ctx.fill();
+        break;
+      }
+      case 'scalespiker': {   // the Scalespiker Cannon: a long spike of dendro light with a teal core and a glowing wake
+        ctx.rotate(Math.atan2(h.vy, h.vx));
+        const wake = ctx.createLinearGradient(-120, 0, 0, 0); wake.addColorStop(0, 'rgba(94,242,200,0)'); wake.addColorStop(1, 'rgba(94,242,200,.6)');
+        ctx.fillStyle = wake; ctx.beginPath(); ctx.moveTo(-120, 0); ctx.lineTo(0, -12); ctx.lineTo(0, 12); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#8fd94a'; ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-8, -14); ctx.lineTo(34, 0); ctx.lineTo(-8, 14); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#e8fff8'; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-4, -6); ctx.lineTo(26, 0); ctx.lineTo(-4, 6); ctx.closePath(); ctx.fill();
+        for (const sd of [-1, 1]) { ctx.fillStyle = 'rgba(184,240,122,.85)'; ctx.beginPath(); ctx.moveTo(-6, sd * 10); ctx.lineTo(-22, sd * 22); ctx.lineTo(4, sd * 8); ctx.closePath(); ctx.fill(); }   // fins like scales
+        break;
+      }
       case 'xburst': {   // the X bursts: a black core, a red rim, shards thrown outward
         ctx.save(); ctx.globalCompositeOperation = 'source-over';
         const R = h.r * (0.45 + 0.85 * easeOut(k)), al = 1 - k * k;
@@ -8319,6 +8433,7 @@ function render(t) {
     for (const f of g.fighters) if (!f.dead) { if (gfxHigh()) drawFighterLit(f, t); else drawFighter(f, t); }
     for (const f of g.fighters) if (!f.dead) { drawSpin(f, t, true); if (flinsFire(f)) blueBlaze(f, t, flinsFire(f), true); }
     drawHits(t);
+    for (const f of g.fighters) if (f.ks && !f.dead) drawKinich(f, t);
     drawParticles();
     if (gfxHigh()) drawBloom(t);
     drawMapFx(t);
@@ -8535,7 +8650,7 @@ const KIT = {
   wanderer: { cd: 6.0, skill: '스킬을 쓴 자리에서 정해진 높이만큼만 살짝 떠올라 3초 동안 그 높이에 머뭅니다. 점프해도 더 올라가지 않습니다. 떠 있는 동안에도 평타·강공격·필살기를 쓸 수 있고, 피해 +20%, 이동 속도가 60% 빨라집니다. 떠 있는 동안에는 공격하면서도 이동 속도가 그대로이고, 평타가 20% 빨라지며 강공격은 30% 짧게 눌러도 나갑니다.', burst: '상대가 있는 자리에 공 모양 바람 소용돌이를 만들어 1초 동안 가두고 여러 번 맞힌 뒤 터뜨립니다. 다 맞으면 22 정도 들어갑니다.' },
   nilou: { cd: 7.0, skill: '5초 동안 평타 전부에 물 원소가 실립니다. 그동안 강공격(꾹)을 쓰면 바라보는 쪽으로 80도 부채꼴의 물결이 날아가며, 멀어질수록 넓게 퍼집니다.', burst: '자신을 중심으로 바닥에 원형 물결을 퍼뜨리고, 0.9초 뒤 한 번 더 크게 퍼뜨립니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
   mavuika: { cd: 3.6, skill: '오토바이를 타고 상대가 있는 쪽으로 빠르게 돌진합니다. 공중에서도 쓸 수 있습니다.', burst: '불붙은 대검을 한 바퀴 크게 휘둘러, 자신을 중심으로 바닥에 원형으로 불 원소 피해를 줍니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
-  kinich: { cd: 3.1, skill: '적이 있는 쪽으로 높이 뛰어들면서 풀 탄환 두 발을 쏩니다.', burst: '꼬마 용 아쥬를 그 자리에 6초 동안 소환합니다. 아쥬는 0.75초마다 상대 쪽으로 풀 원소 미사일을 쏩니다(8발, 유도 없음). 키니치를 교체해도 남아서 계속 쏩니다.' },
+  kinich: { cd: 6, skill: '가까운 상대에게 갈고리줄을 걸고 8초 동안 밤혼 가호 상태가 됩니다. 이때 평타는 상대를 넘어 반대편으로 날아가며 두 발을 쏘는 회전 사격이 되고, 밤혼이 쌓입니다(초당 2, 명중마다 1.5, 상대 뒤의 사각지대를 밟으면 4). 밤혼 20을 채우고 다시 쓰면 비늘 관통포를 발사합니다. 주변에 상대가 없으면 앞쪽 위로 갈고리줄을 쏴 날아가고 금방 다시 쓸 수 있습니다.', burst: '꼬마 용 아쥬를 그 자리에 6초 동안 소환합니다. 아쥬는 0.75초마다 상대 쪽으로 풀 원소 미사일을 쏩니다(8발, 유도 없음). 키니치를 교체해도 남아서 계속 쏩니다.' },
   mualani: { cd: 5.0, skill: '3.5초 동안 파도를 타고 빠르게 달립니다. 달리며 적에 부딪힐 때마다 파도 기세가 쌓이고(최대 3), 다음 평타에 기세 1개당 피해가 6.5 늘어납니다(3개면 +19.5). 맞아서 밀려나도 파도타기는 끊기지 않습니다.', burst: '적을 향해 큰 물 덩어리를 쏩니다. 닿거나 끝까지 날아가면 크게 폭발합니다. 유도는 없습니다.' },
   citlali: { cd: 5.0, skill: '방어막을 얻고, 2초 동안 몸 주위의 서리 고리가 가까운 적에게 얼음을 묻힙니다.', burst: '적의 위치에 얼음 별을 떨어뜨려 얼리고, 주변에 얼음 폭발 세 번이 이어집니다.' },
   skirk: { cd: 4.2, skill: '앞으로 빠르게 돌진하며 얼음을 실어 벱니다. 공중에서도 쓸 수 있습니다.', burst: '앞쪽 허공을 베어 검은 균열을 엽니다. 균열은 열린 자리에 머물고, 그 안을 연속으로 벤 뒤 마지막 일격에 균열이 얼음처럼 깨지며 크게 날려 보냅니다.' },
