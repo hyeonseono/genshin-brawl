@@ -2971,25 +2971,28 @@ const BURSTS = {
     groundBurst(f, 440, 'pyro', { dmg: 20, kb: 1.8, ang: 48, delay: 0.16, life: 0.3 });
     puff(f.x, f.y - 20, '#ffb04d', 30, 380, 0.7, 6, -150);
   } },
-  kinich: { name: '아쥬 소환', fn(f) {
-    // Ajaw, his little dragon, hovers where it was called for 6 seconds and fires a dendro missile at the opponent every 0.75 s
+  kinich: { name: '위대하고 신성한 용을 경배하라', fn(f) {
+    // Ajaw's power let loose: a burst of dendro around Kinich, then Ajaw, grown large, flies at the shoulder of whoever is fielded for 10 s and
+    // every 2 s breathes a beam at the spot where the opponent stands; it bursts there a moment later (so it can be stepped away from).
+    // In Nightsoul's Blessing the Blessing lasts 1.7 s longer.
     for (const h of game.hits) if (h.owner === f && h.vis === 'ajaw') h.dead = true;
-    hb({ owner: f, x: f.x - f.dir * 52, y: f.y - 126, life: 6, harmless: true, persist: true, vis: 'ajaw',
+    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 40, r: 150, delay: 0.05, life: 0.12, dmg: 6, kb: 1.15, ang: 55, el: 'dendro', persist: true, vis: 'boom',
+         onStart: () => { game.shake = Math.max(game.shake, 9); puff(f.x, f.y - 40, '#b8f07a', 26, 360, 0.6, 5); puff(f.x, f.y - 40, '#5ef2c8', 14, 300, 0.5, 4); } });
+    if (f.ks) { f.ks.t += 1.7; ftext(f.x, f.y - 124, '밤혼 가호 +1.7초', '#5ef2c8', 15, 1); }
+    hb({ owner: f, x: f.x - f.dir * 60, y: f.y - 128, life: 10, harmless: true, persist: true, vis: 'ajaw', big: true,
          onTick: (h, dt) => {
+           const o = game.fighters[h.owner.idx], foe = game.fighters[1 - h.owner.idx];
+           if (!o.dead) { h.x += (o.x - o.dir * 60 - h.x) * Math.min(1, dt * 5); h.y += (o.y - 128 - h.y) * Math.min(1, dt * 5); }   // drifts after the fielded fighter, over the shoulder
            h.cast = Math.max(0, (h.cast || 0) - dt);
-           h.fire = (h.fire ?? 0.35) - dt;
-           if (h.fire > 0) return;
-           h.fire = 0.75;
-           const o = h.owner, foe = game.fighters[1 - o.idx];
-           if (foe.dead) return;
-           const a = Math.atan2(foe.y - 34 * foe.def.scale - h.y, foe.x - h.x);
-           h.cast = 0.22; h.face = Math.cos(a) < 0 ? -1 : 1;
-           hb({ owner: o, proj: true, shape: 'circle', r: 13, x: h.x + Math.cos(a) * 22, y: h.y + Math.sin(a) * 22, vx: Math.cos(a) * 640, vy: Math.sin(a) * 640, life: 1.5,
-                dmg: 3, kb: 0.45, ang: 35, el: 'dendro', persist: true, vis: 'arrow', trail: true, color: EL.dendro.color,
-                onEnd: m => { puff(m.x, m.y, '#b8f07a', 10, 220, 0.35, 4); spark(m.x, m.y, '#8fd94a', 40); } });
-           SFX.play('swing');
+           h.breath = (h.breath ?? 0.8) - dt;
+           if (h.breath > 0 || foe.dead) return;
+           h.breath = 2;
+           const ex = foe.x, ey = foe.y - 34 * foe.def.scale; h.face = sgn(ex - h.x) || 1; h.cast = 0.55;
+           hb({ owner: h.owner, x: h.x + h.face * 30, y: h.y + 4, ex, ey, w: 0, h: 0, life: 0.55, harmless: true, persist: true, vis: 'ajawbeam' });
+           hb({ owner: h.owner, shape: 'circle', x: ex, y: ey, r: 78, delay: 0.3, life: 0.1, dmg: 5, kb: 0.95, ang: 55, el: 'dendro', radial: true, persist: true, vis: 'boom',
+                onStart: m => { puff(m.x, m.y, '#b8f07a', 18, 300, 0.45, 4); puff(m.x, m.y, '#5ef2c8', 8, 220, 0.4, 3); game.shake = Math.max(game.shake, 5); SFX.play('heavy'); } });
          } });
-    puff(f.x - f.dir * 52, f.y - 126, '#b8f07a', 22, 260, 0.5, 4); ftext(f.x - f.dir * 52, f.y - 166, '아쥬!', '#d9e84a', 18, 1);
+    puff(f.x - f.dir * 60, f.y - 128, '#b8f07a', 26, 280, 0.55, 5); ftext(f.x - f.dir * 60, f.y - 190, '아쥬!', '#d9e84a', 20, 1);
   } },
   mualani: { name: '상어 미사일', fn(f, foe) {
     const sx = f.x + f.dir * 20, sy = f.y - 60, a = foe.dead ? (f.dir > 0 ? 0 : Math.PI) : Math.atan2(foe.y - 34 - sy, foe.x - sx);
@@ -6404,9 +6407,10 @@ function drawHits(t, under = false) {
         break;
       }
       case 'ajaw': {   // Kinich's companion: a small blocky dragon that hovers and spits missiles
-        const left = h.delay + h.life - h.age, al = Math.min(1, left * 2.5, (h.age - h.delay) * 6 + 0.2), bob = Math.sin(t * 4) * 4, open = h.cast > 0 ? h.cast / 0.22 : 0;
+        const left = h.delay + h.life - h.age, al = Math.min(1, left * 2.5, (h.age - h.delay) * 6 + 0.2), bob = Math.sin(t * 4) * 4, open = h.cast > 0 ? Math.min(1, h.cast / 0.22) : 0;
         const fd = h.face || (game.fighters[1 - h.owner.idx].x < c.x ? -1 : 1), flap = Math.sin(t * 16) * 5;
-        ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = al; ctx.translate(0, bob); ctx.scale(fd, 1);
+        const AS = h.big ? 1.7 : 1;   // let loose by the burst: much bigger
+        ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = al; ctx.translate(0, bob); ctx.scale(fd * AS, AS);
         const px = (x, y, w, hh, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, hh); };
         px(-22, -6 + flap, 8, 6, '#f08a3a'); px(-26, -10 + flap, 6, 6, '#f0b03a');          // wing
         px(-16, 6, 6, 6, '#b8d43a'); px(-22, 10, 6, 5, '#8fb02a');                             // tail
@@ -6423,7 +6427,8 @@ function drawHits(t, under = false) {
         ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0, 0, 40 + 10 * open, 0, 7); ctx.fill();
         ctx.restore();
         ctx.save(); ctx.globalCompositeOperation = 'source-over';   // time left
-        ctx.fillStyle = 'rgba(8,11,28,.6)'; ctx.fillRect(-16, 26 + bob, 32, 4); ctx.fillStyle = '#d9e84a'; ctx.fillRect(-16, 26 + bob, 32 * clamp(left / h.life, 0, 1), 4);
+        const by2 = (h.big ? 40 : 26) + bob;
+        ctx.fillStyle = 'rgba(8,11,28,.6)'; ctx.fillRect(-16, by2, 32, 4); ctx.fillStyle = '#d9e84a'; ctx.fillRect(-16, by2, 32 * clamp(left / h.life, 0, 1), 4);
         ctx.restore();
         break;
       }
@@ -6711,6 +6716,23 @@ function drawHits(t, under = false) {
         }
         const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, 160 * g); pg.addColorStop(0, 'rgba(255,50,40,.4)'); pg.addColorStop(1, 'rgba(255,50,40,0)');
         ctx.save(); ctx.scale(1, 0.12); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, 160 * g + 1, 0, 7); ctx.fill(); ctx.restore();
+        break;
+      }
+      case 'ajawbeam': {   // Dragon's Breath: a flickering thin line marks the spot first, then a thick beam of dendro light pours down it
+        const dx = h.ex - c.x, dy = h.ey - c.y, T = h.age - h.delay, fire = T >= 0.3, q = fire ? clamp((T - 0.3) / 0.25, 0, 1) : 0;
+        ctx.lineCap = 'round';
+        if (!fire) {   // the aim: a thin line and a ring on the spot, flickering
+          ctx.globalAlpha = 0.45 + 0.35 * Math.sin(T * 60);
+          ctx.strokeStyle = '#c8fff0'; ctx.lineWidth = 1.2; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(dx, dy); ctx.stroke(); ctx.setLineDash([]);
+          ctx.strokeStyle = '#8fd94a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(dx, dy, 30 * (1 - T / 0.3) + 10, 0, 7); ctx.stroke();
+        } else {
+          const w = 16 * (1 - q) + 2;
+          ctx.globalAlpha = 1 - q * q;
+          ctx.strokeStyle = 'rgba(143,217,74,.55)'; ctx.lineWidth = w * 2.2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(dx, dy); ctx.stroke();
+          ctx.strokeStyle = '#b8f07a'; ctx.lineWidth = w; ctx.stroke();
+          ctx.strokeStyle = '#f4fff0'; ctx.lineWidth = w * 0.35; ctx.stroke();
+          ctx.fillStyle = '#f4fff0'; ctx.beginPath(); ctx.arc(0, 0, w * 0.9, 0, 7); ctx.fill();   // the glow at Ajaw's mouth
+        }
         break;
       }
       case 'knhook': {   // Kinich's hook line shooting out from his hand to its point
@@ -8650,7 +8672,7 @@ const KIT = {
   wanderer: { cd: 6.0, skill: '스킬을 쓴 자리에서 정해진 높이만큼만 살짝 떠올라 3초 동안 그 높이에 머뭅니다. 점프해도 더 올라가지 않습니다. 떠 있는 동안에도 평타·강공격·필살기를 쓸 수 있고, 피해 +20%, 이동 속도가 60% 빨라집니다. 떠 있는 동안에는 공격하면서도 이동 속도가 그대로이고, 평타가 20% 빨라지며 강공격은 30% 짧게 눌러도 나갑니다.', burst: '상대가 있는 자리에 공 모양 바람 소용돌이를 만들어 1초 동안 가두고 여러 번 맞힌 뒤 터뜨립니다. 다 맞으면 22 정도 들어갑니다.' },
   nilou: { cd: 7.0, skill: '5초 동안 평타 전부에 물 원소가 실립니다. 그동안 강공격(꾹)을 쓰면 바라보는 쪽으로 80도 부채꼴의 물결이 날아가며, 멀어질수록 넓게 퍼집니다.', burst: '자신을 중심으로 바닥에 원형 물결을 퍼뜨리고, 0.9초 뒤 한 번 더 크게 퍼뜨립니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
   mavuika: { cd: 3.6, skill: '오토바이를 타고 상대가 있는 쪽으로 빠르게 돌진합니다. 공중에서도 쓸 수 있습니다.', burst: '불붙은 대검을 한 바퀴 크게 휘둘러, 자신을 중심으로 바닥에 원형으로 불 원소 피해를 줍니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
-  kinich: { cd: 6, skill: '가까운 상대에게 갈고리줄을 걸고 8초 동안 밤혼 가호 상태가 됩니다. 이때 평타는 상대를 넘어 반대편으로 날아가며 두 발을 쏘는 회전 사격이 되고, 밤혼이 쌓입니다(초당 2, 명중마다 1.5, 상대 뒤의 사각지대를 밟으면 4). 밤혼 20을 채우고 다시 쓰면 비늘 관통포를 발사합니다. 주변에 상대가 없으면 앞쪽 위로 갈고리줄을 쏴 날아가고 금방 다시 쓸 수 있습니다.', burst: '꼬마 용 아쥬를 그 자리에 6초 동안 소환합니다. 아쥬는 0.75초마다 상대 쪽으로 풀 원소 미사일을 쏩니다(8발, 유도 없음). 키니치를 교체해도 남아서 계속 쏩니다.' },
+  kinich: { cd: 6, skill: '가까운 상대에게 갈고리줄을 걸고 8초 동안 밤혼 가호 상태가 됩니다. 이때 평타는 상대를 넘어 반대편으로 날아가며 두 발을 쏘는 회전 사격이 되고, 밤혼이 쌓입니다(초당 2, 명중마다 1.5, 상대 뒤의 사각지대를 밟으면 4). 밤혼 20을 채우고 다시 쓰면 비늘 관통포를 발사합니다. 주변에 상대가 없으면 앞쪽 위로 갈고리줄을 쏴 날아가고 금방 다시 쓸 수 있습니다.', burst: '신성한 용 아쥬의 힘을 풀어 주변에 풀 원소 충격파를 일으킵니다. 커진 아쥬가 10초 동안 어깨 뒤를 따라다니며 2초마다 상대가 있던 자리에 용의 숨결을 내뿜고, 그 자리가 잠시 뒤 터집니다(조준선이 보이니 피할 수 있습니다). 교체해도 나온 캐릭터를 따라다닙니다. 밤혼 가호 중이면 가호가 1.7초 늘어납니다.' },
   mualani: { cd: 5.0, skill: '3.5초 동안 파도를 타고 빠르게 달립니다. 달리며 적에 부딪힐 때마다 파도 기세가 쌓이고(최대 3), 다음 평타에 기세 1개당 피해가 6.5 늘어납니다(3개면 +19.5). 맞아서 밀려나도 파도타기는 끊기지 않습니다.', burst: '적을 향해 큰 물 덩어리를 쏩니다. 닿거나 끝까지 날아가면 크게 폭발합니다. 유도는 없습니다.' },
   citlali: { cd: 5.0, skill: '방어막을 얻고, 2초 동안 몸 주위의 서리 고리가 가까운 적에게 얼음을 묻힙니다.', burst: '적의 위치에 얼음 별을 떨어뜨려 얼리고, 주변에 얼음 폭발 세 번이 이어집니다.' },
   skirk: { cd: 4.2, skill: '앞으로 빠르게 돌진하며 얼음을 실어 벱니다. 공중에서도 쓸 수 있습니다.', burst: '앞쪽 허공을 베어 검은 균열을 엽니다. 균열은 열린 자리에 머물고, 그 안을 연속으로 벤 뒤 마지막 일격에 균열이 얼음처럼 깨지며 크게 날려 보냅니다.' },
