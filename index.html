@@ -1025,6 +1025,9 @@ const MAPS = [
     sky: ['#04163a', '#0a3a6a', '#2a7ab0'], far: '10,40,80', rock: ['#3a4a6a', '#121a2a'], grass: ['#7ae0d0', '#2a8a9a'], plat: ['#2a5a7a', '#7ae0d0', '#183048'], glow: '140,220,255', mote: '#bfefff', fall: -1, grav: 0.8,
     plats: [[-160, 1120, 400], [-360, -200, 330, 's'], [1160, 1320, 330, 's'], [40, 180, 290, 'v', { amp: 60, sp: 0.9 }], [780, 920, 290, 'v', { amp: 60, sp: 0.9, ph: 3.14 }], [380, 580, 200], [-140, -10, 170], [970, 1100, 170], [400, 560, 70, 'm', { amp: 240, sp: 0.45 }]],
     updrafts: [[-430, 100, 100], [1390, 100, 100]] },
+  { id: 'void', name: '빈 수련장', sub: '아무것도 없는 평지', rule: '발판도 낭떠러지도 함정도 없이 끝없이 평평한 땅입니다. 걸어서 떨어질 곳이 없어 기술을 연습하기 좋습니다. 양 끝에는 걸어서는 지나갈 수 없는 빛의 벽이 있습니다. 바닥 눈금은 120칸마다 있습니다. 세게 맞으면 벽 너머로 날아가 화면 밖으로 나가는 것은 다른 맵과 같습니다.',
+    sky: ['#0e1226', '#1a2140', '#2a3458'], far: '40,50,90', rock: ['#252c4a', '#10142a'], grass: ['#c9d2f0', '#7a86b8'], plat: ['#252c4a', '#c9d2f0', '#10142a'], glow: '180,195,255', mote: '#c9d2f0', fall: -1, plain: true, walls: [-760, 1720],
+    plats: [[BLAST.l - 400, BLAST.r + 400, 400]] },
 ];
 const MAP = Object.fromEntries(MAPS.map(m => [m.id, m]));
 const hash1 = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };   // steady pseudo-random for stage details
@@ -3916,6 +3919,11 @@ function stepFighter(f, foe, dt) {
   f.wasGround = f.onGround;
 
   stepVisual(f, dt);
+  if (curMap.walls && f.hitstun <= 0) {   // walls you cannot walk or jump through (only from inside, just at the line: a hard hit still carries past them)
+    const [wl, wr] = curMap.walls;
+    if (f.x < wl && f.x > wl - 60) { f.x = wl; if (f.vx < 0) f.vx = 0; }
+    else if (f.x > wr && f.x < wr + 60) { f.x = wr; if (f.vx > 0) f.vx = 0; }
+  }
   if (f.x < BLAST.l || f.x > BLAST.r || f.y > BLAST.b || f.y < BLAST.t) die(f);
 }
 
@@ -4334,6 +4342,7 @@ let curMap = MAPS[0];
 const MAP_ART = {};   // id -> canvas holding the map picture, cover-fitted with a little margin for parallax and darkened toward the ground
 function loadMapArt() {
   for (const m of MAPS) {
+    if (m.plain) continue;   // drawn, not a picture
     const im = new Image();
     im.onload = () => {
       const c = document.createElement('canvas'); c.width = Math.round(W * 1.12); c.height = Math.round(H * 1.12);
@@ -4354,6 +4363,16 @@ function paintBackdrop(b, m) {
     b.drawImage(art, -(art.width - W) / 2, -(art.height - H) / 2);
     const hz = b.createLinearGradient(0, H * 0.6, 0, H); hz.addColorStop(0, 'rgba(' + m.glow + ',0)'); hz.addColorStop(1, 'rgba(' + m.glow + ',.18)');
     b.fillStyle = hz; b.fillRect(0, H * 0.6, W, H * 0.4);
+    return;
+  }
+  if (m.plain) {
+    const bg = b.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, m.sky[0]); bg.addColorStop(0.7, m.sky[1]); bg.addColorStop(1, m.sky[2]);
+    b.fillStyle = bg; b.fillRect(0, 0, W, H);
+    b.strokeStyle = 'rgba(' + m.glow + ',.07)'; b.lineWidth = 1;
+    for (let x = 0; x <= W; x += 60) { b.beginPath(); b.moveTo(x + 0.5, 0); b.lineTo(x + 0.5, H); b.stroke(); }
+    for (let y = 0; y <= H; y += 60) { b.beginPath(); b.moveTo(0, y + 0.5); b.lineTo(W, y + 0.5); b.stroke(); }
+    const hz = b.createRadialGradient(W / 2, H * 0.78, 10, W / 2, H * 0.78, W * 0.6); hz.addColorStop(0, 'rgba(' + m.glow + ',.16)'); hz.addColorStop(1, 'rgba(' + m.glow + ',0)');
+    b.fillStyle = hz; b.fillRect(0, 0, W, H);
     return;
   }
   const sky = b.createLinearGradient(0, 0, 0, H);
@@ -4571,6 +4590,17 @@ function drawGround(p, th, t) {
       ctx.restore();
       break;
     }
+    case 'void': {   // the plain floor: solid to the bottom, faint grid, a mark every 120 (a longer one every 480, the middle one gold)
+      ctx.fillRect(x0, y, w, 900);
+      ctx.strokeStyle = 'rgba(' + th.glow + ',.08)'; ctx.lineWidth = 1;
+      for (let gy = y + 40; gy < y + 400; gy += 60) { ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x1, gy); ctx.stroke(); }
+      for (let gx = 480 - 120 * Math.ceil((480 - x0) / 120); gx <= x1; gx += 120) {
+        const big = Math.round((gx - 480) / 120) % 4 === 0;
+        ctx.strokeStyle = 'rgba(' + th.glow + ',.08)'; ctx.beginPath(); ctx.moveTo(gx, y + 16); ctx.lineTo(gx, y + 400); ctx.stroke();
+        ctx.fillStyle = gx === 480 ? '#ffe27a' : 'rgba(' + th.glow + ',' + (big ? '.55' : '.3') + ')'; ctx.fillRect(gx - 1, y + 16, 2, big ? 14 : 8);
+      }
+      break;
+    }
     case 'snezhnaya': { // an ice floe with icicles
       rr(x0, y, w, 52, 16); ctx.fill();
       const n = Math.max(2, Math.round(w / 38)); ctx.fillStyle = 'rgba(214,240,255,.85)';
@@ -4762,6 +4792,11 @@ function drawStage(t) {
   const m = PLATS[0], th = curMap, X = u => m.x0 + u * (m.x1 - m.x0);
   drawProps(th, t);
   for (const p of PLATS) if (p.solid) drawGround(p, th, t);
+  if (th.walls) for (const wx of th.walls) {   // the walls: a faint sheet of light rising from the floor
+    const gl = ctx.createLinearGradient(0, -700, 0, 400); gl.addColorStop(0, 'rgba(' + th.glow + ',0)'); gl.addColorStop(1, 'rgba(' + th.glow + ',.22)');
+    ctx.fillStyle = gl; ctx.fillRect(wx - (wx < 480 ? 14 : 0), -700, 14, 1100);
+    ctx.fillStyle = 'rgba(' + th.glow + ',' + (0.35 + 0.15 * Math.sin(t * 2)) + ')'; ctx.fillRect(wx - 1, -700, 2, 1100);
+  }
   if (th.id === 'mond') {   // old runes carved into the island
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 6; i++) {
