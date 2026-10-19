@@ -2805,7 +2805,7 @@ function spawnRobot(f, life) {
         return;
       }
       h.face = dx < 0 ? -1 : 1;
-      if (Math.abs(dx) > 78) { h.x += sgn(dx) * Math.min(Math.abs(dx) - 70, 260 * dt); h.walk += dt; }
+      if (Math.abs(dx) > 78) { h.x += sgn(dx) * Math.min(Math.abs(dx) - 70, 260 * dt); h.walk += dt; h.moving = 0.12; } else h.moving = Math.max(0, (h.moving || 0) - dt);
       h.y += clamp(ty - h.y, -240 * dt, 240 * dt);
       h.cool -= dt;
       if (h.cool <= 0 && Math.abs(dx) < 104 && Math.abs(ty - h.y) < 70) { h.wind = 0.22; h.cool = 0.6; }
@@ -3134,8 +3134,8 @@ const BURSTS = {
     if (bot) bot.life = Math.max(bot.life, bot.age + 1.4); else bot = spawnRobot(f, 1.4);
     const dir = foe.dead ? f.dir : sgn(foe.x - bot.x);
     bot.face = dir; bot.beam = 1.2; bot.wind = 0;
-    const bx = bot.x + dir * 212, by = bot.y - 20;   // the beam starts at the machine itself, so someone standing right in front of it is hit too
-    const b1 = hb({ owner: f, x: bx, y: by, w: 440, h: 72, delay: 0.1, life: 0.85, rehit: 0.14, dmg: 2.3, kb: 0.25, ang: 10, el: 'cryo', persist: true, vis: 'beam' });
+    const bx = bot.x + dir * 212, by = bot.y - 30;   // the beam starts at the machine itself, so someone standing right in front of it is hit too
+    const b1 = hb({ owner: f, x: bx, y: by, w: 440, h: 84, delay: 0.1, life: 0.85, rehit: 0.14, dmg: 2.3, kb: 0.25, ang: 10, el: 'cryo', persist: true, vis: 'beam' });
     const b2 = hb({ owner: f, x: bx + dir * 20, y: by, w: 480, h: 100, delay: 1.0, life: 0.12, dmg: 8, kb: 1.6, ang: 35, el: 'cryo', persist: true, vis: 'slashbig',
                     onStart: () => { game.shake = Math.max(game.shake, 9); SFX.play('heavy'); } });
     b1.sdir = b2.sdir = dir;
@@ -5117,6 +5117,8 @@ function spriteSilhouette(id, col) {
    for frames drawn with a long stride (so the feet keep up with the ground). Frames: [x, y, w, h, anchor x (the head), anchor y (the soles)] in atlas pixels.
    They hold their own weapon, so the game draws none for them. k: game units per atlas pixel. */
 const SPRITE_ANIM = {
+  florinia: { k: 0.34247, walk: 1.0, src: 'img/sprite/florinia-anim.webp', f: { idle1: [2, 2, 262, 365, 153.0, 365.0], walk1: [266, 2, 286, 364, 180.0, 364.0], walk2: [554, 2, 283, 364, 178.0, 364.0], idle2: [839, 2, 262, 353, 163.0, 353.0], brace: [1103, 2, 289, 352, 165.0, 352.0], ready: [1394, 2, 273, 345, 169.0, 345.0], brace2: [1669, 2, 275, 342, 156.0, 342.0], reach: [2, 369, 351, 338, 200.0, 338.0] } },   // the two-sheet set: wide walk, run, charged attack
+  sandrone: { k: 0.39356, walk: 1.4, src: 'img/sprite/sandrone-anim.webp', f: { upper: [2, 2, 159, 257, 98.0, 257.0], run4: [2, 444, 200, 161, 144.0, 161.0], atk1: [370, 2, 171, 222, 98.0, 222.0], hang: [543, 2, 106, 221, 53.0, 221.0], windup: [651, 2, 200, 209, 141.0, 209.0], guard: [853, 2, 165, 208, 105.0, 208.0], idle2: [1020, 2, 239, 205, 103.0, 205.0], idle1: [1261, 2, 242, 203, 107.0, 203.0], blink: [1505, 2, 232, 203, 98.0, 203.0], fall: [1739, 2, 164, 192, 83.0, 192.0], jump: [2, 261, 158, 181, 111.0, 181.0], heavy: [162, 261, 270, 175, 111.0, 175.0], skill: [434, 261, 205, 175, 143.0, 175.0], burst: [641, 261, 286, 175, 104.0, 175.0], atk2: [929, 261, 277, 169, 111.0, 169.0], hurt: [1208, 261, 219, 168, 81.0, 168.0], run1: [1429, 261, 216, 168, 174.0, 168.0], run3: [1647, 261, 233, 165, 171.0, 165.0], run2: [2, 444, 200, 161, 144.0, 161.0], atk3: [204, 444, 250, 146, 114.0, 146.0] } },   // the two-sheet set: wide walk, run, charged attack
   cynojackal: { k: 0.40681, walk: 1.4, src: 'img/sprite/cynojackal-anim.webp', f: { upper: [2, 2, 113, 278, 68.0, 278.0], hang: [117, 2, 97, 225, 53.0, 225.0], idle1: [216, 2, 136, 221, 81.0, 221.0], idle2: [354, 2, 140, 220, 87.0, 220.0], run4: [496, 2, 140, 219, 82.0, 219.0], blink: [638, 2, 141, 217, 83.5, 217.0], guard: [781, 2, 154, 202, 85.5, 202.0], burst: [937, 2, 212, 197, 115.0, 197.0], jump: [1151, 2, 134, 194, 65.0, 194.0], fall: [1287, 2, 192, 188, 95.0, 188.0], hurt: [1481, 2, 187, 185, 66.0, 185.0], run2: [1670, 2, 189, 183, 104.0, 183.0], run3: [1861, 2, 182, 181, 94.0, 181.0], windup: [2, 282, 183, 180, 97.0, 180.0], atk1: [187, 282, 202, 180, 82.0, 180.0], run1: [391, 282, 172, 177, 94.5, 177.0], atk2: [565, 282, 235, 177, 95.0, 177.0], heavy: [802, 282, 259, 168, 91.0, 168.0], atk3: [1063, 282, 275, 164, 106.5, 164.0], skill: [1340, 282, 282, 144, 107.0, 144.0] } },   // Cyno transformed (his burst): clawed hands, no polearm; drawn in place of his own frames while the jackal rite lasts
   cyno: { k: 0.41499, walk: 1.4, src: 'img/sprite/cyno-anim.webp', f: { upper: [2, 2, 123, 285, 85.0, 285.0], idle2: [127, 2, 132, 228, 76.0, 228.0], idle1: [261, 2, 130, 224, 79.0, 224.0], blink: [393, 2, 128, 220, 75.0, 220.0], run4: [523, 2, 126, 219, 94.0, 219.0], hang: [651, 2, 78, 214, 39.0, 214.0], windup: [731, 2, 176, 191, 95.0, 191.0], atk2: [909, 2, 191, 191, 84.0, 191.0], guard: [1102, 2, 218, 188, 108.0, 188.0], jump: [1322, 2, 127, 186, 74.0, 186.0], atk1: [1451, 2, 270, 182, 86.0, 182.0], run2: [1723, 2, 183, 180, 127.0, 180.0], burst: [2, 289, 193, 180, 100.0, 180.0], run1: [197, 289, 183, 179, 133.0, 179.0], fall: [382, 289, 214, 179, 84.0, 179.0], hurt: [598, 289, 133, 177, 49.0, 177.0], run3: [733, 289, 169, 177, 101.0, 177.0], skill: [904, 289, 254, 175, 117.0, 175.0], atk3: [1160, 289, 309, 172, 117.0, 172.0], heavy: [1471, 289, 294, 166, 114.0, 166.0] } },   // the two-sheet set: wide walk, run, charged attack
   arlecchino: { k: 0.39137, walk: 1.4, src: 'img/sprite/arlecchino-anim.webp', f: { upper: [2, 2, 161, 250, 84.0, 250.0], idle1: [165, 2, 178, 240, 82.0, 240.0], blink: [345, 2, 175, 239, 80.0, 239.0], idle2: [522, 2, 179, 238, 80.0, 238.0], burst: [703, 2, 241, 236, 95.0, 236.0], hang: [946, 2, 86, 226, 47.0, 226.0], run4: [1034, 2, 180, 220, 87.0, 220.0], guard: [1216, 2, 213, 199, 94.0, 199.0], windup: [1431, 2, 188, 186, 146.0, 186.0], jump: [1621, 2, 124, 183, 87.0, 183.0], atk2: [1747, 2, 247, 180, 107.0, 180.0], fall: [2, 254, 161, 178, 89.0, 178.0], hurt: [165, 254, 205, 171, 58.0, 171.0], skill: [372, 254, 198, 160, 161.5, 160.0], atk1: [572, 254, 270, 158, 118.0, 158.0], atk3: [844, 254, 272, 158, 149.5, 158.0], run3: [1118, 254, 212, 157, 150.0, 157.0], heavy: [1332, 254, 278, 157, 133.0, 157.0], run1: [1612, 254, 212, 155, 171.0, 155.0], run2: [1826, 254, 216, 152, 153.0, 152.0] } },   // the two-sheet set: wide walk, run, charged attack
@@ -6901,6 +6903,31 @@ function drawHits(t, under = false) {
         const left = h.delay + h.life - h.age, al = Math.min(1, left * 3, (h.age - h.delay) * 6 + 0.15), bob = Math.sin(t * 3.2) * 2.5;
         const wind = h.wind > 0 ? 1 - h.wind / 0.22 : 0, sw = h.swing > 0 ? h.swing / 0.3 : 0, firing = h.beam > 0;
         const BLK = '#17181f', GOLD = '#d2b25a', STEEL = '#aab0bc';
+        if (SPRITE_ANIM_IMG.florinia) {   // Florinia, drawn: she walks after the opponent; arm drawn back, then the punch; chest opened while firing, leaning back on the last blast
+          const H = SPRITE_ANIM.florinia.f.idle1[3] * SPRITE_ANIM.florinia.k, feet = 46, gp = groundBelow({ x: h.x, y: h.y + feet }), air = !gp || gp.y - (h.y + feet) > 10;
+          const fr = firing ? (1.2 - h.beam < 0.98 ? 'brace' : 'brace2') : h.wind > 0 ? 'ready' : h.swing > 0 ? 'reach'
+                   : h.moving > 0 ? (Math.floor(h.walk * 5) % 2 ? 'walk2' : 'walk1') : (Math.floor(t * 1.4) % 2 ? 'idle2' : 'idle1');
+          ctx.save(); ctx.globalAlpha = al;
+          if (air) {   // off the ground it rides on a cold jet
+            ctx.globalCompositeOperation = 'lighter';
+            const jet = ctx.createRadialGradient(0, feet, 2, 0, feet, 34); jet.addColorStop(0, 'rgba(127,230,255,.75)'); jet.addColorStop(1, 'rgba(127,230,255,0)');
+            ctx.fillStyle = jet; ctx.beginPath(); ctx.ellipse(0, feet + 2, 36, 10 + 2 * Math.sin(t * 20), 0, 0, 7); ctx.fill();
+          }
+          ctx.globalCompositeOperation = fxPass ? 'lighter' : 'source-over';
+          if (!fxPass) { ctx.save(); ctx.translate(0, feet); ctx.scale(h.face, 1); drawAnim('florinia', fr, {}); ctx.restore(); }
+          // the glow in its visor, and in its open chest while firing (this is all the glow pass draws of it)
+          const glow = (y, r, a) => { const g2 = ctx.createRadialGradient(0, y, 1, 0, y, r); g2.addColorStop(0, 'rgba(127,240,255,' + a + ')'); g2.addColorStop(1, 'rgba(127,240,255,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(0, y, r, 0, 7); ctx.fill(); };
+          ctx.globalCompositeOperation = 'lighter';
+          glow(feet - H * 0.8, firing ? 14 : 9, fxPass ? 0.7 : 0.45);
+          if (firing) glow(feet - H * 0.6, 30 + 4 * Math.sin(t * 30), fxPass ? 0.9 : 0.6);
+          ctx.restore();
+          if (!fxPass) {
+            ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = al;   // time left
+            ctx.fillStyle = 'rgba(8,11,28,.6)'; ctx.fillRect(-20, feet + 10, 40, 4); ctx.fillStyle = '#9fe6ff'; ctx.fillRect(-20, feet + 10, 40 * clamp(left / h.life, 0, 1), 4);
+            ctx.restore();
+          }
+          break;
+        }
         ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = al; ctx.translate(0, bob); ctx.scale(h.face * 1.25, 1.25);
         ctx.save(); ctx.globalCompositeOperation = 'lighter';   // it hovers on a cold jet
         const jet = ctx.createRadialGradient(0, 40, 2, 0, 40, 30); jet.addColorStop(0, 'rgba(127,230,255,.75)'); jet.addColorStop(1, 'rgba(127,230,255,0)');
