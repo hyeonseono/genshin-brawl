@@ -1314,7 +1314,7 @@ function startMatch(mapId) {
     hits: [], particles: [], texts: [], bolts: [], sparks: [], blasts: [], rifts: [], waves: [], marks: [], pickups: [], punch: 0, focus: { x: W / 2, y: H / 2 },
     hitstop: 0, shake: 0, flash: 0, dark: 0, bf: null, intro: 3.4, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
   };
-  for (const id of sel.flat()) loadArtHd(id);   // the full illustrations: side art, the burst cut-in, and the victory and result screens
+  for (const id of sel.flat()) { loadArtHd(id); loadAnim(id); }   // (online, the opponent's picks first become known here)   // the full illustrations: side art, the burst cut-in, and the victory and result screens
   held.clear(); edges.clear();
   showOv(null);
   state = 'fight';
@@ -1520,21 +1520,26 @@ function updateHits(dt) {
   g.hits = g.hits.filter(h => !h.dead);
 }
 
+// The look of each reaction, drawn over the one it happened to and following them for a moment (vis 'react', rk: which reaction).
+function reactFx(o, t, rk, el2, life = 0.6) {
+  hb({ owner: o, x: t.x, y: t.y - 34 * t.def.scale, w: 0, h: 0, life, harmless: true, persist: true, vis: 'react', rk, el2, rseed: rnd(0, 6.3),
+       onTick: h => { if (!t.dead) { h.x = t.x; h.y = t.y - 34 * t.def.scale; } } });
+}
 function reaction(o, t, aura, inc) {
   const r = { name: '', color: '#fff', dmgMul: 1, kbMul: 1, dmgAdd: 0 };
   const cx = t.x, cy = t.y - 34;
   if (aura === 'dendro' || inc === 'dendro') {
     switch ([aura, inc].sort().join('+')) {
       case 'dendro+hydro':
-        r.name = '개화'; r.color = EL.dendro.color; r.dmgAdd = 1;
+        r.name = '개화'; r.color = EL.dendro.color; r.dmgAdd = 1; reactFx(o, t, 'bloom');
         hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 90, delay: 0.6, life: 0.1, dmg: 7, kb: 1.2, ang: 50, radial: true, persist: true, core: true, vis: 'boom', color: EL.dendro.color });
         break;
-      case 'dendro+pyro': r.name = '연소'; r.color = '#ff8a3d'; r.dmgAdd = 2; t.burn = 3; t.burnTick = 0.3; puff(cx, cy, '#ff8a3d', 12, 200, 0.6, 4, -150); break;
-      case 'dendro+electro': r.name = '촉진'; r.color = '#b9e05a'; r.dmgAdd = 2; t.quicken = 6; puff(cx, cy, '#d8f08a', 12, 220, 0.5, 3); break;
+      case 'dendro+pyro': r.name = '연소'; r.color = '#ff8a3d'; r.dmgAdd = 2; t.burn = 3; t.burnTick = 0.3; reactFx(o, t, 'burning', null, 0.9); puff(cx, cy, '#ff8a3d', 12, 200, 0.6, 4, -150); break;
+      case 'dendro+electro': r.name = '촉진'; r.color = '#b9e05a'; r.dmgAdd = 2; t.quicken = 6; reactFx(o, t, 'quicken', null, 0.8); puff(cx, cy, '#d8f08a', 12, 220, 0.5, 3); break;
       default: return null;   // cryo, anemo and geo do not react with dendro
     }
   } else if (inc === 'anemo') {
-    r.name = '확산'; r.color = EL.anemo.color; r.dmgAdd = 3; r.kbMul = 1.3;
+    r.name = '확산'; r.color = EL.anemo.color; r.dmgAdd = 3; r.kbMul = 1.3; reactFx(o, t, 'swirl', aura);
     puff(cx, cy, EL[aura].color, 14, 260, 0.6, 5);
     for (const f of game.fighters) {
       if (f === o || f === t || f.dead) continue;
@@ -1544,22 +1549,22 @@ function reaction(o, t, aura, inc) {
     // Crystallize: geo meeting pyro, hydro, electro or cryo drops a crystal by the target. The aura is only worn down, so repeated geo hits keep producing crystals.
     r.name = '결정'; r.color = EL.geo.color; r.keep = true;
     if (game.pickups.length < 8 && game.time - (t.lastCrystal ?? -9) > 0.22) {
-      t.lastCrystal = game.time;
+      t.lastCrystal = game.time; reactFx(o, t, 'crystallize', null, 0.5);
       game.pickups.push({ x: t.x + rnd(-14, 14), y: cy, vy: -240, side: o.idx, el: aura, life: 8 });
     }
     puff(cx, cy, EL[aura].color, 8, 160, 0.4, 3);
   } else {
     switch ([aura, inc].sort().join('+')) {
-      case 'hydro+pyro': r.name = '증발'; r.color = '#ffc58a'; r.dmgMul = 1.5; r.kbMul = 1.15; puff(cx, cy, '#ffe3c4', 14, 200, 0.6, 6); break;
-      case 'cryo+pyro': r.name = '융해'; r.color = '#ffb36b'; r.dmgMul = 1.5; r.kbMul = 1.15; puff(cx, cy, '#ffd2a0', 14, 200, 0.6, 6); break;
-      case 'cryo+hydro': r.name = '빙결'; r.color = EL.cryo.color; r.dmgAdd = 1; r.kbMul = 0.12; t.frozen = 1.5; puff(cx, cy, '#d8f6ff', 16, 180, 0.6, 5); break;
-      case 'electro+hydro': r.name = '감전'; r.color = EL.electro.color; r.dmgAdd = 2; t.shock = 3; t.shockTick = 0.3; puff(cx, cy, '#e6c9ff', 12, 220, 0.4, 3); break;
+      case 'hydro+pyro': r.name = '증발'; r.color = '#ffc58a'; r.dmgMul = 1.5; r.kbMul = 1.15; reactFx(o, t, 'vaporize'); puff(cx, cy, '#ffe3c4', 14, 200, 0.6, 6); break;
+      case 'cryo+pyro': r.name = '융해'; r.color = '#ffb36b'; r.dmgMul = 1.5; r.kbMul = 1.15; reactFx(o, t, 'melt'); puff(cx, cy, '#ffd2a0', 14, 200, 0.6, 6); break;
+      case 'cryo+hydro': r.name = '빙결'; r.color = EL.cryo.color; r.dmgAdd = 1; r.kbMul = 0.12; t.frozen = 1.5; reactFx(o, t, 'frozen', null, 0.5); puff(cx, cy, '#d8f6ff', 16, 180, 0.6, 5); break;
+      case 'electro+hydro': r.name = '감전'; r.color = EL.electro.color; r.dmgAdd = 2; t.shock = 3; t.shockTick = 0.3; reactFx(o, t, 'charged', null, 0.9); puff(cx, cy, '#e6c9ff', 12, 220, 0.4, 3); break;
       case 'electro+pyro': {
-        r.name = '과부하'; r.color = '#ff9a5a'; r.kbMul = 1.2;
+        r.name = '과부하'; r.color = '#ff9a5a'; r.kbMul = 1.2; reactFx(o, t, 'overload', null, 0.55);
         hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 95, delay: 0.02, life: 0.08, dmg: 7, kb: 1.3, ang: 45, radial: true, persist: true, vis: 'boom', color: '#ff9a5a' });
         break;
       }
-      case 'cryo+electro': r.name = '초전도'; r.color = '#9a8cff'; r.dmgAdd = 3; t.vuln = 5; puff(cx, cy, '#cbbfff', 12, 200, 0.5, 4); break;
+      case 'cryo+electro': r.name = '초전도'; r.color = '#9a8cff'; r.dmgAdd = 3; t.vuln = 5; reactFx(o, t, 'superconduct', null, 0.7); puff(cx, cy, '#cbbfff', 12, 200, 0.5, 4); break;
     }
   }
   if (!r.name) return null;
@@ -2363,7 +2368,8 @@ const SKILLS = {
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 6;
     f.pct += 6; ftext(f.x, f.y - 92, '+6% 혈매향', '#ff6a5a', 16, 1);
     f.buff = { t: 4, mul: 1.25, el: 'pyro', speed: 1.12 };
-    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 70, delay: 0.08, life: 0.1, dmg: 4, kb: 0.8, ang: 45, el: 'pyro', vis: 'boom' });
+    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 70, delay: 0.08, life: 0.1, dmg: 4, kb: 0.8, ang: 45, el: 'pyro', vis: 'none' });
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 70, delay: 0.04, life: 0.7, harmless: true, persist: true, vis: 'paramita', sdir: f.dir });
     puff(f.x, f.y - 34, '#ff4a3a', 20, 240, 0.6, 4, -200);
   },
   kazuha(f) {
@@ -2439,7 +2445,8 @@ const SKILLS = {
            const o = h.owner, foe = game.fighters[1 - o.idx];
            if (foe.dead || Math.hypot(foe.x - h.x, foe.y - h.y) > 300) return;
            bolt(h.x, h.y - 20, foe.x, foe.y - 34, EL.electro.color);
-           hb({ owner: o, shape: 'circle', x: foe.x, y: foe.y - 34, r: 26, life: 0.06, dmg: 3, kb: 0.3, ang: 60, el: 'electro', persist: true, vis: 'boom' });
+           hb({ owner: o, shape: 'circle', x: foe.x, y: foe.y - 34, r: 26, life: 0.06, dmg: 3, kb: 0.3, ang: 60, el: 'electro', persist: true, vis: 'none' });
+           hb({ owner: o, shape: 'circle', x: foe.x, y: foe.y - 34, r: 26, life: 0.4, harmless: true, persist: true, vis: 'sakurastrike', rseed: rnd(0, 6.3) });
          } });
   },
   tighnari(f) {
@@ -2935,13 +2942,15 @@ const BURSTS = {
   } },
   venti: { name: '바람신의 시', fn(f) {
     hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 145, delay: 0, life: 1.0, dmg: 2.5, kb: 0.35, ang: 85, el: 'anemo', radial: true, persist: true, rehit: 0.2, pull: 330, vis: 'tornado' });
-    hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 175, delay: 1.0, life: 0.14, dmg: 10, kb: 1.8, ang: 50, el: 'anemo', radial: true, persist: true, vis: 'boom' });
+    hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 175, delay: 1.0, life: 0.14, dmg: 10, kb: 1.8, ang: 50, el: 'anemo', radial: true, persist: true, vis: 'none' });
+    hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 175, delay: 1.0, life: 0.55, harmless: true, persist: true, vis: 'windburst' });
   } },
   zhongli: { name: '천성', fn(f, foe) {
     hb({ owner: f, x: foe.x, y: 210, w: 150, h: 520, delay: 0.9, life: 0.12, dmg: 14, kb: 0.25, ang: 80, el: 'geo', persist: true, track: foe, stun: 1.0, vis: 'meteor',
          onStart: h => {
            game.shake = Math.max(game.shake, 12); game.flash = 0.3; SFX.play('heavy');
-           hb({ owner: h.owner, shape: 'circle', x: h.x, y: 360, r: 140, delay: 1.0, life: 0.12, dmg: 10, kb: 1.7, ang: 55, radial: true, el: 'geo', persist: true, vis: 'boom' });
+           hb({ owner: h.owner, shape: 'circle', x: h.x, y: 360, r: 140, delay: 1.0, life: 0.12, dmg: 10, kb: 1.7, ang: 55, radial: true, el: 'geo', persist: true, vis: 'none' });
+           hb({ owner: h.owner, shape: 'circle', x: h.x, y: 360, r: 140, delay: 1.0, life: 0.6, harmless: true, persist: true, vis: 'geoquake' });
          } });
   } },
   hutao: { name: '안신의 장례', fn(f) {
@@ -2989,7 +2998,8 @@ const BURSTS = {
     hb({ owner: f, shape: 'circle', x: f.x, y: f.y - 60, r: 320, delay: 0, life: 4, rehit: 0.7, dmg: 2, kb: 0.2, ang: 60, el: 'dendro', radial: true, persist: true, mark: 10, lock: true, vis: 'dome' });
   } },
   eula: { name: '빙랑의 만가', fn(f) {
-    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 170, life: 0.14, dmg: 12, kb: 1.3, ang: 50, el: 'cryo', radial: true, persist: true, vis: 'boom' });
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 170, life: 0.14, dmg: 12, kb: 1.3, ang: 50, el: 'cryo', radial: true, persist: true, vis: 'none' });
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 170, life: 0.5, harmless: true, persist: true, vis: 'icesweep' });
     f.lf = { t: 3, n: f.stack * 3, x: f.x + f.dir * 70, y: f.y - 70 }; f.stack = 0;
   } },
   klee: { name: '펑펑 불꽃놀이', fn(f) {
@@ -3000,7 +3010,9 @@ const BURSTS = {
            h.fire = 0.22;
            const o = h.owner, foe = game.fighters[1 - o.idx];
            if (foe.dead) return;
-           hb({ owner: o, shape: 'circle', x: foe.x + rnd(-50, 50), y: foe.y - 30 + rnd(-30, 30), r: 48, delay: 0.15, life: 0.08, dmg: 2.5, kb: 0.35, ang: 70, el: 'pyro', persist: true, vis: 'boom' });
+           const bx = foe.x + rnd(-50, 50), by = foe.y - 30 + rnd(-30, 30);
+           hb({ owner: o, shape: 'circle', x: bx, y: by, r: 48, delay: 0.15, life: 0.08, dmg: 2.5, kb: 0.35, ang: 70, el: 'pyro', persist: true, vis: 'none' });
+           hb({ owner: o, shape: 'circle', x: bx, y: by, r: 48, delay: 0.15, life: 0.45, harmless: true, persist: true, vis: 'firework', rseed: rnd(0, 6.3) });
          } });
   } },
   xingqiu: { name: '고화검 · 재우', fn(f) {
@@ -3485,7 +3497,8 @@ const BURSTS = {
 function doBurst(f, foe) {
   const g = game;
   f.energy = 0; f.inv = 0.9; f.buf.burst = 0;
-  g.cut = { t: 1.6, dur: 1.6, f, foe, struck: false };
+  const an = burstAnim(f.def.id), dur = an ? CHARGE_T + an.dur : 1.6;
+  g.cut = { t: dur, dur, f, foe, struck: false, sfxN: 0 };
   SFX.play('burst');
 }
 function finishBurst() {
@@ -4351,7 +4364,11 @@ function step(dt) {
   const g = game;
   if (g.cut) {
     g.cut.t -= dt;
-    if (!g.cut.struck && 1 - g.cut.t / g.cut.dur > 0.78) { g.cut.struck = true; SFX.play('heavy'); }
+    const an = burstAnim(g.cut.f.def.id);
+    if (an) {   // the sounds of the character's own animation, at their moments
+      const e = g.cut.dur - g.cut.t - CHARGE_T;
+      while (g.cut.sfxN < an.sfx.length && e >= an.sfx[g.cut.sfxN][0]) SFX.play(an.sfx[g.cut.sfxN++][1]);
+    } else if (!g.cut.struck && 1 - g.cut.t / g.cut.dur > 0.78) { g.cut.struck = true; SFX.play('heavy'); }
     if (g.cut.t <= 0) finishBurst();
     return;
   }
@@ -4385,9 +4402,10 @@ function step(dt) {
 const cv = $('cv');
 let ctx = cv.getContext('2d');   // swapped briefly while drawing select-screen portraits
 const view = { s: 1 };
+const MAX_PX_W = 1920;   // the drawing buffer is never wider than this; the browser scales it up on bigger screens
 function fit() {
-  const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
-  cv.width = Math.max(2, Math.round(r.width * dpr)); cv.height = Math.max(2, Math.round(r.height * dpr));
+  const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2), k = Math.min(1, MAX_PX_W / Math.max(1, r.width * dpr));
+  cv.width = Math.max(2, Math.round(r.width * dpr * k)); cv.height = Math.max(2, Math.round(r.height * dpr * k));
   view.s = cv.width / W;
 }
 new ResizeObserver(fit).observe(cv);
@@ -5302,8 +5320,9 @@ function weapon(d, ang, ext = 0, draw = 0) {
    SPRITE_K: game units per sprite pixel (one scale for all). */
 const SPRITE_META = { keqing: [130, 201, 88.0, 201, 156, 66, 111] };   // only Keqing for now (her still picture, shown until her frames load)
 const SPRITE_K = 0.38, SPRITE_IMG = {}, SPRITE_SIL = {};
-function loadSprites() {
-  for (const id in SPRITE_META) { const im = new Image(); im.onload = () => { SPRITE_IMG[id] = im; }; im.src = 'img/sprite/' + id + '.webp'; }
+function loadSprite(id) {   // a still picture, fetched the first time its character is picked
+  if (!SPRITE_META[id] || SPRITE_IMG[id] || loadSprite[id]) return;
+  const im = new Image(); loadSprite[id] = im; im.onload = () => { SPRITE_IMG[id] = im; }; im.src = 'img/sprite/' + id + '.webp';
 }
 // the sprite filled with one colour (hit flash, afterimages), made once per colour
 function spriteSilhouette(id, col) {
@@ -5367,9 +5386,15 @@ const SPRITE_ANIM = {
   venti: { k: 0.26025, walk: 1.4, src: 'img/sprite/venti-anim.webp', f: { upper: [2, 2, 181, 319, 125.0, 318.0], atk3: [185, 2, 213, 314, 136.0, 313.0], fall: [400, 2, 192, 308, 125.0, 307.0], run4: [594, 2, 199, 305, 138.0, 304.0], atk2: [795, 2, 219, 305, 137.0, 304.0], idle2: [1016, 2, 172, 303, 115.0, 302.0], walk2: [1190, 2, 145, 301, 97.0, 300.0], jump: [1609, 323, 225, 280, 184.0, 279.0], walk1: [1532, 2, 214, 298, 134.0, 297.0], guard: [1748, 2, 196, 297, 121.0, 296.0], burst: [2, 323, 200, 297, 117.0, 296.0], idle1: [204, 323, 182, 296, 118.0, 295.0], walk4: [388, 323, 177, 296, 108.0, 295.0], walk3: [567, 323, 229, 294, 140.0, 293.0], hang: [2, 323, 200, 297, 117.0, 296.0], atk1: [977, 323, 190, 294, 114.0, 293.0], windup: [1169, 323, 273, 291, 144.0, 290.0], blink: [1444, 323, 163, 290, 112.0, 289.0], skill: [1609, 323, 225, 280, 184.0, 279.0], hurt: [1836, 323, 198, 270, 107.0, 269.0], run3: [2, 622, 223, 265, 162.0, 264.0], run1: [227, 622, 212, 260, 125.5, 259.0], run2: [441, 622, 246, 248, 161.0, 247.0], heavy: [689, 622, 297, 220, 171.0, 219.0] } },   // the two-sheet set: wide walk, run, charged attack
   mona: { k: 0.28383, walk: 1.4, src: 'img/sprite/mona-anim.webp', f: { upper: [2, 2, 246, 317, 142.0, 317.0], heavy: [250, 2, 227, 314, 109.0, 313.0], run4: [479, 2, 225, 292, 127.0, 291.0], windup: [706, 2, 254, 292, 132.0, 291.0], atk3: [962, 2, 277, 292, 131.0, 291.0], atk1: [1241, 2, 294, 291, 123.0, 290.0], fall: [2, 891, 267, 245, 172.0, 244.0], atk2: [2, 321, 307, 290, 149.0, 289.0], jump: [479, 2, 225, 292, 127.0, 291.0], hang: [250, 2, 227, 314, 109.0, 313.0], hurt: [755, 321, 221, 282, 117.0, 282.0], walk4: [978, 321, 209, 280, 107.0, 279.0], idle2: [1189, 321, 215, 279, 113.0, 278.0], blink: [1406, 321, 210, 279, 108.0, 278.0], walk2: [1618, 321, 213, 278, 108.0, 277.0], burst: [2, 613, 280, 276, 135.0, 275.0], idle1: [284, 613, 224, 275, 112.0, 274.0], walk1: [510, 613, 236, 268, 130.0, 267.0], guard: [748, 613, 208, 267, 110.0, 266.0], walk3: [958, 613, 243, 266, 135.0, 265.0], skill: [1203, 613, 253, 257, 152.0, 257.0], run3: [1458, 613, 251, 255, 150.0, 254.0], run1: [1711, 613, 296, 245, 203.0, 244.0], run2: [2, 891, 267, 245, 172.0, 244.0] } },   // the two-sheet set: wide walk, run, charged attack
 };
-const SPRITE_ANIM_IMG = {};
-function loadAnims() {
-  for (const id in SPRITE_ANIM) { const im = new Image(); im.onload = () => { SPRITE_ANIM_IMG[id] = im; }; im.src = SPRITE_ANIM[id].src; }
+// The drawn frames are fetched only for the characters that are picked (with the extra sets some of them use), not all at start-up.
+const SPRITE_ANIM_IMG = {}, ANIM_LOADING = {};
+const ANIM_EXTRA = { cyno: ['cynojackal'], tartaglia: ['tartagliablades'], sandrone: ['florinia'] };   // the jackal, the twin blades, her machine
+function loadAnim(id) {
+  for (const a of [id, ...(ANIM_EXTRA[id] || [])]) {
+    if (!SPRITE_ANIM[a] || SPRITE_ANIM_IMG[a] || ANIM_LOADING[a]) continue;
+    const im = new Image(); ANIM_LOADING[a] = im; im.onload = () => { SPRITE_ANIM_IMG[a] = im; }; im.src = SPRITE_ANIM[a].src;
+  }
+  loadSprite(id); loadCine(id);
 }
 // which frame fits what the fighter is doing right now
 function animFrame(f, o, moving, air, ph, t, id = f.def.id) {   // id: the atlas in use (Cyno's jackal set while transformed)
@@ -6471,6 +6496,89 @@ function drawHits(t, under = false) {
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 5 * (1 - k); ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.stroke();
         break;
       }
+      case 'geoquake': {   // Zhongli's meteor landing: a flattened gold shockwave, cracks running out over the ground, rocks thrown up
+        const e = easeOut(k), fade = 1 - k;
+        ctx.globalAlpha = fade; ctx.strokeStyle = '#f5d77a'; ctx.lineWidth = 6 * fade + 1; ctx.beginPath(); ctx.ellipse(0, 30, 40 + 200 * e, 10 + 30 * e, 0, 0, 7); ctx.stroke();
+        ctx.strokeStyle = '#fff3c4'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.strokeStyle = '#e8b84a'; ctx.lineWidth = 2.5;
+        for (let i = 0; i < 10; i++) {   // cracks
+          const a = (i / 10) * Math.PI * 2, L = 150 * Math.min(1, k * 4);
+          ctx.beginPath(); ctx.moveTo(0, 30); let x = 0, y = 30;
+          for (let j = 1; j <= 4; j++) { x = Math.cos(a + (hash1(i * 7 + j) - 0.5) * 0.5) * L * j / 4; y = 30 + Math.sin(a) * L * j / 4 * 0.25; ctx.lineTo(x, y); }
+          ctx.stroke();
+        }
+        ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#8a6a3a';
+        for (let i = 0; i < 9; i++) {   // rocks thrown up and falling back
+          const a = -Math.PI / 2 + (hash1(i * 3.3) - 0.5) * 2.4, v = 260 + 220 * hash1(i * 5.1), tt = k * 0.6, x = Math.cos(a) * v * tt, y = 30 + Math.sin(a) * v * tt + 700 * tt * tt;
+          ctx.save(); ctx.translate(x, y); ctx.rotate(tt * 10 + i); ctx.fillRect(-5, -4, 10, 8); ctx.fillStyle = '#d8b46a'; ctx.fillRect(-5, -4, 10, 3); ctx.fillStyle = '#8a6a3a'; ctx.restore();
+        }
+        break;
+      }
+      case 'icesweep': {   // Eula's burst: the greatsword's frozen arc swept all the way round her, ice crystals left hanging in it
+        const e = easeOut(Math.min(1, k * 1.6)), fade = 1 - k, R = h.r;
+        ctx.lineCap = 'round';
+        for (const [w, col] of [[16, 'rgba(134,231,255,.45)'], [6, '#dff6ff'], [2, '#ffffff']]) {
+          ctx.globalAlpha = fade; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.ellipse(0, 0, R * 0.9, R * 0.45, 0, -Math.PI * 0.9, -Math.PI * 0.9 + Math.PI * 2 * e); ctx.stroke();
+        }
+        ctx.fillStyle = '#dff6ff';
+        for (let i = 0; i < 10; i++) {   // hexagonal crystals where the edge has passed
+          const a = -Math.PI * 0.9 + (i / 10) * Math.PI * 2; if ((i / 10) > e) continue;
+          const x = Math.cos(a) * R * 0.9, y = Math.sin(a) * R * 0.45, sz = 5 + 3 * hash1(i);
+          ctx.globalAlpha = fade; ctx.beginPath(); for (let j = 0; j < 6; j++) { const b = j / 6 * Math.PI * 2; j ? ctx.lineTo(x + Math.cos(b) * sz, y + Math.sin(b) * sz) : ctx.moveTo(x + Math.cos(b) * sz, y + Math.sin(b) * sz); } ctx.closePath(); ctx.fill();
+        }
+        break;
+      }
+      case 'paramita': {   // Hu Tao's skill: a ring of crimson flame round her and butterflies of fire fluttering out of it
+        const e = easeOut(k), fade = 1 - k;
+        ctx.globalAlpha = fade;
+        for (let i = 0; i < 12; i++) {   // flame tongues round the ring
+          const a = i / 12 * Math.PI * 2 + k * 2, R = 40 + 40 * e, x = Math.cos(a) * R, y = Math.sin(a) * R * 0.5, fl = 14 + 8 * Math.sin(t * 20 + i);
+          ctx.fillStyle = i % 2 ? '#ff4a3a' : '#ff9a5a'; ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.quadraticCurveTo(x, y - fl * 1.8, x + 5, y); ctx.fill();
+        }
+        for (let i = 0; i < 6; i++) {   // butterflies: two wings beating, drifting up and out
+          const a = -Math.PI / 2 + (i - 2.5) * 0.5, d = 20 + 90 * e, x = Math.cos(a) * d, y = Math.sin(a) * d * 0.8 - 20 * e, flap = Math.abs(Math.sin(t * 22 + i * 1.3));
+          ctx.save(); ctx.translate(x, y); ctx.rotate(a + Math.PI / 2);
+          ctx.fillStyle = '#ff6a4a'; for (const sx of [-1, 1]) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(sx * 10 * flap, -10, sx * 9 * flap, 2); ctx.quadraticCurveTo(sx * 6 * flap, 8, 0, 2); ctx.fill(); }
+          ctx.fillStyle = '#ffe0a0'; ctx.fillRect(-0.8, -4, 1.6, 8); ctx.restore();
+        }
+        break;
+      }
+      case 'firework': {   // Klee's burst: each blast a little firework, sparks of red, orange and gold flying out in a star
+        const e = easeOut(k), fade = 1 - k, sd = h.rseed || 0, cols = ['#ff5a3a', '#ffb04d', '#ffe27a', '#ff8ac0'];
+        for (let i = 0; i < 12; i++) {
+          const a = i / 12 * Math.PI * 2 + sd, d = 8 + h.r * 1.1 * e, x = Math.cos(a) * d, y = Math.sin(a) * d + 30 * k * k;
+          ctx.globalAlpha = fade; ctx.strokeStyle = cols[i % 4]; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x * 0.6, y * 0.6); ctx.lineTo(x, y); ctx.stroke();
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
+        }
+        const st = 10 * (1 - e) + 4; ctx.globalAlpha = fade; ctx.fillStyle = '#fff6d0';   // a star at the heart of it
+        ctx.beginPath(); ctx.moveTo(0, -st); ctx.lineTo(st * 0.3, -st * 0.3); ctx.lineTo(st, 0); ctx.lineTo(st * 0.3, st * 0.3); ctx.lineTo(0, st); ctx.lineTo(-st * 0.3, st * 0.3); ctx.lineTo(-st, 0); ctx.lineTo(-st * 0.3, -st * 0.3); ctx.closePath(); ctx.fill();
+        break;
+      }
+      case 'windburst': {   // Venti's burst ending: the tornado flung apart in wide spiralling arcs, his feathers scattered
+        const e = easeOut(k), fade = 1 - k, R = h.r;
+        ctx.lineCap = 'round';
+        for (let arm = 0; arm < 4; arm++) {
+          ctx.globalAlpha = fade; ctx.strokeStyle = arm % 2 ? '#62e6b4' : '#e8fff4'; ctx.lineWidth = 3.5 - arm * 0.5; ctx.beginPath();
+          for (let i = 0; i <= 24; i++) { const u = i / 24, a = arm * Math.PI / 2 + u * 3.2 + k * 4, r = R * (0.2 + u * 0.9 * e); i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r * 0.6) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r * 0.6); }
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#e8fff4';
+        for (let i = 0; i < 8; i++) {   // feathers
+          const a = i / 8 * Math.PI * 2 + 0.4, d = R * 0.3 + R * 0.8 * e, x = Math.cos(a) * d, y = Math.sin(a) * d * 0.6 + 20 * k;
+          ctx.save(); ctx.translate(x, y); ctx.rotate(a + k * 5); ctx.globalAlpha = fade; ctx.beginPath(); ctx.ellipse(0, 0, 8, 2.5, 0, 0, 7); ctx.fill(); ctx.restore();
+        }
+        break;
+      }
+      case 'sakurastrike': {   // Yae's sakura strike landing: petals of pink and violet flung open round a ring of lightning
+        const e = easeOut(k), fade = 1 - k, sd = h.rseed || 0;
+        ctx.globalAlpha = fade; ctx.strokeStyle = '#d0a8ff'; ctx.lineWidth = 3 * fade + 1; ctx.beginPath(); ctx.arc(0, 0, 12 + 34 * e, 0, 7); ctx.stroke();
+        for (let i = 0; i < 7; i++) {
+          const a = i / 7 * Math.PI * 2 + sd, d = 10 + 40 * e;
+          ctx.save(); ctx.translate(Math.cos(a) * d, Math.sin(a) * d); ctx.rotate(a + k * 3);
+          ctx.fillStyle = i % 2 ? '#ffb7d8' : '#e6a0ff'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(6, -5, 10, 0); ctx.quadraticCurveTo(6, 5, 0, 0); ctx.fill(); ctx.restore();
+        }
+        break;
+      }
       case 'thrust':
         ctx.scale(h.sdir, 1); ctx.globalAlpha = 1 - k * 0.8;
         ctx.fillStyle = h.color; ctx.beginPath(); ctx.moveTo(-h.w * 0.55, -4); ctx.lineTo(h.w * 0.55, 0); ctx.lineTo(-h.w * 0.55, 4); ctx.closePath(); ctx.fill();
@@ -7084,6 +7192,93 @@ function drawHits(t, under = false) {
           const a = T * 4 + i * 0.8, x = Math.cos(a) * R * 0.6, y = ground - 20 - (i * 17) % 90;
           ctx.fillStyle = i % 2 ? col : '#ffffff'; ctx.fillRect(x - 2, y - 2, 4, 4);
         }
+        break;
+      }
+      case 'react': {   // each reaction's own look (see reactFx), q: how far through it
+        const q = clamp((h.age - h.delay) / h.life, 0, 1), fade = 1 - q, e = easeOut(q), sd = h.rseed || 0;
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        const zig = (x0, y0, x1, y1, n, amp, s0) => { ctx.beginPath(); ctx.moveTo(x0, y0); for (let i = 1; i < n; i++) { const u = i / n; ctx.lineTo(lerp(x0, x1, u) + (hash1(s0 + i * 1.7) - 0.5) * amp, lerp(y0, y1, u) + (hash1(s0 + i * 2.9) - 0.5) * amp); } ctx.lineTo(x1, y1); ctx.stroke(); };
+        switch (h.rk) {
+          case 'vaporize':   // steam bursting up and out, warm white, round a widening ring
+            for (let i = 0; i < 9; i++) {
+              const a = -Math.PI / 2 + (hash1(sd + i) - 0.5) * 2.2, d = 20 + 70 * e * (0.6 + 0.6 * hash1(sd + i * 3)), r = 8 + 22 * e, x = Math.cos(a) * d, y = Math.sin(a) * d - 30 * e;
+              const g2 = ctx.createRadialGradient(x, y, 0, x, y, r); g2.addColorStop(0, 'rgba(255,240,220,' + 0.55 * fade + ')'); g2.addColorStop(1, 'rgba(255,200,150,0)');
+              ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+            }
+            ctx.globalAlpha = fade; ctx.strokeStyle = '#ffc58a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 0, 30 + 60 * e, 12 + 24 * e, 0, 0, 7); ctx.stroke();
+            break;
+          case 'melt':   // a ring of ice shards glowing orange and running down as drops
+            for (let i = 0; i < 8; i++) {
+              const a = i / 8 * Math.PI * 2 + sd, R = 34 + 16 * e, s2 = 9 * (1 - e * 0.7);
+              ctx.globalAlpha = fade; ctx.fillStyle = mixHex('#bfefff', '#ff9a3a', Math.min(1, q * 2));
+              ctx.save(); ctx.translate(Math.cos(a) * R, Math.sin(a) * R * 0.7 + e * e * 26); ctx.rotate(a);
+              ctx.beginPath(); ctx.moveTo(0, -s2); ctx.lineTo(s2 * 0.5, 0); ctx.lineTo(0, s2); ctx.lineTo(-s2 * 0.5, 0); ctx.closePath(); ctx.fill(); ctx.restore();
+            }
+            ctx.globalAlpha = fade * 0.8; ctx.strokeStyle = '#ffb36b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 20 + 70 * e, 0, 7); ctx.stroke();
+            break;
+          case 'frozen': {   // a cage of ice spikes snapping shut round them
+            const grow = easeOut(Math.min(1, q * 3)), R = 60 - 8 * e;
+            ctx.globalAlpha = fade; ctx.strokeStyle = '#dff6ff'; ctx.lineWidth = 3;
+            for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.3, L = 46 * grow; ctx.beginPath(); ctx.moveTo(Math.cos(a) * (60 - L), Math.sin(a) * (60 - L) * 0.9); ctx.lineTo(Math.cos(a) * 60, Math.sin(a) * 54); ctx.stroke(); }
+            ctx.strokeStyle = '#86e7ff'; ctx.lineWidth = 2; ctx.beginPath();
+            for (let i = 0; i <= 6; i++) { const a = i / 6 * Math.PI * 2 + 0.3; i ? ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R * 0.9) : ctx.moveTo(Math.cos(a) * R, Math.sin(a) * R * 0.9); }
+            ctx.stroke();
+            break;
+          }
+          case 'charged': {   // electro-charged: arcs crackling between points round them, redrawn many times a second
+            const fs = Math.floor(h.age * 24); ctx.globalAlpha = fade; ctx.lineWidth = 2;
+            for (let i = 0; i < 3; i++) { const a0 = hash1(fs * 3.1 + i + sd) * 6.3, a1 = a0 + 1.5 + hash1(fs + i * 5) * 2; ctx.strokeStyle = i % 2 ? '#e6c9ff' : '#8fd8ff'; zig(Math.cos(a0) * 40, Math.sin(a0) * 46, Math.cos(a1) * 40, Math.sin(a1) * 46, 6, 18, fs * 7 + i); }
+            ctx.fillStyle = '#8fd8ff'; for (let i = 0; i < 5; i++) { const a = hash1(fs + i * 9) * 6.3; ctx.fillRect(Math.cos(a) * 30 - 1.5, Math.sin(a) * 34 + 10 - 1.5, 3, 3); }   // drops
+            break;
+          }
+          case 'overload': {   // a blast: a white core going orange, a hot ring and streaks thrown out
+            const rr2 = 80 * e + 10, g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, rr2);
+            g2.addColorStop(0, 'rgba(255,255,230,' + fade + ')'); g2.addColorStop(0.4, 'rgba(255,140,60,' + 0.7 * fade + ')'); g2.addColorStop(1, 'rgba(255,60,40,0)');
+            ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(0, 0, rr2, 0, 7); ctx.fill();
+            ctx.globalAlpha = fade; ctx.strokeStyle = '#ff9a5a'; ctx.lineWidth = 5 * fade + 1; ctx.beginPath(); ctx.arc(0, 0, 30 + 100 * e, 0, 7); ctx.stroke();
+            ctx.strokeStyle = '#ffe0a0'; ctx.lineWidth = 2;
+            for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2 + sd, r0 = 30 + 60 * e, r1 = r0 + 30 * fade; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1); ctx.stroke(); }
+            break;
+          }
+          case 'superconduct': {   // a violet sphere drawing in, then bursting into cold sparks
+            const pull = q < 0.35 ? 1 - q / 0.35 : 0, R = q < 0.35 ? 30 + 40 * pull : 30 + 120 * easeOut((q - 0.35) / 0.65);
+            ctx.globalAlpha = fade; ctx.strokeStyle = '#9a8cff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.stroke(); ctx.strokeStyle = '#dff6ff'; ctx.lineWidth = 1.5; ctx.stroke();
+            if (q >= 0.35) { ctx.fillStyle = '#dff6ff'; for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + sd, d = R * (0.6 + 0.4 * hash1(sd + i)); ctx.fillRect(Math.cos(a) * d - 1.5, Math.sin(a) * d - 1.5 + (q - 0.35) * 40, 3, 3); } }
+            break;
+          }
+          case 'swirl': {   // the element it carried, flung round in a spiral
+            const col = EL[h.el2] ? EL[h.el2].color : '#9ff2d0'; ctx.globalAlpha = fade; ctx.lineWidth = 3;
+            for (let arm = 0; arm < 3; arm++) {
+              ctx.strokeStyle = arm ? col : '#e8fff4'; ctx.beginPath();
+              for (let i = 0; i <= 20; i++) { const u = i / 20, a = arm * 2.1 + u * 4 + q * 6, r = 10 + u * (40 + 80 * e); i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r * 0.7) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r * 0.7); }
+              ctx.stroke();
+            }
+            break;
+          }
+          case 'crystallize':   // gold shards popping off
+            ctx.globalAlpha = fade; ctx.fillStyle = '#f5d77a';
+            for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + (i - 2.5) * 0.45, d = 20 + 50 * e; ctx.save(); ctx.translate(Math.cos(a) * d, Math.sin(a) * d + 60 * q * q); ctx.rotate(q * 6 + i); ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(5, 0); ctx.lineTo(0, 7); ctx.lineTo(-5, 0); ctx.closePath(); ctx.fill(); ctx.restore(); }
+            break;
+          case 'bloom': {   // a dendro seed swelling where it is about to burst
+            const R = 10 + 14 * e + 3 * Math.sin(h.age * 30), g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 2.2);
+            g2.addColorStop(0, 'rgba(220,255,170,.9)'); g2.addColorStop(0.5, 'rgba(120,220,90,.5)'); g2.addColorStop(1, 'rgba(60,160,60,0)');
+            ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(0, 0, R * 2.2, 0, 7); ctx.fill();
+            ctx.fillStyle = '#8fd94a'; for (let i = 0; i < 4; i++) { ctx.save(); ctx.rotate(i * Math.PI / 2 + h.age * 2); ctx.beginPath(); ctx.ellipse(R * 1.1, 0, R * 0.7, R * 0.3, 0, 0, 7); ctx.fill(); ctx.restore(); }
+            break;
+          }
+          case 'burning':   // flame tongues licking up round them
+            ctx.globalAlpha = fade;
+            for (let i = 0; i < 9; i++) { const x = (i - 4) * 10, fl = (18 + 14 * hash1(sd + i)) * (0.6 + 0.4 * Math.sin(h.age * 20 + i)); ctx.fillStyle = i % 2 ? '#ff8a3d' : '#ffd07a'; ctx.beginPath(); ctx.moveTo(x - 6, 30); ctx.quadraticCurveTo(x, 30 - fl * 2.2, x + 6, 30); ctx.fill(); }
+            break;
+          case 'quicken': {   // leaves turning round them, crackling with lightning
+            const fs = Math.floor(h.age * 20); ctx.globalAlpha = fade;
+            for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + h.age * 3, r = 36 + 10 * e; ctx.save(); ctx.translate(Math.cos(a) * r, Math.sin(a) * r * 0.8); ctx.rotate(a); ctx.fillStyle = '#b9e05a'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 3, 0, 0, 7); ctx.fill(); ctx.restore(); }
+            ctx.strokeStyle = '#d8b4ff'; ctx.lineWidth = 1.5;
+            for (let i = 0; i < 2; i++) { const a0 = hash1(fs * 2 + i) * 6.3; zig(Math.cos(a0) * 38, Math.sin(a0) * 30, Math.cos(a0 + 2.4) * 38, Math.sin(a0 + 2.4) * 30, 5, 12, fs * 3 + i); }
+            break;
+          }
+        }
+        ctx.restore();
         break;
       }
       case 'mirrorbeam': {   // a Projection Attack: a thin shaft of light from a mirror to whoever was struck
@@ -8521,9 +8716,107 @@ function cinePose(f, k) {
   };
 }
 // Burst cinematic: the camera pushes in on the caster, the world dims, the character charges and releases, then the camera snaps back.
+// A burst plays in two parts for a character listed in BURST_ANIM: first the shared charge-up (the usual cut-in, up to just before its
+// release flash: CHARGE_T s), then the character's own animation (anim.dur s), and only then the burst itself. Others keep the
+// usual 1.6 s cut-in. anim.sfx: moments (s into the animation) that play a sound; anim.draw(t, e, c): e = seconds into the animation.
+const CHARGE_T = 0.7, CHARGE_K = 0.75;   // the charge-up shows the usual cut-in from k = 0 to CHARGE_K
+// The drawn burst films: six 768 x 341 shots on one sheet (2 columns x 3 rows), fetched with their character. A film is a list of shots
+// [from, to, cell, zoom from, zoom to, shift x, shift y]: each shot fills the frame and drifts (push-in, pull-out, pan) while it is on.
+const CINE_IMG = {}, CINE_VID = {};
+function loadCine(id) {
+  const a = burstAnim(id); if (!a || id in CINE_IMG) return;
+  CINE_IMG[id] = null;
+  if (a.src) { const im = new Image(); im.onload = () => { CINE_IMG[id] = im; }; im.src = a.src; }
+  if (a.video) {   // a short silent clip, played over the frame (muted and inline, so phones let it start by itself)
+    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.setAttribute('playsinline', ''); v.src = a.video; v.load();
+    CINE_VID[id] = v;
+  }
+}
+// The clip of a character's burst, drawn filling the frame at e seconds in: it is started on the first frame, and put back in step if it
+// drifts (a slow device, a pause). Returns false while it cannot be shown yet.
+function drawCineVideo(id, e, c) {
+  const v = CINE_VID[id];
+  if (!v || v.readyState < 2) return false;
+  if (!c.vidOn) { c.vidOn = true; try { v.currentTime = 0; const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch (err) { /* not ready */ } }
+  else if (Math.abs(v.currentTime - e) > 0.15 && e < v.duration) { try { v.currentTime = e; } catch (err) { /* seeking not allowed yet */ } }
+  const vw = v.videoWidth || 16, vh = v.videoHeight || 9, k = Math.max(W / vw, H / vh);
+  ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(v, (W - vw * k) / 2, (H - vh * k) / 2, vw * k, vh * k); ctx.restore();
+  return true;
+}
+// BURST_ANIM_ON: the characters' own burst animations (below) are kept but switched off: every burst plays the usual 1.6 s cut-in,
+// and their pictures and clips are not fetched. Set it to true to bring them back.
+const BURST_ANIM_ON = false;
+const burstAnim = id => BURST_ANIM_ON ? BURST_ANIM[id] || null : null;
+const RAIDEN_CLIP = true;   // Raiden's burst: the recorded clip (true) or the six drawn pixel shots (false)
+const FILM_CELLS = [[0, 0, 767, 342], [769, 0, 767, 342], [0, 345, 767, 334], [769, 345, 767, 334], [0, 682, 767, 342], [769, 682, 767, 342]];
+function drawShot(im, cell, zoom, sx, sy) {   // one shot filling the frame (2.25 : 1, centred), zoomed and shifted
+  const [x, y, w, h] = FILM_CELLS[cell], fw = W * zoom, fh = fw * h / w;
+  ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(im, x + 2, y + 2, w - 4, h - 4, W / 2 - fw / 2 + sx, H / 2 - fh / 2 + sy, fw, fh); ctx.restore();
+}
+const BURST_ANIM = {
+  // Raiden, after the shared charge-up: eyes closed, the hilt rising from her breast; the blade drawn in a burst of light; held high, her
+  // eyes open; a close look at her eyes; two cuts across the dark; the Eye opening; the tomoe in a blinding flash, and the burst.
+  raiden: {
+    // RAIDEN_CLIP: play the recorded clip of her burst (1.36 s, then a white flash) instead of the six drawn shots
+    src: 'img/cine/raiden-burst.webp', video: RAIDEN_CLIP ? 'img/cine/raiden-burst.mp4' : null,
+    dur: RAIDEN_CLIP ? 1.5 : 1.6, sfx: RAIDEN_CLIP ? [[0.28, 'swing'], [0.86, 'heavy']] : [[0.3, 'swing'], [1.0, 'swing'], [1.05, 'swing'], [1.38, 'heavy']],
+    shots: [[0, 0.3, 0, 1.0, 1.07, 0, 6], [0.3, 0.52, 1, 1.1, 1.0, 0, 0], [0.52, 0.8, 2, 1.04, 1.1, 0, -16], [0.8, 1.0, 3, 1.0, 1.16, 0, 0],
+            [1.12, 1.38, 4, 1.22, 1.0, 0, 0], [1.38, 1.6, 5, 1.0, 1.12, 0, 0]],
+    draw(t, e, c) {
+      if (RAIDEN_CLIP && e < 1.36 && drawCineVideo('raiden', e, c)) {   // the clip, under the letterbox, and a white flash out of its last moment
+        const fl = clamp((e - 1.2) / 0.16, 0, 1); if (fl > 0) { ctx.fillStyle = 'rgba(255,255,255,' + 0.9 * fl + ')'; ctx.fillRect(0, 0, W, H); }
+        ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, W, 40); ctx.fillRect(0, H - 40, W, 40);
+        return;
+      }
+      if (RAIDEN_CLIP) {   // after the clip (or while it is still loading): white light fading out into the fight
+        const q = e < 1.36 ? 0 : clamp((e - 1.36) / 0.14, 0, 1);
+        ctx.fillStyle = e < 1.36 ? '#05020c' : 'rgba(255,255,255,' + (1 - 0.6 * q) + ')'; ctx.fillRect(0, 0, W, H);
+        return;
+      }
+      const an = BURST_ANIM.raiden, im = CINE_IMG.raiden, sm = x => x * x * (3 - 2 * x), seg = (a, b) => clamp((e - a) / (b - a), 0, 1);
+      ctx.fillStyle = '#05020c'; ctx.fillRect(0, 0, W, H);
+      const shot = an.shots.find(([a, b]) => e >= a && e < b) || (e >= 1.6 ? an.shots[5] : null);
+      if (shot && im) {
+        const [a, b, cell, z0, z1, dx, dy] = shot, q = sm(seg(a, b)), shake = cell === 1 ? (1 - seg(a, a + 0.12)) * 7 : 0;
+        drawShot(im, cell, lerp(z0, z1, q), dx * (q * 2 - 1) + Math.sin(t * 90) * shake, dy * (q * 2 - 1) + Math.cos(t * 77) * shake);
+      }
+      // the two cuts across the dark (between the close look and the Eye)
+      if (e >= 1.0 && e < 1.12) {
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+        for (const [ts, A, B] of [[1.0, [W * 0.95, H * 0.08], [W * 0.05, H * 0.92]], [1.05, [W * 0.05, H * 0.2], [W * 0.95, H * 0.75]]]) {
+          const q = sm(clamp((e - ts) / 0.035, 0, 1)); if (e < ts) continue;
+          const X = lerp(A[0], B[0], q), Y = lerp(A[1], B[1], q), fade = 1 - clamp((e - ts - 0.035) / 0.08, 0, 1) * 0.6;
+          ctx.globalAlpha = fade; ctx.strokeStyle = 'rgba(176,114,255,.75)'; ctx.lineWidth = 16; ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(X, Y); ctx.stroke();
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.stroke();
+        }
+        ctx.restore();
+      }
+      // a white flash on each hard cut into light (the blade drawn, the tomoe), and the whole frame going white at the very end
+      const pop = (a, b) => e >= a ? 1 - seg(a, b) : 0;   // a flash that starts at a and has faded by b
+      const fl = Math.max(pop(0.3, 0.38), pop(1.12, 1.17), pop(1.38, 1.46), seg(1.5, 1.6));
+      if (fl > 0) { ctx.fillStyle = 'rgba(255,255,255,' + 0.85 * fl + ')'; ctx.fillRect(0, 0, W, H); }
+      // letterbox, with the burst's name and line while she raises the blade, looks down, and the Eye opens
+      const bh = 64 * (1 - sm(seg(1.48, 1.6)));
+      ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, W, bh); ctx.fillRect(0, H - bh, W, bh);
+      const ta = sm(seg(0.52, 0.62)) * (1 - seg(1.3, 1.38));
+      if (ta > 0) {
+        ctx.save(); ctx.globalAlpha = ta; ctx.translate(-30 * (1 - ta), 0);
+        ctx.fillStyle = '#b072ff'; ctx.fillRect(40, H - 48, 4, 34);
+        ctx.font = '30px ' + DISPLAY; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff'; ctx.fillText(BURSTS.raiden.name, 56, H - 36);
+        ctx.font = '500 12px ' + BODY; ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.fillText(c.f.def.name + ' · 원소 폭발', 58, H - 14);
+        ctx.font = '500 16px ' + BODY; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillText(CUTIN.raiden.line, W / 2 + 120, H - 30);
+        ctx.restore();
+      }
+    },
+  },
+};
 function renderCine(t) {
   const g = game, c = g.cut, f = c.f, th = CUTIN[f.def.id], col = EL[f.def.el].color;
-  const k = 1 - c.t / c.dur;
+  const an = burstAnim(f.def.id), el = c.dur - c.t;
+  if (an && el >= CHARGE_T) { an.draw(t, el - CHARGE_T, c); return; }   // past the charge-up: the character's own animation
+  const k = an ? el / CHARGE_T * CHARGE_K : 1 - c.t / c.dur;   // (the charge-up: the usual cut-in up to just before its release)
   const zin = easeOut(clamp(k / 0.18, 0, 1)), zo = Math.pow(clamp((k - 0.84) / 0.16, 0, 1), 2), on = zin * (1 - zo);
   const fx = f.x, fy = f.y - 40, [hx, hy] = toScreen(fx, fy), z = lerp(g.cam.z, 2.6, on);   // start from wherever the fight camera is
   const sx = lerp(hx, W * 0.42, on), sy = lerp(hy, H * 0.56, on), rot = lerp(-0.05, 0.03, k) * on;
@@ -8558,7 +8851,7 @@ function renderCine(t) {
   }
   ctx.restore();
   ctx.save(); ctx.globalAlpha = on; ctx.translate(sx - 250, sy - 230); th.behind(t, k); ctx.restore();
-  const art = ART_HD[f.def.id] || SIDE_IMG[f.def.id];
+  const art = an ? null : ART_HD[f.def.id] || SIDE_IMG[f.def.id];   // (a character with its own animation is shown in that, not during the charge-up)
   if (art) {   // the character's illustration slides in on a slanted panel at the right, drifts a little, and slides back out with the zoom
     const pin = easeOut(clamp((k - 0.06) / 0.2, 0, 1)), x0 = W * 0.6 + (1 - pin) * 560 + zo * 560;
     const panel = () => { ctx.beginPath(); ctx.moveTo(x0 + 70, 0); ctx.lineTo(W + 40, 0); ctx.lineTo(W + 40, H); ctx.lineTo(x0 - 70, H); ctx.closePath(); };
@@ -8603,7 +8896,7 @@ function renderCine(t) {
   // letterbox with the burst name and a line of dialogue
   const bh = 64 * on;
   ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, W, bh); ctx.fillRect(0, H - bh, W, bh);
-  const ta = clamp((k - 0.12) / 0.15, 0, 1) * (1 - zo);
+  const ta = an ? 0 : clamp((k - 0.12) / 0.15, 0, 1) * (1 - zo);   // (a character with its own animation: no name or line while charging; they come with the animation)
   if (ta > 0) {
     ctx.save(); ctx.globalAlpha = ta; ctx.translate(-36 * (1 - easeOut(ta)), 0);   // the name slides in from the left
     ctx.fillStyle = col; ctx.fillRect(40, H - bh + 16, 4, 34);
@@ -8698,9 +8991,10 @@ function setGfx(q, remember) {
 // called every frame of a fight with the real frame time
 function watchGfx(dt) {
   if (!gfxHigh() || !gfxPerf.auto || dt <= 0 || dt > 0.25) return;
+  if (game && (game.cut || game.slow || game.slowHit || game.bf || game.intro > 0)) return;   // a cut-in, slow motion or a black flash is heavy only for a moment: not counted
   gfxPerf.ema = gfxPerf.ema * 0.95 + dt * 0.05;
   gfxPerf.slowT = gfxPerf.ema > 1 / 42 ? gfxPerf.slowT + dt : Math.max(0, gfxPerf.slowT - dt);
-  if (gfxPerf.slowT > 2.5) { setGfx('mid', false); gfxPerf.note = 2.5; }
+  if (gfxPerf.slowT > 4) { setGfx('mid', false); gfxPerf.note = 2.5; }   // slow for 4 s of ordinary play
 }   // true while the glow pass re-draws the effects: nothing spawns particles then
 const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; };
 function sizeTo(c, w, h) { if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } }
@@ -8714,12 +9008,15 @@ function onLayer(c, q, fn) {
 }
 // The stage's shadow: the stage drawn small, filled dark and stretched back out a little below it, so it falls soft on the picture behind.
 // (Small canvases stretched over the frame stand in for blurs throughout: cheap on any device.)
+let stageLitN = 0;
 function drawStageLit(t) {
   const w = Math.max(2, Math.ceil(cv.width / 6)), h = Math.max(2, Math.ceil(cv.height / 6));
-  sizeTo(stageCv, w, h);
-  onLayer(stageCv, 6, () => drawStage(t));
-  const s = stageCv.getContext('2d');
-  s.save(); s.setTransform(1, 0, 0, 1, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = 'rgb(0,0,12)'; s.fillRect(0, 0, w, h); s.restore();
+  if (stageLitN++ % 2 === 0 || stageCv.width !== w || stageCv.height !== h) {
+    sizeTo(stageCv, w, h);
+    onLayer(stageCv, 6, () => drawStage(t));
+    const s = stageCv.getContext('2d');
+    s.save(); s.setTransform(1, 0, 0, 1, 0, 0); s.globalCompositeOperation = 'source-in'; s.fillStyle = 'rgb(0,0,12)'; s.fillRect(0, 0, w, h); s.restore();
+  }
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.globalAlpha = 0.42; ctx.drawImage(stageCv, 0, 10 * view.s, cv.width, cv.height);
   ctx.restore();
@@ -8728,7 +9025,7 @@ function drawStageLit(t) {
 // A fighter with a soft glow of its element around the outline, so it stands out from the picture behind: the fighter drawn small,
 // filled with the colour and stretched back out under it, twice (a tighter and a wider glow).
 function drawFighterLit(f, t) {
-  const L = fighterCv[f.idx], w = Math.max(2, Math.ceil(cv.width / 5)), h = Math.max(2, Math.ceil(cv.height / 5));
+  const L = fighterCv[f.idx], w = Math.max(2, Math.ceil(cv.width / 5)), h = Math.max(2, Math.ceil(cv.height / 5)), wtr = ctx.getTransform();
   sizeTo(L, w, h);
   fxPass = true;
   try { onLayer(L, 5, () => drawFighter(f, t)); } finally { fxPass = false; }
@@ -8736,13 +9033,21 @@ function drawFighterLit(f, t) {
   x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = EL[f.def.el].color; x.fillRect(0, 0, w, h); x.restore();
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.globalCompositeOperation = 'lighter';
   const p = 3 * view.s;   // spread the glow a few pixels past the outline
-  ctx.globalAlpha = 0.32;
-  for (const [dx, dy] of [[-p, 0], [p, 0], [0, -p], [0, p]]) ctx.drawImage(L, dx, dy, cv.width, cv.height);
+  // the box round the fighter (weapon reach included), from the world into screen pixels, and the same box in the small layer
+  const tr = wtr, S = f.def.scale, xs = [], ys = [];
+  for (const [wx, wy] of [[f.x - 170 * S, f.y - 230 * S], [f.x + 170 * S, f.y - 230 * S], [f.x - 170 * S, f.y + 40], [f.x + 170 * S, f.y + 40]]) { xs.push(tr.a * wx + tr.c * wy + tr.e); ys.push(tr.b * wx + tr.d * wy + tr.f); }
+  const x0 = Math.max(0, Math.floor(Math.min(...xs) / 5) * 5), y0 = Math.max(0, Math.floor(Math.min(...ys) / 5) * 5);
+  const x1 = Math.min(cv.width, Math.ceil(Math.max(...xs) / 5) * 5), y1 = Math.min(cv.height, Math.ceil(Math.max(...ys) / 5) * 5);
+  if (x1 > x0 && y1 > y0) {
+    ctx.globalAlpha = 0.32;
+    for (const [dx, dy] of [[-p, 0], [p, 0], [0, -p], [0, p]]) ctx.drawImage(L, x0 / 5, y0 / 5, (x1 - x0) / 5, (y1 - y0) / 5, x0 + dx, y0 + dy, x1 - x0, y1 - y0);
+  }
   ctx.restore();
   drawFighter(f, t);
 }
 // Bloom: the effects drawn again at a quarter and an eighth of the size, then stretched back over the frame and added, so bright things glow.
 function drawBloom(t) {
+  if (!game.hits.length && game.particles.length < 6) return;   // nothing glowing on screen
   const w = Math.max(2, Math.ceil(cv.width / 4)), h = Math.max(2, Math.ceil(cv.height / 4));
   sizeTo(bloomA, w, h); sizeTo(bloomB, Math.ceil(w / 2), Math.ceil(h / 2));
   fxPass = true;
@@ -8750,8 +9055,9 @@ function drawBloom(t) {
   const b = bloomB.getContext('2d'); b.setTransform(1, 0, 0, 1, 0, 0); b.clearRect(0, 0, bloomB.width, bloomB.height);
   b.imageSmoothingEnabled = true; b.drawImage(bloomA, 0, 0, bloomB.width, bloomB.height);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  const a = bloomA.getContext('2d'); a.save(); a.setTransform(1, 0, 0, 1, 0, 0); a.globalCompositeOperation = 'lighter'; a.globalAlpha = 0.8; a.imageSmoothingEnabled = true;
+  a.drawImage(bloomB, 0, 0, w, h); a.restore();   // the wide glow added into the near one, on the small canvas
   ctx.globalAlpha = 0.42; ctx.drawImage(bloomA, 0, 0, cv.width, cv.height);
-  ctx.globalAlpha = 0.34; ctx.drawImage(bloomB, 0, 0, cv.width, cv.height);
   ctx.restore();
 }
 // The nearest layer: a few big soft motes drifting past the lens. They slide faster than the world when the camera moves.
@@ -9047,7 +9353,7 @@ function pick(id) {
   const team = sel[pickStep];
   if (wiping || team.includes(id)) return;
   SFX.init(); BGM.confirm();
-  team.push(id);
+  team.push(id); loadAnim(id);   // start fetching their frames now, so they are in by the fight
   new Image().src = 'img/art/' + id + '.webp';   // warm the full illustration for the line-up screen
   if (team.length < partySize) { if (mode === 'net') netPickSync(false); showSelect(); }
   else if (mode === 'net') netPicked();
@@ -9776,9 +10082,7 @@ buildMaps();
 drawPortraits();
 loadPortraits();
 loadSideArt();
-loadSprites();
 loadMapArt();
-loadAnims();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawPortraits);
 setMode('cpu');
 setGfx(gfx, false);
