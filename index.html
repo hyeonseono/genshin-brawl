@@ -442,45 +442,68 @@ button { font-family: inherit; }
 .map-card span { color: var(--muted); font-size: clamp(10px, 1.2cqw, 12px); }
 .map-rule { margin: 0; min-height: 2.8em; max-width: 46em; color: #cdd5f7; font-size: clamp(11px, 1.4cqw, 13.5px); }
 .map-rule b { color: var(--fg); }
-/* screen changes: overlays ease in. Between select, map and fight a night sky closes in from the edges like an eye, a gold star-compass with
-   the seven elements lights up in the middle, and the sky opens again from the centre onto the new screen (swapped while it is closed). */
+/* screen changes: overlays ease in. Between select, map and fight a slanted panel sweeps across the frame from right to left
+   (a night-blue panel with gold-trimmed edges and diamonds, flanked by thin cream and gold bands, as on Teyvat's menus); while
+   the panel covers everything the gold star-compass with the seven elements lights up and the screen is swapped, then the panels
+   carry on out to the left and uncover the new screen. */
 .ov { animation: ov-in .34s ease both; }
 @keyframes ov-in { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
-@property --iris { syntax: '<percentage>'; inherits: true; initial-value: 100%; }
-.wipe { position: absolute; inset: 0; z-index: 6; pointer-events: none; --iris: 100%; }
-.wipe.run { animation: iris .9s cubic-bezier(.65, 0, .35, 1) forwards; }
-@keyframes iris { 0% { --iris: 100%; } 44%, 56% { --iris: 0%; } 100% { --iris: 100%; } }
-.wipe-sky, .wipe-rim { position: absolute; inset: 0; }
-.wipe-sky {   /* deep blue night with scattered stars, cut out by the opening of the eye */
+.wipe { position: absolute; inset: 0; z-index: 6; pointer-events: none; overflow: hidden; }
+.wp { position: absolute; top: -8%; bottom: -8%; left: -22%; width: 144%; transform: translateX(110%) skewX(-14deg); }   /* the panel and its bands move as one */
+.wipe.run .wp { animation: wp-sweep .84s .09s both; }
+@keyframes wp-sweep {
+  0% { transform: translateX(110%) skewX(-14deg); animation-timing-function: cubic-bezier(.72, 0, .22, 1); }
+  46% { transform: translateX(0) skewX(-14deg); }
+  54% { transform: translateX(0) skewX(-14deg); animation-timing-function: cubic-bezier(.78, 0, .28, 1); }
+  100% { transform: translateX(-110%) skewX(-14deg); }
+}
+.wp-main { position: absolute; inset: 0; }
+.wp-band { position: absolute; top: 0; bottom: 0; }   /* thin bands either side of the panel: cream nearest, gold outside it */
+.wp-band.c { width: 3.2%; background: linear-gradient(180deg, #f4efe4, #ddd3bf); }
+.wp-band.g { width: 1.1%; background: linear-gradient(180deg, #f6dc94, #c99a42 55%, #f2d27e); box-shadow: 0 0 18px rgba(255, 214, 120, .75); }
+.wp-band.c.l { left: -4.4%; } .wp-band.g.l { left: -6.6%; }
+.wp-band.c.r { right: -4.4%; } .wp-band.g.r { right: -6.6%; }
+.wipe.run .wp-band.l { animation: wp-lead .84s .09s both; }   /* the leading bands run a little ahead on the way in and close up while it covers */
+.wipe.run .wp-band.r { animation: wp-trail .84s .09s both; }
+@keyframes wp-lead { 0% { transform: translateX(-160%); } 46%, 100% { transform: none; } }
+@keyframes wp-trail { 0%, 54% { transform: none; } 100% { transform: translateX(160%); } }
+.wp-main {
   background:
     radial-gradient(1.5px 1.5px at 12% 22%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 27% 68%, #cfe0ff 50%, transparent 51%),
     radial-gradient(1.5px 1.5px at 41% 14%, #fff6d8 50%, transparent 51%), radial-gradient(1px 1px at 58% 82%, #fff 50%, transparent 51%),
     radial-gradient(2px 2px at 73% 30%, #ffe9a8 50%, transparent 51%), radial-gradient(1px 1px at 86% 61%, #cfe0ff 50%, transparent 51%),
     radial-gradient(1.5px 1.5px at 92% 12%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 6% 84%, #fff 50%, transparent 51%),
     radial-gradient(1px 1px at 35% 40%, #cfe0ff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 66% 55%, #fff 50%, transparent 51%),
-    radial-gradient(ellipse at 50% 50%, #1d2c66 0%, #0c1238 45%, #05071a 100%);
-  -webkit-mask-image: radial-gradient(circle farthest-corner at 50% 50%, transparent var(--iris), #000 calc(var(--iris) + .6%));
-  mask-image: radial-gradient(circle farthest-corner at 50% 50%, transparent var(--iris), #000 calc(var(--iris) + .6%));
+    repeating-linear-gradient(90deg, rgba(211, 188, 142, .05) 0 1px, transparent 1px 64px),
+    radial-gradient(ellipse at 50% 50%, #26336e 0%, #0e1538 50%, #060819 100%);
 }
-.wipe-rim {   /* a fine gold rim of light along the edge of the eye */
-  background: radial-gradient(circle farthest-corner at 50% 50%, transparent calc(var(--iris) - 1.4%), rgba(255, 226, 140, .95) var(--iris), rgba(255, 210, 77, .35) calc(var(--iris) + 1.2%), transparent calc(var(--iris) + 3%));
-  mix-blend-mode: screen;
+.wp-main::before, .wp-main::after {   /* the trimmed edges: a bright gold rim, a fine second line, and a row of small diamonds */
+  content: ''; position: absolute; top: 0; bottom: 0; width: 26px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='44'%3E%3Cpath d='M6 14L10 22L6 30L2 22Z' fill='%23ffe3a0'/%3E%3C/svg%3E") 12px 0 / 12px 44px repeat-y,
+    linear-gradient(90deg, #fff3c8 0 3px, #d3a84e 3px 5px, transparent 5px 8px, rgba(255, 226, 150, .85) 8px 9px, transparent 9px);
+  filter: drop-shadow(0 0 8px rgba(255, 214, 120, .8));
 }
+.wp-main::before { left: 0; }
+.wp-main::after { right: 0; transform: scaleX(-1); }
+.wp-shine { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 42%, rgba(255, 240, 205, .16) 50%, transparent 58%); opacity: 0; }
+.wipe.run .wp-shine { animation: wp-shine .84s .09s both; }
+@keyframes wp-shine { 0%, 30% { opacity: 0; transform: translateX(40%); } 50% { opacity: 1; } 70%, 100% { opacity: 0; transform: translateX(-40%); } }
 .wipe-emblem { position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; translate: -50% -50%; overflow: visible; opacity: 0; }
-.wipe.run .wipe-emblem { animation: emblem .9s cubic-bezier(.4, 0, .2, 1) forwards; }
+.wipe.run .wipe-emblem { animation: emblem .93s cubic-bezier(.4, 0, .2, 1) forwards; }
 @keyframes emblem {
-  0%, 18% { opacity: 0; transform: scale(.55) rotate(-50deg); }
-  44% { opacity: 1; transform: scale(1) rotate(0deg); }
-  56% { opacity: 1; transform: scale(1.04) rotate(6deg); }
-  100% { opacity: 0; transform: scale(2.3) rotate(34deg); }
+  0%, 30% { opacity: 0; transform: scale(.55) rotate(-50deg); }
+  50% { opacity: 1; transform: scale(1) rotate(0deg); }
+  58% { opacity: 1; transform: scale(1.04) rotate(6deg); }
+  84%, 100% { opacity: 0; transform: scale(1.9) rotate(30deg); }
 }
 .wipe-emblem .ring { fill: none; stroke: #ffd24d; }
 .wipe-emblem .ticks line { stroke: #ffe39a; stroke-width: 1; }
-.wipe.run .wipe-emblem .ticks { animation: spin .9s linear forwards; transform-origin: 0 0; }
+.wipe.run .wipe-emblem .ticks { animation: spin .93s linear forwards; transform-origin: 0 0; }
 @keyframes spin { to { transform: rotate(-70deg); } }
 .wipe-emblem .star { transform-origin: 0 0; filter: drop-shadow(0 0 6px #ffe39a) drop-shadow(0 0 16px #ffd24d); }
-.wipe.run .wipe-emblem .star { animation: star .9s cubic-bezier(.3, 0, .2, 1) forwards; }
-@keyframes star { 0%, 30% { transform: scale(0) rotate(-45deg); } 46% { transform: scale(1.35) rotate(0deg); } 58% { transform: scale(1); } 100% { transform: scale(.9) rotate(20deg); } }
+.wipe.run .wipe-emblem .star { animation: star .93s cubic-bezier(.3, 0, .2, 1) forwards; }
+@keyframes star { 0%, 36% { transform: scale(0) rotate(-45deg); } 51% { transform: scale(1.35) rotate(0deg); } 60% { transform: scale(1); } 100% { transform: scale(.9) rotate(20deg); } }
 .wipe-emblem .els circle { filter: drop-shadow(0 0 4px currentColor); }
 @media (max-width: 640px) { .maps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .ov { animation: none; } }
@@ -675,7 +698,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
     </div>
 
     <div class="wipe" id="wipe" hidden aria-hidden="true">
-      <div class="wipe-sky"></div><div class="wipe-rim"></div>
+      <div class="wp"><div class="wp-main"><i class="wp-shine"></i></div><b class="wp-band g l"></b><b class="wp-band c l"></b><b class="wp-band c r"></b><b class="wp-band g r"></b></div>
       <svg class="wipe-emblem" viewBox="-120 -120 240 240">
         <circle class="ring" r="100" stroke-width="1.6"/><circle class="ring" r="92" stroke-width=".8" opacity=".55"/><circle class="ring" r="58" stroke-width=".8" opacity=".45"/>
         <g class="ticks"></g><g class="els"></g>
@@ -2022,6 +2045,8 @@ function doAttack(f) {
 //   claymore: one huge sweep · sword: a quick flurry · polearm: rapid thrusts (Hu Tao and Cyno charge forward with the spear)
 //   catalyst: a column of the element rises where the opponent is standing · bow: one aimed, charged arrow · gauntlets: one heavy punch
 const HOLD_T = 0.32;
+const NEFER_REACH = 150;      // how far away (before her reach bonus) Nefer's sliding kick will home in on someone
+const NEFER_QUICK = 6, NEFER_HOLD = 0.12;   // after her skill: for NEFER_QUICK seconds her charged attack needs only NEFER_HOLD of holding
 // The held attack: a charged attack on the ground, a plunge in the air (once; holding on during the dive does nothing more)
 function heldAttack(f) {
   if (f.act && f.act.plunge) return;   // this press already started a plunge (Xiao's mask): not a second move, even after landing
@@ -2065,7 +2090,12 @@ function chargedAttack(f) {
     puff(f.x + f.dir * 20, f.y - 40, col, 10, 160, 0.35, 3);
   } else if (id === 'nefer') {   // a sliding kick along the ground
     act('atk', 0.6, 0.1);
-    if (f.onGround) f.vx = f.dir * 520;   // she slides in low
+    // someone within about a polearm's reach (NEFER_REACH ahead or behind, roughly level with her): she turns to them and slides
+    // right up to them, arriving as the kick lands (0.2 s; on the ground she slows by 900 a second while acting)
+    const dx = foe.x - f.x, near = !foe.dead && Math.abs(dx) <= NEFER_REACH * rm && Math.abs(foe.y - f.y) < 80;
+    if (near && Math.abs(dx) > 4) f.dir = sgn(dx);
+    if (f.onGround) f.vx = f.dir * (near ? clamp((Math.abs(dx) - 46 * S + 18) / 0.2, 520, 1100) : 520);   // she slides in low
+    if (near && Math.abs(dx) > 90) { puff(f.x - f.dir * 14, f.y - 20, '#7dffb0', 8, 180, 0.3, 3); dust(f.x - f.dir * 6, f.y, 6, 160); }
     hb({ owner: f, follow: true, ox: 54 * rm, oy: 24, w: 120 * rm, h: 52, delay: 0.2, life: 0.2, dmg: 11, kb: 1.6, ang: 40, el, vis: 'kick', kind: 4, color: col, onStart: fx });
   } else if (id === 'wriothesley') {
     act('atk', 0.62, 0.1);
@@ -2636,6 +2666,7 @@ const SKILLS = {
   nefer(f) {   // two green shadows rise beside the opponent's spot and pounce one after the other; the second throws them away from her
     const foe = game.fighters[1 - f.idx];
     startAct(f, 'skill', 0.4, { slow: 0.2 }); f.cd = 5;
+    f.quickHeavy = NEFER_QUICK; ftext(f.x, f.y - 100, '강공격 충전 단축', '#7dffb0', 15, 0.9);
     if (!foe.dead && Math.abs(foe.x - f.x) > 4) f.dir = sgn(foe.x - f.x);
     const x = foe.dead ? f.x + f.dir * 180 : foe.x, y = (foe.dead ? f.y : foe.y) - 34, out = sgn(x - f.x) || f.dir;
     for (let i = 0; i < 2; i++) {
@@ -3480,7 +3511,7 @@ const KO_TIME = 3.0;   // how long the closing KO banner plays before the result
 function die(f) {
   const g = game, o = g.fighters[1 - f.idx];
   f.dead = true; if (g.mode !== 'train') f.stocks--; f.respawn = 1.3;   // the training ground: lives never run out
-  f.hang = null; f.blazeUntil = 0; f.aura = null; f.shield = 0; f.act = null; f.frozen = 0; f.suspend = 0; f.stone = 0; f.shock = 0; f.vuln = 0; f.hitstun = 0; f.drop = 0; f.burn = 0; f.quicken = 0; f.seed = 0; f.buff = null; f.lf = null; f.stack = 0; f.crystals = 0; f.mir = null;
+  f.hang = null; f.blazeUntil = 0; f.aura = null; f.shield = 0; f.act = null; f.frozen = 0; f.suspend = 0; f.stone = 0; f.shock = 0; f.vuln = 0; f.hitstun = 0; f.drop = 0; f.burn = 0; f.quicken = 0; f.seed = 0; f.buff = null; f.lf = null; f.stack = 0; f.crystals = 0; f.mir = null; f.quickHeavy = 0;
   o.stat.kos++;
   for (const h of g.hits) if (h.owner === f && (!h.persist || h.follow)) h.dead = true;
   const ex = clamp(f.x, BLAST.l + 90, BLAST.r - 90), ey = clamp(f.y, BLAST.t + 90, BLAST.b - 170);
@@ -3772,7 +3803,7 @@ function stepFighter(f, foe, dt) {
   if (inp.burst) f.buf.burst = 0.18;
   if (inp.jump) f.buf.jump = 0.12;
   // Charged attack: keep the attack key down for HOLD_T. One per press.
-  if (inp.atkHold) { f.hold += dt; if (f.hold >= HOLD_T * (f.buff && f.buff.fly ? 0.7 : 1) && !f.held) { f.held = true; f.buf.heavy = 0.3; } }   // Wanderer hovering: 30% sooner
+  if (inp.atkHold) { f.hold += dt; if (f.hold >= (f.quickHeavy > 0 ? NEFER_HOLD : HOLD_T * (f.buff && f.buff.fly ? 0.7 : 1)) && !f.held) { f.held = true; f.buf.heavy = 0.3; } }   // Wanderer hovering: 30% sooner; Nefer after her skill: almost a tap
   else { f.hold = 0; f.held = false; }
   if (inp.heavy) f.buf.heavy = 0.3;
   f.upHeld = !!inp.upHold; f.downHeld = !!inp.down;   // read by doAttack: up + attack is an uppercut, down + attack high in the air is a plunge
@@ -3811,6 +3842,7 @@ function stepFighter(f, foe, dt) {
   }
   if (f.ks) kinichTick(f, foe, dt);
   if (f.mir) alhaithamTick(f, dt);
+  if (f.quickHeavy > 0) { f.quickHeavy -= dt; if (Math.random() < 0.2) puff(f.x + rnd(-8, 8), f.y - 4, '#7dffb0', 1, 30, 0.4, 2, -60); }   // Nefer's quick charge: green motes at her feet
   const free = f.hitstun <= 0 && f.frozen <= 0;
   if (inp.swap && free && live && !f.act && trySwap(f)) return;
   // Guard: held with H. It blocks hits but the meter wears down, both over time and with every blocked hit.
@@ -4347,7 +4379,8 @@ function loadMapArt() {
     im.onload = () => {
       const c = document.createElement('canvas'); c.width = Math.round(W * 1.12); c.height = Math.round(H * 1.12);
       const x = c.getContext('2d'), k = Math.max(c.width / im.naturalWidth, c.height / im.naturalHeight);
-      x.filter = 'blur(1px)'; x.drawImage(im, (c.width - im.naturalWidth * k) / 2, (c.height - im.naturalHeight * k) / 2, im.naturalWidth * k, im.naturalHeight * k); x.filter = 'none';
+      x.filter = 'blur(2.2px) saturate(.72) brightness(.8)';   // pushed back behind the fight: softer, quieter colours, darker
+      x.drawImage(im, (c.width - im.naturalWidth * k) / 2, (c.height - im.naturalHeight * k) / 2, im.naturalWidth * k, im.naturalHeight * k); x.filter = 'none';
       const gr = x.createLinearGradient(0, 0, 0, c.height); gr.addColorStop(0, 'rgba(0,0,0,.05)'); gr.addColorStop(0.55, 'rgba(0,0,0,.14)'); gr.addColorStop(1, 'rgba(0,0,0,.5)');
       x.fillStyle = gr; x.fillRect(0, 0, c.width, c.height);
       MAP_ART[m.id] = c;
@@ -4612,7 +4645,7 @@ function drawGround(p, th, t) {
   top.addColorStop(0, th.grass[0]); top.addColorStop(1, th.grass[1]);
   ctx.fillStyle = top; rr(p.x0 - 6, y - 2, p.x1 - p.x0 + 12, 18, 6); ctx.fill();
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
-  ctx.strokeStyle = lit + (0.35 + 0.15 * Math.sin(t * 2)) + ')'; ctx.lineWidth = 2;
+  ctx.strokeStyle = lit + (0.6 + 0.15 * Math.sin(t * 2)) + ')'; ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(p.x0, y - 1); ctx.lineTo(p.x1, y - 1); ctx.stroke();
   ctx.restore();
 }
@@ -4807,6 +4840,13 @@ function drawStage(t) {
     ctx.restore();
   }
   for (const p of PLATS) if (!p.solid) drawPlat(p, th, t);
+  ctx.save();   // every platform's walkable top: a dark line under a bright one, so it reads against any picture
+  for (const p of PLATS) if (!p.solid) {
+    ctx.strokeStyle = 'rgba(4,6,16,.55)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x0, p.y + 2.5); ctx.lineTo(p.x1, p.y + 2.5); ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(' + th.glow + ',' + (0.55 + 0.12 * Math.sin(t * 2 + p.x0)) + ')'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(p.x0, p.y - 0.5); ctx.lineTo(p.x1, p.y - 0.5); ctx.stroke(); ctx.globalCompositeOperation = 'source-over';
+  }
+  ctx.restore();
   if (th.pads) th.pads.forEach((px, i) => {   // Sumeru bounce mushrooms
     const sq = game ? game.ms.pad[i] / 0.25 : 0;
     ctx.fillStyle = '#f4ead8'; ctx.fillRect(px - 6, 388, 12, 12);
@@ -5002,8 +5042,10 @@ function drawSideArt() {
     const s = g.side[i];
     if (s.id !== f.def.id) { s.id = f.def.id; s.t = 0; }   // slide in again whenever the fielded character changes
     s.t = Math.min(1, s.t + 0.06);
-    const k = easeOut(s.t), x = i === 0 ? -36 - (1 - k) * 100 : W - 304 + (1 - k) * 100;
-    ctx.save(); ctx.globalAlpha = 0.66 * k * (f.dead ? 0.35 : 1); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(sideArt(f.def, i), x, 24, 340, 460); ctx.restore();
+    const hot = (f.act && f.act.kind === 'burst') || g.over || (g.slowHit && g.slowHit.ko) || g.cut;   // a moment worth showing them for
+    s.hi = (s.hi || 0) + ((hot ? 1 : 0) - (s.hi || 0)) * (hot ? 0.18 : 0.05);
+    const k = easeOut(s.t), sw = 280 + 60 * s.hi, sh = sw * 460 / 340, x = i === 0 ? -36 - (1 - k) * 100 : W - sw + 36 + (1 - k) * 100;
+    ctx.save(); ctx.globalAlpha = (0.3 + 0.38 * s.hi) * k * (f.dead ? 0.35 : 1); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(sideArt(f.def, i), x, 24 + (460 - sh) * 0.5, sw, sh); ctx.restore();
   });
 }
 
@@ -5247,6 +5289,8 @@ function spriteSilhouette(id, col) {
    for frames drawn with a long stride (so the feet keep up with the ground). Frames: [x, y, w, h, anchor x (the head), anchor y (the soles)] in atlas pixels.
    They hold their own weapon, so the game draws none for them. k: game units per atlas pixel. */
 const SPRITE_ANIM = {
+  nefer: { k: 0.41696, walk: 1.4, src: 'img/sprite/nefer-anim.webp', f: { upper: [2, 2, 115, 257, 83.0, 257.0], hang: [119, 2, 82, 218, 39.0, 218.0], burst: [203, 2, 157, 217, 92.0, 217.0], idle1: [362, 2, 131, 193, 93.0, 193.0], idle2: [495, 2, 134, 191, 93.0, 191.0], blink: [631, 2, 131, 190, 91.0, 190.0], skill: [764, 2, 177, 188, 90.0, 188.0], guard: [943, 2, 157, 184, 93.0, 184.0], atk3: [1102, 2, 167, 184, 72.0, 184.0], jump: [1271, 2, 142, 177, 92.0, 177.0], fall: [1415, 2, 160, 173, 83.0, 173.0], heavy: [1577, 2, 258, 172, 151.0, 172.0], atk1: [1837, 2, 203, 162, 123.0, 162.0], hurt: [2, 261, 182, 160, 86.0, 160.0], run2: [186, 261, 203, 159, 126.5, 159.0], windup: [391, 261, 161, 154, 103.0, 154.0], run3: [554, 261, 199, 153, 115.0, 153.0], run4: [755, 261, 156, 152, 119.0, 152.0], run1: [913, 261, 185, 150, 115.0, 150.0], atk2: [1100, 261, 198, 144, 127.5, 144.0] } },   // the two-sheet set: wide walk, run, charged attack
+  flins: { k: 0.38601, walk: 1.4, src: 'img/sprite/flins-anim.webp', f: { upper: [2, 2, 112, 255, 94.0, 255.0], idle1: [116, 2, 129, 234, 69.0, 234.0], idle2: [247, 2, 130, 234, 70.0, 234.0], blink: [379, 2, 129, 234, 72.0, 234.0], hang: [510, 2, 84, 229, 42.0, 229.0], skill: [596, 2, 113, 214, 68.0, 214.0], heavy: [711, 2, 267, 190, 120.0, 190.0], atk2: [980, 2, 225, 176, 92.0, 176.0], guard: [1207, 2, 186, 171, 103.0, 171.0], jump: [1395, 2, 132, 168, 75.0, 168.0], fall: [1529, 2, 173, 167, 85.5, 167.0], run4: [1704, 2, 157, 165, 131.0, 165.0], windup: [1863, 2, 170, 163, 95.5, 163.0], atk1: [2, 259, 289, 161, 109.0, 161.0], run1: [293, 259, 194, 160, 166.0, 160.0], burst: [489, 259, 259, 160, 126.0, 160.0], run3: [750, 259, 186, 159, 142.0, 159.0], hurt: [938, 259, 183, 158, 42.0, 158.0], run2: [1123, 259, 171, 158, 150.0, 158.0], atk3: [1296, 259, 249, 150, 121.0, 150.0] } },   // the two-sheet set: wide walk, run, charged attack
   columbina: { k: 0.40814, walk: 1.4, src: 'img/sprite/columbina-anim.webp', f: { upper: [2, 2, 120, 250, 92.0, 250.0], heavy: [124, 2, 118, 223, 63.0, 223.0], hang: [244, 2, 80, 213, 38.5, 213.0], idle2: [326, 2, 129, 204, 86.0, 204.0], idle1: [457, 2, 138, 200, 93.0, 200.0], blink: [597, 2, 134, 196, 86.0, 196.0], run4: [582, 254, 192, 169, 142.0, 169.0], fall: [871, 2, 181, 189, 93.0, 189.0], guard: [1054, 2, 139, 187, 109.0, 187.0], jump: [1195, 2, 124, 186, 83.0, 186.0], burst: [1321, 2, 203, 183, 108.0, 183.0], windup: [1526, 2, 161, 177, 105.0, 177.0], run3: [1689, 2, 190, 176, 155.0, 176.0], atk1: [2, 254, 189, 176, 124.0, 176.0], atk2: [193, 254, 203, 176, 135.0, 176.0], hurt: [398, 254, 182, 171, 74.0, 171.0], run2: [582, 254, 192, 169, 142.0, 169.0], run1: [776, 254, 204, 168, 166.0, 168.0], atk3: [982, 254, 200, 164, 134.0, 164.0], skill: [1184, 254, 218, 149, 135.0, 149.0] } },   // the two-sheet set: wide walk, run, charged attack
   tartagliablades: { k: 0.41791, walk: 1.4, src: 'img/sprite/tartagliablades-anim.webp', f: { upper: [2, 2, 119, 260, 82.0, 260.0], hang: [123, 2, 88, 210, 47.5, 210.0], idle2: [213, 2, 161, 189, 85.0, 189.0], jump: [376, 2, 147, 184, 85.0, 184.0], idle1: [525, 2, 163, 182, 88.0, 182.0], run4: [1335, 264, 188, 145, 120.0, 145.0], blink: [838, 2, 155, 179, 80.0, 179.0], guard: [995, 2, 152, 179, 83.0, 179.0], hurt: [1149, 2, 184, 164, 60.0, 164.0], windup: [1335, 2, 181, 164, 89.0, 164.0], burst: [1518, 2, 223, 164, 120.0, 164.0], fall: [1743, 2, 158, 161, 83.0, 161.0], atk2: [2, 264, 214, 159, 98.0, 159.0], atk1: [218, 264, 235, 155, 102.0, 155.0], run1: [455, 264, 190, 151, 126.0, 151.0], atk3: [647, 264, 240, 149, 121.0, 149.0], heavy: [889, 264, 254, 148, 122.0, 148.0], run3: [1145, 264, 188, 147, 114.5, 147.0], run2: [1335, 264, 188, 145, 120.0, 145.0], skill: [1525, 264, 248, 136, 142.0, 136.0] } },   // the two-sheet set: wide walk, run, charged attack
   tartaglia: { k: 0.40175, walk: 1.4, src: 'img/sprite/tartaglia-anim.webp', f: { upper: [2, 2, 93, 239, 41.0, 239.0], atk3: [97, 2, 164, 212, 64.0, 212.0], hang: [263, 2, 76, 209, 36.0, 209.0], atk2: [341, 2, 158, 198, 71.0, 198.0], burst: [501, 2, 237, 195, 101.0, 195.0], idle1: [740, 2, 119, 191, 58.0, 191.0], blink: [861, 2, 117, 191, 58.0, 191.0], idle2: [980, 2, 118, 190, 62.0, 190.0], guard: [1100, 2, 136, 182, 62.0, 182.0], run4: [1060, 243, 182, 147, 114.0, 147.0], atk1: [1378, 2, 180, 177, 81.0, 177.0], fall: [1560, 2, 145, 176, 76.5, 176.0], windup: [1707, 2, 175, 175, 74.0, 175.0], heavy: [2, 243, 212, 175, 107.5, 175.0], jump: [216, 243, 129, 170, 92.5, 170.0], skill: [347, 243, 181, 167, 103.0, 167.0], run1: [530, 243, 182, 163, 121.0, 163.0], run3: [714, 243, 167, 160, 109.0, 160.0], hurt: [883, 243, 175, 153, 54.0, 153.0], run2: [1060, 243, 182, 147, 114.0, 147.0] } },   // the two-sheet set: wide walk, run, charged attack
@@ -5307,6 +5351,12 @@ function animFrame(f, o, moving, air, ph, t, id = f.def.id) {   // id: the atlas
       if (a.plunge) return 'jump';
       if (a.charged) {
         if (WEAPON[f.def.id].heavy && !(f.buff && f.buff.blades)) return p < 0.3 ? 'windup' : p < 0.36 ? 'atk1' : p < 0.42 ? 'atk2' : 'atk3';   // greatsword: overhead, then all the way down into the ground as the hit lands
+        if (WEAPON[f.def.id].cls === 'polearm' && f.def.id !== 'arlecchino' && !(f.buff && f.buff.musou)) {   // the polearm flurry (5 thrusts, 0.085 s apart from 0.08 s):
+          const tt = p * a.dur - 0.08, i = Math.floor(tt / 0.085);                                          // drawn back between thrusts, straight and high in turn, the last one the sweeping finisher
+          if (tt < 0) return 'windup';
+          if (i >= 4) return 'atk3';
+          return tt - i * 0.085 < 0.05 ? (i % 2 ? 'atk2' : 'atk1') : 'windup';
+        }
         if (p < 0.12) return 'windup';
         if (F.heavy) return 'heavy';   // drawn for it
         if (WEAPON[f.def.id].cls === 'bow' || isRanged(f.def.id)) return p < 0.35 ? 'windup' : 'atk3';   // one shot: draw, then release (no flicker between stances)
@@ -5339,7 +5389,14 @@ function drawAnim(id, fr, { flash, tint }) {
   ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   const put = img => ctx.drawImage(img, sx, sy, w, h, -ax * k, -ay * k, w * k, h * k);
   if (tint) put(animSilhouette(id, tint));
-  else { put(SPRITE_ANIM_IMG[id]); if (flash) { ctx.globalAlpha *= 0.9 * flash; put(animSilhouette(id, '#ffffff')); } }   // flash: 1 the instant it lands, fading
+  else {
+    if (!fxPass) {   // the outline: the shape in near-black, nudged a little each way under the picture
+      const sil = animSilhouette(id, '#0a0c1a'), o = 1.5, a0 = ctx.globalAlpha; ctx.globalAlpha = a0 * 0.85;
+      for (const [dx, dy] of [[-o, 0], [o, 0], [0, -o], [0, o], [-o * 0.7, -o * 0.7], [o * 0.7, -o * 0.7], [-o * 0.7, o * 0.7], [o * 0.7, o * 0.7]])
+        ctx.drawImage(sil, sx, sy, w, h, -ax * k + dx, -ay * k + dy, w * k, h * k);
+      ctx.globalAlpha = a0;
+    }
+    put(SPRITE_ANIM_IMG[id]); if (flash) { ctx.globalAlpha *= 0.9 * flash; put(animSilhouette(id, '#ffffff')); } }   // flash: 1 the instant it lands, fading
   ctx.restore();
 }
 // Raiden's Musou state on her drawn frames: a pulsing violet glow behind the figure (back), and over it a flickering sheen with small arcs
@@ -8726,6 +8783,11 @@ function render(t) {
         const dist = gp.y - f.y;
         ctx.fillStyle = 'rgba(0,0,0,' + clamp(0.35 - dist / 700, 0, 0.35) + ')';
         ctx.beginPath(); ctx.ellipse(f.x, gp.y + 2, 20 * f.def.scale, 5, 0, 0, 7); ctx.fill();
+        const ra = clamp(0.9 - dist / 500, 0.25, 0.9), rc = f.idx === 0 ? '255,90,110' : '74,168,255', rw = 26 * f.def.scale;   // the same colours as the 1P / 2P tags
+        ctx.strokeStyle = 'rgba(' + rc + ',' + ra + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(f.x, gp.y + 2, rw, 6.5, 0, 0, 7); ctx.stroke();
+        ctx.fillStyle = 'rgba(' + rc + ',' + ra * 0.18 + ')'; ctx.fill();
+        ctx.fillStyle = 'rgba(' + rc + ',' + ra + ')'; ctx.beginPath();   // a small notch on the side they face
+        ctx.moveTo(f.x + f.dir * (rw + 7), gp.y + 2); ctx.lineTo(f.x + f.dir * (rw + 1), gp.y - 1.5); ctx.lineTo(f.x + f.dir * (rw + 1), gp.y + 5.5); ctx.closePath(); ctx.fill();
       }
     }
     ctx.save(); ctx.globalCompositeOperation = 'lighter';   // afterimages glow: older ones in the element's colour, the newest paler
@@ -8986,7 +9048,7 @@ const KIT = {
   qiqi: { cd: 7.0, skill: '자신의 피해를 5% 회복하고, 5초 동안 얼음 귀신이 주위를 돌며 가까운 적에게 0.9초마다 얼음 원소 피해를 줍니다. 교체해도 귀신은 나와 있는 캐릭터를 따라다닙니다.', burst: '자신의 피해를 8% 회복하고 상대가 있는 자리에 부적을 떨어뜨려 터뜨립니다. 그 뒤 8초 동안 상대 머리 위에 부적이 붙고, 그동안 치치의 공격이 맞을 때마다 치치의 피해가 2.5% 회복됩니다.' },
   shenhe: { cd: 6.0, skill: '앞으로 돌진하며 얼음을 실어 찌릅니다. 그 뒤 5초 동안 평타에 얼음이 실리고 피해가 15% 늘어납니다. 공중에서도 쓸 수 있습니다.', burst: '상대가 있는 자리에 서리 결계를 4초 동안 펼칩니다. 결계 안의 적은 0.5초마다 얼음 원소 피해를 받고, 맞은 뒤 잠시 동안 더 멀리 밀려납니다. 결계는 상대를 따라가지 않습니다.' },
   flins: { cd: 6.0, skill: '5초 동안 푸른 번개 불꽃에 휩싸입니다. 그동안 모든 평타에 번개가 실리고 피해가 20% 늘어납니다. 불꽃이 켜진 채 스킬을 다시 누르면 앞으로 창을 세 번 연달아 찌릅니다(재사용 2.8초). 불꽃이 꺼지면 6초 뒤 다시 쓸 수 있습니다.', burst: '푸른 불꽃에 휩싸여 전장을 밤으로 물들입니다. 상대가 있던 자리를 길게 한 번 베고, 그 자리에 번개가 연달아 내리친 뒤, 반대 방향으로 한 번 더 크게 베어 날려 보냅니다. 자리를 따라가지 않습니다.' },
-  nefer: { cd: 5.0, skill: '상대가 서 있는 자리 양옆에 초록 그림자 둘이 솟아나 차례로 덮칩니다. 두 번째 그림자가 네페르 반대쪽으로 날려 보냅니다. 자리를 따라가지 않습니다.', burst: '상대가 있던 자리에 거대한 눈이 열려 0.9초 동안 끌어당기며 여러 번 맞히고, 크게 터뜨립니다.' },
+  nefer: { cd: 5.0, skill: '상대가 서 있는 자리 양옆에 초록 그림자 둘이 솟아나 차례로 덮칩니다. 두 번째 그림자가 네페르 반대쪽으로 날려 보냅니다. 자리를 따라가지 않습니다. 쓰고 나면 6초 동안 강공격 충전 시간이 평타처럼 짧아집니다(0.32초 → 0.12초).', burst: '상대가 있던 자리에 거대한 눈이 열려 0.9초 동안 끌어당기며 여러 번 맞히고, 크게 터뜨립니다.' },
   durin: { cd: 4.9, skill: '날개를 펴고 앞쪽 위로 비스듬히 날아오르며 들이받습니다. 공중에서도 쓸 수 있어 복귀에도 씁니다.', burst: '검은 용이 하늘에서 상대가 있던 자리로 비스듬히 내리꽂혀 지나가는 길과 떨어진 자리에 피해를 줍니다. 그 아래 땅이 있으면 2.5초 동안 불타며 0.5초마다 약한 피해를 줍니다. 유도는 없습니다.' },
   varka: { cd: 4.9, skill: '바람 늑대와 함께 앞으로 길게 돌진하며 들이받습니다. 공중에서도 쓸 수 있습니다. 그 뒤 6초 동안 평타와 강공격에 불 원소와 바람 원소가 함께 실립니다(불로 먼저 베고 바로 뒤 바람이 따라 붙어 확산 반응이 납니다).', burst: '두 자루 대검으로 앞쪽을 X자로 두 번 베고, 이어서 늑대의 포효로 크게 날려 보냅니다.' },
   zibai: { cd: 4.9, skill: '초승달 칼날을 앞으로 던집니다. 칼날은 느려지다가 되돌아오며, 나갈 때 한 번, 돌아올 때 한 번 더 맞힐 수 있습니다. 돌아오는 칼날에 맞으면 자백 쪽으로 끌려옵니다.', burst: '상대가 있는 자리에 보름달을 떨어뜨려 크게 날려 보내고, 6초 동안 방어막을 얻습니다.' },
@@ -9014,7 +9076,7 @@ const BASIC = {
   catalyst: '상대가 있는 쪽으로 원소 구슬을 쏩니다. 유도는 없고, 맞을 때마다 원소가 묻습니다. 3타째가 더 강합니다. 보통은 밀쳐내지 않고, 네 발에 한 발꼴로만 밀쳐냅니다. 꾹 누르면 상대가 서 있는 자리에 원소 기둥이 솟아올라 위로 띄웁니다. 겨냥은 한 번만 하고 따라가지 않습니다.',
   blade: '상대가 있는 쪽으로 바람 칼날을 날립니다. 유도는 없고, 매번 바람 원소 공격으로 들어갑니다. 3타째가 더 강합니다. 보통은 밀쳐내지 않고, 네 발에 한 발꼴로만 밀쳐냅니다. 꾹 누르면 상대가 서 있는 자리에 바람 기둥이 솟아올라 위로 띄웁니다. 겨냥은 한 번만 하고 따라가지 않습니다.',
   fist: '주먹으로 치는 근접 3연타입니다. 3타째에 원소가 실립니다. 꾹 누르면 강한 주먹 한 방을 날립니다.',
-  kick: '발차기 3연타입니다. 1타는 높이 올려 차고, 2타는 몸을 돌리며 낮고 넓게 휩쓸고, 3타는 높이 뛰어올라 공중제비를 돈 뒤 내려찍으며 풀 원소가 실립니다(3타는 다른 캐릭터보다 조금 느립니다). 꾹 누르면 낮게 미끄러지며 차는 슬라이딩 킥 한 방을 날립니다.',
+  kick: '발차기 3연타입니다. 1타는 높이 올려 차고, 2타는 몸을 돌리며 낮고 넓게 휩쓸고, 3타는 높이 뛰어올라 공중제비를 돈 뒤 내려찍으며 풀 원소가 실립니다(3타는 다른 캐릭터보다 조금 느립니다). 꾹 누르면 낮게 미끄러지며 차는 슬라이딩 킥 한 방을 날립니다. 상대가 장병기 강공격이 닿을 만한 거리 안에 있으면 그쪽으로 돌아 상대 앞까지 미끄러져 들어가며 찹니다.',
 };
 function fighterStatus(f) {
   const s = [];
@@ -9027,6 +9089,7 @@ function fighterStatus(f) {
   if (game && rainOn(f)) s.push('비의 검');
   if (f.buff && f.buff.gun) s.push('사냥 태세');
   if (f.mir && f.mir.n) s.push('빛조각 ' + f.mir.n + '개');
+  if (f.quickHeavy > 0) s.push('강공격 충전 단축 ' + Math.ceil(f.quickHeavy) + '초');
   if (f.buff && f.buff.musou) s.push('몽상의 일태도');
   if (f.buff && f.buff.syringe) s.push('과포화 주사');
   if (f.buff && f.buff.blades) s.push('마왕의 무장');
@@ -9075,7 +9138,7 @@ function toggleInfo() {
   if (state === 'fight') { state = 'info'; renderKits(); showOv('info'); }
   else if (state === 'info') { state = 'fight'; showOv(null); held.clear(); edges.clear(); }
 }
-// Screen changes: a band sweeps across the frame and the screen is swapped while it covers everything.
+// Screen changes: slanted panels sweep across the frame and the screen is swapped while the last one covers everything.
 let wiping = false;
 function transition(fn) {
   if (REDUCED) { fn(); return; }
@@ -9083,8 +9146,8 @@ function transition(fn) {
   wiping = true;
   const w = $('wipe');
   w.hidden = false; w.classList.remove('run'); void w.offsetWidth; w.classList.add('run');
-  setTimeout(fn, 420);   // while the sky is fully closed
-  setTimeout(() => { w.hidden = true; w.classList.remove('run'); wiping = false; }, 920);
+  setTimeout(fn, 490);   // the blue panel covers the whole frame from about 0.47 s to 0.54 s
+  setTimeout(() => { w.hidden = true; w.classList.remove('run'); wiping = false; }, 950);
 }
 {   // the compass of the transition: tick marks round the ring, long ones at the four points, and the seven elements spaced round inside it
   const NS = 'http://www.w3.org/2000/svg', tk = document.querySelector('#wipe .ticks'), els = document.querySelector('#wipe .els');
