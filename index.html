@@ -741,7 +741,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
         <tbody>
           <tr><td>이동</td><td><kbd>A</kbd> <kbd>D</kbd> 또는 <kbd>←</kbd> <kbd>→</kbd></td></tr>
           <tr><td>대시 (땅에서)</td><td><kbd>A</kbd> 또는 <kbd>D</kbd>를 빠르게 두 번 누르고 그대로 누르고 있기</td></tr>
-          <tr><td>점프 (공중 점프 가능)</td><td><kbd>W</kbd> / <kbd>Space</kbd> / <kbd>↑</kbd></td></tr>
+          <tr><td>점프 (공중 점프 가능)</td><td><kbd>W</kbd> / <kbd>Space</kbd> / <kbd>↑</kbd> · 아주 짧게 톡 누르면 낮은 점프</td></tr>
           <tr><td>발판 내려가기 · 빠른 낙하</td><td><kbd>S</kbd> / <kbd>↓</kbd></td></tr>
           <tr><td>기본 공격 (3연타)</td><td><kbd>J</kbd> / <kbd>,</kbd> · <kbd>A</kbd>/<kbd>D</kbd>를 누른 채 치면 무조건 그 방향으로 (활·법구 캐릭터는 상대 쪽으로 자동 조준)</td></tr>
           <tr><td>강공격 (땅에서 꾹 누르기)</td><td><kbd>J</kbd> / <kbd>,</kbd></td></tr>
@@ -750,6 +750,8 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
           <tr><td>원소 스킬</td><td><kbd>K</kbd> / <kbd>.</kbd></td></tr>
           <tr><td>필살기 (게이지 100%)</td><td><kbd>L</kbd> / <kbd>/</kbd></td></tr>
           <tr><td>가드 (누르고 있는 동안)</td><td><kbd>H</kbd></td></tr>
+          <tr><td>구르기 (잠깐 무적)</td><td><kbd>H</kbd> 누른 채 <kbd>A</kbd> / <kbd>D</kbd></td></tr>
+          <tr><td>공중 회피 (잠깐 무적, 착지 전 한 번)</td><td>공중에서 <kbd>H</kbd></td></tr>
           <tr><td>빙결 탈출 (얼었을 때)</td><td><kbd>A</kbd> <kbd>W</kbd> <kbd>D</kbd> 번갈아 연타</td></tr>
           <tr><td>캐릭터 교체 (파티 2~3명일 때)</td><td><kbd>R</kbd></td></tr>
           <tr><td>스킬 정보 보기 (일시정지)</td><td><kbd>I</kbd></td></tr>
@@ -821,27 +823,29 @@ const EL = {
 };
 const AURA_EL = new Set(['pyro', 'hydro', 'electro', 'cryo', 'dendro']);
 
+// Balance pass, 2026-10-20: 1,770 computer-against-computer matches on the empty training map and 1,770 on the eleven regular maps
+// (every pairing once each time). Characters at the far ends in both runs had their attack rating (and for the two lowest, weight) moved.
 const CHARS = [
   { id: 'diluc', name: '다이루크', title: '어둠의 영웅', el: 'pyro', color: '#d2402a', body: '#2e2327', dark: '#1a1214', hair: '#c7321f', eye: '#e0452f', skin: '#ffd9bd',
     speed: 285, jump: 730, weight: 1.1, atk: 1.15, jumps: 2, grav: 1, scale: 1.05, reach: 1.15, aiRange: 66,
     skill: '화염 베기', burst: '여명', desc: '대검 근접형. 불꽃을 두른 돌진 베기와 불사조 폭발로 압박합니다.' },
   { id: 'mona', name: '모나', title: '점성술사', el: 'hydro', color: '#3f66d6', dark: '#1a2a6b', hair: '#2d3280', eye: '#7f8cf0', skin: '#ffe3cf',
-    speed: 300, jump: 740, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 170,
+    speed: 300, jump: 740, weight: 0.85, atk: 0.84, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 170,
     skill: '수중월', burst: '별의 운명', desc: '법구 원거리형. 물의 허상을 세워 함께 견제하고, 거품에 가둬 띄운 뒤 터뜨립니다.' },
   { id: 'raiden', name: '라이덴 쇼군', title: '번개 장군', el: 'electro', color: '#8a4fe0', dark: '#3a1d6b', hair: '#7b4fc8', eye: '#c077ff', skin: '#f6d8c8',
-    speed: 300, jump: 740, weight: 1.0, atk: 1.0, jumps: 2, grav: 1, scale: 1.04, reach: 1.3, aiRange: 76,
+    speed: 300, jump: 740, weight: 1.0, atk: 0.9, jumps: 2, grav: 1, scale: 1.04, reach: 1.3, aiRange: 76,
     skill: '뇌전의 눈', burst: '몽상의 일태도', desc: '장병기 근접형. 머리 위의 눈이 주변을 계속 감전시키고, 필살기로 번개의 검을 뽑아 크게 벤 뒤 5초 동안 그 검으로 싸웁니다.' },
   { id: 'ganyu', name: '감우', title: '리월의 비서', el: 'cryo', color: '#5b8fe0', body: '#e4edff', dark: '#223f86', hair: '#5a73d9', eye: '#8fb4ff', skin: '#ffe7e0',
     speed: 285, jump: 735, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 230,
     skill: '서리꽃 화살', burst: '얼음비', desc: '활 원거리형. 멀리 날아가 터지는 서리꽃 화살과 넓은 얼음비가 강점입니다.' },
   { id: 'venti', name: '벤티', title: '바람의 음유시인', el: 'anemo', color: '#3fbf9a', body: '#eafff2', dark: '#2c8f78', hair: '#3b6b6f', eye: '#3fbf9a', skin: '#ffdcc2',
-    speed: 330, jump: 720, weight: 0.8, atk: 0.9, jumps: 3, grav: 0.88, scale: 1, reach: 1, aiRange: 120,
+    speed: 330, jump: 720, weight: 0.8, atk: 0.84, jumps: 3, grav: 0.88, scale: 1, reach: 1, aiRange: 120,
     skill: '상승 기류', burst: '바람신의 시', desc: '활 기동형. 3단 점프와 상승 기류로 날아다니고 필살기로 적을 끌어모읍니다.' },
   { id: 'zhongli', name: '종려', title: '암왕제군', el: 'geo', color: '#e0a63a', body: '#4a3623', dark: '#2a1e12', hair: '#4a2f1a', eye: '#e8a63a', skin: '#f2cfac',
-    speed: 255, jump: 710, weight: 1.3, atk: 1.1, jumps: 2, grav: 1.08, scale: 1.08, reach: 1.3, aiRange: 76,
+    speed: 255, jump: 710, weight: 1.3, atk: 1.02, jumps: 2, grav: 1.08, scale: 1.08, reach: 1.3, aiRange: 76,
     skill: '지핵', burst: '천성', desc: '장병기 중량형. 바위 기둥과 방어막으로 버티다 운석으로 석화시킵니다.' },
   { id: 'hutao', name: '호두', title: '왕생당 77대 당주', el: 'pyro', color: '#e0443a', body: '#3a2424', dark: '#1c1212', hair: '#5a2e22', eye: '#e8453a', skin: '#ffe0cc',
-    speed: 310, jump: 750, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 0.98, reach: 1.3, aiRange: 76,
+    speed: 310, jump: 750, weight: 0.95, atk: 1.16, jumps: 2, grav: 1, scale: 0.98, reach: 1.3, aiRange: 76,
     skill: '접령', burst: '안신의 장례', desc: '장병기 근접형. 피해(%)를 조금 내주고 4초 동안 모든 평타에 불을 싣고 빨라집니다. 피해가 많이 쌓일수록 필살기가 강해집니다.' },
   { id: 'kazuha', name: '카즈하', title: '방랑 무사', el: 'anemo', color: '#d9534f', body: '#f2ede4', dark: '#2f3b4a', hair: '#eef0f2', eye: '#d64545', skin: '#ffdcc2',
     speed: 330, jump: 760, weight: 0.9, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 66,
@@ -853,7 +857,7 @@ const CHARS = [
     speed: 300, jump: 760, weight: 0.8, atk: 0.95, jumps: 2, grav: 0.95, scale: 0.9, reach: 1, aiRange: 170,
     skill: '만물 인식', burst: '마야의 궁전', desc: '법구 원거리형. 넓은 범위에 씨앗 표식을 심어, 표식 달린 적에게 원소 반응이 날 때마다 추가 피해를 줍니다.' },
   { id: 'eula', name: '유라', title: '물보라 기사', el: 'cryo', color: '#7fb6ff', body: '#2a3b66', dark: '#18233e', hair: '#9bc6f0', eye: '#f0c85a', skin: '#ffe7dc',
-    speed: 280, jump: 720, weight: 1.15, atk: 1.15, jumps: 2, grav: 1.05, scale: 1.04, reach: 1.15, aiRange: 66,
+    speed: 280, jump: 720, weight: 1.15, atk: 1.28, jumps: 2, grav: 1.05, scale: 1.04, reach: 1.15, aiRange: 66,
     skill: '빙조의 소용돌이', burst: '빙랑의 만가', desc: '대검 근접형. 스킬로 냉기 각인을 쌓고, 필살기 뒤 3초 동안 때린 만큼 강해지는 빛의 검을 터뜨립니다.' },
   { id: 'klee', name: '클레', title: '꼬마 불꽃 기사', el: 'pyro', color: '#e8453a', body: '#d9453a', dark: '#7a1f18', hair: '#f2d07a', eye: '#e8453a', skin: '#ffe6d6',
     speed: 300, jump: 760, weight: 0.75, atk: 0.95, jumps: 2, grav: 1, scale: 0.82, reach: 1, aiRange: 160,
@@ -865,7 +869,7 @@ const CHARS = [
     speed: 300, jump: 740, weight: 1.0, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 120,
     skill: '창생술 · 바다', burst: '탄생식 · 대지의 꽃', desc: '한손검 설치형. 발밑에 꽃의 진을 깔아, 안에 들어온 적을 주기적으로 바위 꽃으로 띄웁니다.' },
   { id: 'yae', name: '야에 미코', title: '나루카미 대사의 궁사', el: 'electro', color: '#d27ad8', body: '#f4eef0', dark: '#a8324f', hair: '#f2a7c8', eye: '#c077ff', skin: '#ffe7e0',
-    speed: 300, jump: 750, weight: 0.85, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 200,
+    speed: 300, jump: 750, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 200,
     skill: '야호 · 살생앵', burst: '대밀법 · 천호현진', desc: '법구 설치형. 번개를 떨어뜨리는 살생앵을 최대 3그루 심고, 필살기로 살생앵을 터뜨려 천둥을 더 내립니다.' },
   { id: 'tighnari', name: '타이나리', title: '숲의 레인저', el: 'dendro', color: '#7ed957', body: '#2f6b4a', dark: '#1f2a33', hair: '#2b3245', eye: '#7ed957', skin: '#ffe0cc',
     speed: 320, jump: 770, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 230,
@@ -874,22 +878,22 @@ const CHARS = [
     speed: 285, jump: 730, weight: 1.1, atk: 1.05, jumps: 2, grav: 1, scale: 1.08, reach: 1, aiRange: 220,
     skill: '눈물이여, 되갚아라', burst: '조수여, 기억하라', desc: '법구 원거리형. 긴 물줄기 광선으로 멀리서 여러 번 맞히고, 필살기로 물기둥을 떨어뜨립니다.' },
   { id: 'lyney', name: '리니', title: '위대한 마술사', el: 'pyro', color: '#ff7a5a', body: '#2a2140', dark: '#17122a', hair: '#ece6d6', eye: '#9a6ad8', skin: '#ffe6d6',
-    speed: 320, jump: 760, weight: 0.9, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 200,
+    speed: 320, jump: 760, weight: 0.9, atk: 0.94, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 200,
     skill: '경이로운 회전', burst: '기적의 퍼레이드', desc: '활 기교형. 시간이 지나면 터지는 모자를 남기고, 필살기로 무적 질주 뒤 크게 폭발합니다.' },
   { id: 'navia', name: '나비아', title: '가시장미회 회장', el: 'geo', color: '#e8b84a', body: '#f4efe2', dark: '#2b2b35', hair: '#f2d58a', eye: '#7fb4ff', skin: '#ffe6d6',
     speed: 290, jump: 735, weight: 1.1, atk: 1.1, jumps: 2, grav: 1.05, scale: 1.02, reach: 1.15, aiRange: 120,
     skill: '장미의 예포', burst: '축포의 날', desc: '대검 화력형. 필살기 포탄 여섯 발로 결정 반응을 많이 일으키고, 주운 결정으로 산탄 스킬을 강화합니다.' },
   { id: 'wriothesley', name: '라이오슬리', title: '메로피드 요새 공작', el: 'cryo', color: '#8fc8ff', body: '#2a3140', dark: '#15181f', hair: '#2a2a30', eye: '#9fb4d8', skin: '#f2d4bc',
-    speed: 295, jump: 730, weight: 1.2, atk: 1.1, jumps: 2, grav: 1.05, scale: 1.1, reach: 1.05, aiRange: 60,
+    speed: 330, jump: 730, weight: 1.3, atk: 1.3, jumps: 2, grav: 1.05, scale: 1.1, reach: 1.2, aiRange: 60,
     skill: '얼음 주먹', burst: '냉혹한 판결', desc: '격투 근접형. 피해를 조금 내주고 얼음 주먹을 강화하며, 필살기로 연속 주먹을 퍼붓습니다.' },
   { id: 'clorinde', name: '클로린드', title: '결투 대리인', el: 'electro', color: '#9a6ad8', body: '#2a2340', dark: '#15112a', hair: '#1f2440', eye: '#c077ff', skin: '#ffe3d6',
     speed: 330, jump: 760, weight: 0.92, atk: 1.05, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 66,
     skill: '사냥의 맹세', burst: '최후의 종언', desc: '검과 총을 함께 쓰는 결투가. 스킬로 4초 동안 번개 총을 쏘는 태세가 되고, 그 사이 스킬을 다시 누르면 찌르며 돌진합니다.' },
   { id: 'wanderer', name: '방랑자', title: '떠도는 바람', el: 'anemo', color: '#4fc7d8', dark: '#1d4f6b', hair: '#3a3f66', eye: '#7fd0e0', skin: '#ffe6d6',
-    speed: 320, jump: 750, weight: 0.85, atk: 1.0, jumps: 2, grav: 1, scale: 0.98, reach: 1, aiRange: 150,
+    speed: 320, jump: 750, weight: 0.85, atk: 0.88, jumps: 2, grav: 1, scale: 0.98, reach: 1, aiRange: 150,
     skill: '창공 유영', burst: '광풍의 연무', desc: '법구 비행형. 바람 칼날을 날리고, 스킬을 쓰면 3초 동안 떠다니며 싸울 수 있습니다.' },
   { id: 'nilou', name: '닐루', title: '물의 무희', el: 'hydro', color: '#4ab0e0', dark: '#1a4a6b', hair: '#8a4a3a', eye: '#4ab0e0', skin: '#ffe6d6',
-    speed: 315, jump: 750, weight: 0.9, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 66,
+    speed: 340, jump: 750, weight: 1.0, atk: 1.22, jumps: 2, grav: 1, scale: 1, reach: 1.2, aiRange: 66,
     skill: '물결의 춤', burst: '물의 윤무', desc: '한손검 근접형. 스킬을 쓰면 평타에 물이 실리고, 그동안 강공격으로 부채꼴 물결을 날립니다.' },
   { id: 'mavuika', name: '마비카', title: '타오르는 전사', el: 'pyro', color: '#ff7a2a', body: '#3a2020', dark: '#1f1010', hair: '#d94a2a', eye: '#ffb04d', skin: '#f6d4bc',
     speed: 290, jump: 730, weight: 1.1, atk: 1.15, jumps: 2, grav: 1, scale: 1.05, reach: 1.15, aiRange: 66,
@@ -901,7 +905,7 @@ const CHARS = [
     speed: 325, jump: 750, weight: 0.88, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 60,
     skill: '파도타기', burst: '상어 미사일', desc: '법구 돌진형. 파도를 타고 달리며 적을 들이받아 기세를 쌓고, 다음 평타에 한꺼번에 터뜨립니다.' },
   { id: 'citlali', name: '시틀라리', title: '밤의 주술사', el: 'cryo', color: '#a8c8ff', dark: '#3a4a8a', hair: '#d8c0e8', eye: '#c8a8ff', skin: '#ffe6e0',
-    speed: 295, jump: 740, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 0.96, reach: 1, aiRange: 150,
+    speed: 295, jump: 740, weight: 0.85, atk: 0.8, jumps: 2, grav: 1, scale: 0.96, reach: 1, aiRange: 150,
     skill: '서리 수호령', burst: '서리 별의 낙하', desc: '법구 지원형. 방어막과 함께 서리 고리를 둘러 주변 적에게 얼음을 묻히고, 필살기로 얼음 별을 떨어뜨립니다.' },
   { id: 'skirk', name: '스커크', title: '심연의 검객', el: 'cryo', color: '#8fb8ff', body: '#e8eefc', dark: '#2a3570', hair: '#f2f4ff', eye: '#e8506a', skin: '#ffe9e2',
     speed: 335, jump: 765, weight: 0.9, atk: 1.08, jumps: 2, grav: 1, scale: 1, reach: 1.1, aiRange: 66,
@@ -913,7 +917,7 @@ const CHARS = [
     speed: 320, jump: 755, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 0.97, reach: 1.3, aiRange: 76,
     skill: '초혼 돌격', burst: '승냥이의 의식', desc: '장병기 변신형. 번개 돌진 찌르기로 파고들고, 필살기로 7초 동안 승냥이로 변신해 양손 발톱으로 싸웁니다.' },
   { id: 'aether', name: '아이테르', title: '여행자 · 바람', el: 'anemo', color: '#6fe0c0', body: '#3a2a22', dark: '#1f1612', hair: '#f2d27a', eye: '#f0c85a', skin: '#ffe6d2',
-    speed: 310, jump: 750, weight: 1.0, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 66,
+    speed: 330, jump: 750, weight: 1.0, atk: 1.2, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 66,
     skill: '바람 소용돌이 검', burst: '돌풍의 검', desc: '한손검 균형형. 손앞의 소용돌이로 적을 끌어당겼다 밀쳐내고, 필살기로 앞으로 나아가는 회오리를 보냅니다.' },
   { id: 'lumine', name: '루미네', title: '여행자 · 바위', el: 'geo', color: '#f0c85a', body: '#f4f0e6', dark: '#3a4a6a', hair: '#f2dc9a', eye: '#f0c85a', skin: '#ffe9da',
     speed: 310, jump: 750, weight: 1.0, atk: 1.0, jumps: 2, grav: 1, scale: 0.98, reach: 1.05, aiRange: 66,
@@ -928,16 +932,16 @@ const CHARS = [
     speed: 315, jump: 755, weight: 1.0, atk: 1.1, jumps: 2, grav: 1, scale: 1.03, reach: 1.3, aiRange: 76,
     skill: '만상을 태우는 불', burst: '저무는 붉은 달', desc: '장병기 강습형. 스킬로 상대 곁에 순식간에 나타나 베고 5초 동안 평타에 불을 싣습니다. 필살기로 상대 자리에 X자 참격을 새겨 터뜨리고 회복합니다.' },
   { id: 'sigewinne', name: '시그윈', title: '수석 간호사', el: 'hydro', color: '#7fd8f0', body: '#3a8ac0', dark: '#1f4a6a', hair: '#c8e6f8', eye: '#e84a5a', skin: '#fff0ec',
-    speed: 300, jump: 735, weight: 0.8, atk: 0.9, jumps: 2, grav: 1, scale: 0.86, reach: 1, aiRange: 190,
+    speed: 300, jump: 735, weight: 0.8, atk: 0.8, jumps: 2, grav: 1, scale: 0.86, reach: 1, aiRange: 190,
     skill: '통통 물방울', burst: '과포화 주사', desc: '활 지원형. 튀는 물방울을 던지며 스스로 회복하고, 필살기로 회복하고 5초 동안 주사기로 물고리와 하트 거품을 쏩니다.' },
   { id: 'keqing', name: '각청', title: '옥형성', el: 'electro', color: '#b48af0', body: '#5a3a9a', dark: '#2a1a4a', hair: '#b9a8d8', eye: '#e06ab0', skin: '#ffe9e0',
-    speed: 335, jump: 765, weight: 0.9, atk: 1.03, jumps: 2, grav: 1, scale: 0.98, reach: 1.08, aiRange: 66,
+    speed: 335, jump: 765, weight: 0.9, atk: 1.2, jumps: 2, grav: 1, scale: 0.98, reach: 1.08, aiRange: 66,
     skill: '성신 귀환', burst: '천가 순유', desc: '한손검 기동형. 번개 쐐기를 던져 두고 다시 눌러 그 자리로 순간이동해 벱니다. 필살기로 분신들을 불러 주변을 연속으로 베어 냅니다.' },
   { id: 'tartaglia', name: '타르탈리아', title: '공자', el: 'hydro', color: '#4aa8f0', body: '#9a9faa', dark: '#3a3f4a', hair: '#e08a3a', eye: '#3a6ad0', skin: '#ffe6d6',
     speed: 315, jump: 755, weight: 0.95, atk: 1.0, jumps: 2, grav: 1, scale: 1.02, reach: 1.1, aiRange: 190,
     skill: '마왕의 무장', burst: '극악기 · 진멸섬', desc: '활·쌍검 전환형. 평소에는 활을 쏘고, 스킬로 5초 동안 물의 쌍검을 들어 근접전으로 바꿉니다. 필살기는 지금 든 무기에 따라 달라집니다.' },
   { id: 'qiqi', name: '치치', title: '부활한 약초꾼', el: 'cryo', color: '#9fd8f0', body: '#5a4a9a', dark: '#2a2a5a', hair: '#c8b8e0', eye: '#e05a8a', skin: '#f6ecf2',
-    speed: 300, jump: 740, weight: 0.8, atk: 0.92, jumps: 2, grav: 1, scale: 0.86, reach: 1, aiRange: 62,
+    speed: 300, jump: 740, weight: 0.8, atk: 0.78, jumps: 2, grav: 1, scale: 0.86, reach: 1, aiRange: 62,
     skill: '한병의 귀신', burst: '구고천익', desc: '한손검 회복형. 주위를 도는 얼음 귀신으로 가까운 적을 얼리며 회복하고, 필살기로 상대에게 부적을 붙여 때릴 때마다 회복합니다.' },
   { id: 'shenhe', name: '신학', title: '고독한 선인의 제자', el: 'cryo', color: '#a8d8f0', body: '#1f2530', dark: '#12151c', hair: '#e8eef6', eye: '#8ab0d0', skin: '#fdeee8',
     speed: 315, jump: 755, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 1.03, reach: 1.3, aiRange: 76,
@@ -964,7 +968,7 @@ const CHARS = [
     speed: 335, jump: 870, weight: 0.9, atk: 1.08, jumps: 2, grav: 1, scale: 0.95, reach: 1.3, aiRange: 76,   // jumps about 30% higher than most (750)
     skill: '풍륜양립', burst: '정요 야차 가면', desc: '장병기 낙하형. 짧은 간격으로 쓰는 바람 돌진으로 파고들고, 필살기로 가면을 쓰면 공중에서 내리꽂는 낙하 공격을 씁니다.' },
   { id: 'ayaka', name: '카미사토 아야카', title: '백로공주', el: 'cryo', color: '#9fd8f0', body: '#26305e', dark: '#161b38', hair: '#d6e2f2', eye: '#5a8ad6', skin: '#fdeee8',
-    speed: 330, jump: 765, weight: 0.9, atk: 1.05, jumps: 2, grav: 1, scale: 0.95, reach: 1.08, aiRange: 66,
+    speed: 330, jump: 765, weight: 0.9, atk: 1.16, jumps: 2, grav: 1, scale: 0.95, reach: 1.08, aiRange: 66,
     skill: '카미사토류 · 빙화', burst: '카미사토류 · 상멸', desc: '한손검 근접형. 발밑에 얼음꽃을 피워 주변 적을 띄우고 잠시 평타에 얼음을 싣습니다. 필살기로 천천히 나아가며 베어 대는 눈보라를 날립니다.' },
   { id: 'ayato', name: '카미사토 아야토', title: '야시로 봉행', el: 'hydro', color: '#4a8fe0', body: '#eef0f6', dark: '#2a2f5a', hair: '#a8b8ec', eye: '#7a6ad8', skin: '#fbeee8',
     speed: 325, jump: 755, weight: 0.95, atk: 1.04, jumps: 2, grav: 1, scale: 1.02, reach: 1.1, aiRange: 70,
@@ -979,7 +983,7 @@ const CHARS = [
     speed: 300, jump: 735, weight: 1.2, atk: 1.12, jumps: 2, grav: 1, scale: 1.12, reach: 1.25, aiRange: 80,
     skill: '우시 던지기', burst: '오니의 강림', desc: '대검 돌격형. 소 모양 바위를 던지고, 필살기로 오니가 되어 평타에 바위를 싣고 더 멀리 더 세게 휘두릅니다.' },
   { id: 'dehya', name: '데히야', title: '불꽃 갈기의 사자', el: 'pyro', color: '#f0603a', body: '#2a1a20', dark: '#140c10', hair: '#3a2430', eye: '#5ab0e0', skin: '#e8b894',
-    speed: 315, jump: 745, weight: 1.15, atk: 1.1, jumps: 2, grav: 1, scale: 1.1, reach: 1.2, aiRange: 76,
+    speed: 315, jump: 745, weight: 1.15, atk: 1.2, jumps: 2, grav: 1, scale: 1.1, reach: 1.2, aiRange: 76,
     skill: '이글거리는 성역', burst: '사자의 이빨', desc: '대검 근접형. 발밑에 불꽃 결계를 깔고, 필살기로 불주먹을 연타한 뒤 발차기로 날려 보냅니다.' },
   { id: 'chiori', name: '치오리', title: '천의무봉', el: 'geo', color: '#e8b84a', body: '#e0a030', dark: '#3a2a1a', hair: '#4a2a20', eye: '#c03030', skin: '#fbe6da',
     speed: 325, jump: 760, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 1.0, reach: 1.12, aiRange: 66,
@@ -994,7 +998,7 @@ const CHARS = [
     speed: 325, jump: 800, weight: 1.0, atk: 1.08, jumps: 2, grav: 1, scale: 1.0, reach: 1.1, aiRange: 190,
     skill: '무지개 밤 질주', burst: '하늘 날아차기', desc: '법구 낙하형. 높이 뛰어올랐다가 번개를 두르고 내리꽂히고, 필살기로 하늘에서 상대 자리에 날아차기를 내리꽂습니다.' },
   { id: 'ineffa', name: '이네파', title: '가사 로봇', el: 'electro', color: '#9a8cff', body: '#2a3a6a', dark: '#151a30', hair: '#a8e0f0', eye: '#7ad0e0', skin: '#fdeee8',
-    speed: 315, jump: 750, weight: 1.0, atk: 1.05, jumps: 2, grav: 1, scale: 1.0, reach: 1.3, aiRange: 76,
+    speed: 315, jump: 750, weight: 1.0, atk: 0.95, jumps: 2, grav: 1, scale: 1.0, reach: 1.3, aiRange: 76,
     skill: '청소 모드 · 반송파', burst: '최상위 지령 · 회오리 박멸자', desc: '장병기 소환형. 방어막을 얻으며 청소 드론을 띄워 번개를 쏘게 하고, 필살기로 큰 번개 방전을 일으킵니다.' },
   { id: 'lauma', name: '라우마', title: '서리달의 사제', el: 'dendro', color: '#7ed9a0', body: '#d8f0ec', dark: '#2a3a5a', hair: '#5a5a8a', eye: '#7ad0b0', skin: '#fdeee8',
     speed: 305, jump: 750, weight: 0.9, atk: 0.98, jumps: 2, grav: 1, scale: 1.02, reach: 1, aiRange: 190,
@@ -1633,7 +1637,7 @@ function applyHit(h, t) {
   if (h.stackUp && o.stack < 3) o.stack++;
   t.pct += dmg; o.stat.dealt += dmg;
   if (o.idx >= 0 && o.def.id === 'qiqi' && o.pct > 0 && g.hits.some(x => x.vis === 'talisman' && x.owner === o && !x.dead)) {   // her talisman is on the opponent: every hit she lands heals her
-    const heal = Math.min(2.5, o.pct), on = g.fighters[o.idx]; o.pct -= heal;
+    const heal = Math.min(1.5, o.pct), on = g.fighters[o.idx]; o.pct -= heal;
     ftext(on.x, on.y - 96, '회복 -' + Math.round(heal * 10) / 10 + '%', '#bfe6ff', 13, 0.6);
   }
   // Past BF_FROM a charged attack, skill or burst may land as a black flash and launch the target far harder. One roll per move and target;
@@ -1829,7 +1833,7 @@ const BURST_SWING = { w: [-1.8, -4, -0.2, -4], s: [1.3, 12, 0.4, 14] };
 // Current attack/skill/burst animation of a fighter, or null when not acting. pOv samples an earlier moment for weapon trails.
 function armPose(f, pOv) {
   const a = f.act;
-  if (!a || a.kind === 'dash') return null;
+  if (!a || a.kind === 'dash' || a.kind === 'roll') return null;
   const p = clamp(pOv ?? (1 - a.t / a.dur), 0, 1);
   let k, w, se;
   if (a.kind === 'atk' && a.up) { k = UPPER_SWING; w = 0.13; se = 0.53; }
@@ -2045,7 +2049,8 @@ function doAttack(f) {
 //   claymore: one huge sweep · sword: a quick flurry · polearm: rapid thrusts (Hu Tao and Cyno charge forward with the spear)
 //   catalyst: a column of the element rises where the opponent is standing · bow: one aimed, charged arrow · gauntlets: one heavy punch
 const HOLD_T = 0.32;
-const NEFER_REACH = 150;      // how far away (before her reach bonus) Nefer's sliding kick will home in on someone
+const NEFER_REACH = 150;
+const NEFER_SPIN = 0.4;       // her charged attack: the part of it (0.24 s of 0.6) spent in one somersault before the kick      // how far away (before her reach bonus) Nefer's sliding kick will home in on someone
 const NEFER_QUICK = 6, NEFER_HOLD = 0.12;   // after her skill: for NEFER_QUICK seconds her charged attack needs only NEFER_HOLD of holding
 // The held attack: a charged attack on the ground, a plunge in the air (once; holding on during the dive does nothing more)
 function heldAttack(f) {
@@ -2088,15 +2093,17 @@ function chargedAttack(f) {
     hb({ owner: f, x: tx, y: ty - 105, w: 100, h: 250, delay: 0.45, life: 0.3, dmg: 10, kb: 1.4, ang: 84, el, vis: 'surge',
          onStart: h => { FINISH_FX[id](f, h.x, h.y + 90); game.shake = Math.max(game.shake, 5); SFX.play('heavy'); } });
     puff(f.x + f.dir * 20, f.y - 40, col, 10, 160, 0.35, 3);
-  } else if (id === 'nefer') {   // a sliding kick along the ground
+  } else if (id === 'nefer') {   // a somersault in a small hop, then a strong side kick at body height (the somersault: NEFER_SPIN of the move)
     act('atk', 0.6, 0.1);
-    // someone within about a polearm's reach (NEFER_REACH ahead or behind, roughly level with her): she turns to them and slides
-    // right up to them, arriving as the kick lands (0.2 s; on the ground she slows by 900 a second while acting)
+    // someone within about a polearm's reach (NEFER_REACH ahead or behind, roughly level with her): she turns to them and glides in
+    // while she spins, arriving as the kick lands (0.24 s; on the ground she slows by 900 a second while acting)
     const dx = foe.x - f.x, near = !foe.dead && Math.abs(dx) <= NEFER_REACH * rm && Math.abs(foe.y - f.y) < 80;
     if (near && Math.abs(dx) > 4) f.dir = sgn(dx);
-    if (f.onGround) f.vx = f.dir * (near ? clamp((Math.abs(dx) - 46 * S + 18) / 0.2, 520, 1100) : 520);   // she slides in low
+    if (f.onGround) f.vx = f.dir * (near ? clamp((Math.abs(dx) - 46 * S + 26) / 0.24, 200, 1000) : 200);
     if (near && Math.abs(dx) > 90) { puff(f.x - f.dir * 14, f.y - 20, '#7dffb0', 8, 180, 0.3, 3); dust(f.x - f.dir * 6, f.y, 6, 160); }
-    hb({ owner: f, follow: true, ox: 54 * rm, oy: 24, w: 120 * rm, h: 52, delay: 0.2, life: 0.2, dmg: 11, kb: 1.6, ang: 40, el, vis: 'kick', kind: 4, color: col, onStart: fx });
+    hb({ owner: f, x: f.x, y: f.y - 30, w: 0, h: 0, follow: true, ox: 0, oy: 30, life: 0.24, harmless: true, persist: true, vis: 'none',
+         onTick: h => { if (Math.random() < 0.5) puff(h.x + rnd(-24, 24), h.y + rnd(-30, 10), '#7dffb0', 1, 120, 0.3, 3); } });   // green wisps thrown off the somersault
+    hb({ owner: f, follow: true, ox: 56 * rm, oy: 40, w: 124 * rm, h: 60, delay: 0.24, life: 0.16, dmg: 11, kb: 1.6, ang: 40, el, vis: 'kick', kind: 4, color: col, onStart: fx });
   } else if (id === 'wriothesley') {
     act('atk', 0.62, 0.1);
     if (f.onGround) f.vx = f.dir * 320;
@@ -2495,9 +2502,10 @@ const SKILLS = {
     f.buff = { t: 3, mul: 1.2, fly: true, speed: 1.6, hy: f.y - HOVER_H }; f.onGround = false;   // hy: the fixed height he floats at
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 30, r: 90, life: 0.15, dmg: 4, kb: 0.9, ang: 60, el: 'anemo', vis: 'updraft' });
   },
-  nilou(f) {
-    startAct(f, 'skill', 0.3, { slow: 0.5 }); f.cd = 7;
-    f.buff = { t: 5, mul: 1, el: 'hydro', dance: true };   // hydro on every basic attack; a charged attack in the dance sends out a wave
+  nilou(f) {   // she sets off spinning: one turn of water round her as the dance begins, then 5 s of dancing
+    startAct(f, 'skill', 0.3, { slow: 0.5 }); f.cd = 6;
+    f.buff = { t: 5, mul: 1.15, el: 'hydro', dance: true };   // hydro on every basic attack, 15% more damage; a charged attack in the dance sends out a wave
+    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 36, r: 85, delay: 0.08, life: 0.12, dmg: 5, kb: 0.75, ang: 50, el: 'hydro', persist: true, vis: 'boom', color: EL.hydro.color });
     ftext(f.x, f.y - 96, '물의 춤', '#9fd4ff', 17, 1); puff(f.x, f.y - 34, '#9fd4ff', 18, 240, 0.5, 4, 200);
   },
   mavuika(f) {
@@ -2663,14 +2671,16 @@ const SKILLS = {
     ftext(f.x, f.y - 100, '현현의 불꽃', '#a8b4ff', 17, 1); puff(f.x, f.y - 60, '#6a7cff', 20, 240, 0.6, 4, -160);
     for (let i = 0; i < 4; i++) { const a = i * 1.57 + rnd(-0.4, 0.4); bolt(f.x + Math.cos(a) * 60, f.y - 36 + Math.sin(a) * 60, f.x + rnd(-8, 8), f.y - 36 + rnd(-20, 20), '#7a8cff'); }
   },
-  nefer(f) {   // two green shadows rise beside the opponent's spot and pounce one after the other; the second throws them away from her
+  nefer(f) {   // two green shadows rise beside the opponent and pounce one after the other; the second throws them away from her.
+    // Each follows the opponent (up into the air too) until a moment before it pounces, so stepping aside does not dodge it.
     const foe = game.fighters[1 - f.idx];
     startAct(f, 'skill', 0.4, { slow: 0.2 }); f.cd = 5;
     f.quickHeavy = NEFER_QUICK; ftext(f.x, f.y - 100, '강공격 충전 단축', '#7dffb0', 15, 0.9);
     if (!foe.dead && Math.abs(foe.x - f.x) > 4) f.dir = sgn(foe.x - f.x);
     const x = foe.dead ? f.x + f.dir * 180 : foe.x, y = (foe.dead ? f.y : foe.y) - 34, out = sgn(x - f.x) || f.dir;
     for (let i = 0; i < 2; i++) {
-      const sh = hb({ owner: f, x, y, w: 150, h: 84, delay: 0.3 + i * 0.28, life: 0.12, dmg: i ? 5.5 : 4, kb: i ? 1.1 : 0.3, ang: i ? 55 : 20, el: 'dendro', vis: 'shade', onStart: () => SFX.play('swing') });
+      const sh = hb({ owner: f, x, y, w: 170, h: 110, delay: 0.26 + i * 0.24, life: 0.14, dmg: i ? 5.5 : 4, kb: i ? 1.1 : 0.3, ang: i ? 55 : 20, el: 'dendro', vis: 'shade',
+                      track: foe.dead ? null : foe, trackY: true, onStart: () => SFX.play('swing') });
       sh.sdir = i ? out : -out;
     }
   },
@@ -3242,7 +3252,7 @@ const BURSTS = {
            if (h.fire <= 0 && !foe.dead) {
              h.fire = 0.42;
              const b2 = a + rnd(-0.1, 0.1);
-             hb({ owner: o, proj: true, shape: 'circle', r: 13, x: mx, y: my, vx: Math.cos(b2) * 430, vy: Math.sin(b2) * 430, life: 1.7, dmg: 1.7, kb: 0.3, ang: 40, noKb: Math.random() > 0.3,
+             hb({ owner: o, proj: true, shape: 'circle', r: 13, x: mx, y: my, vx: Math.cos(b2) * 430, vy: Math.sin(b2) * 430, life: 1.7, dmg: 1.7, kb: 0, ang: 40, noKb: true, noLaunch: true,   // no knockback at all: they only deal damage
                   el: 'hydro', persist: true, vis: 'heart', spin: rnd(0, 6), onTick: q => { q.r = 13 + 13 * Math.min(1, (q.age - q.delay) / 0.9); } });   // the bubbles swell as they go, like the rings
              SFX.play('swing');
            }
@@ -3488,10 +3498,14 @@ function finishBurst() {
   g.shake = Math.max(g.shake, 10); g.flash = 0.3; g.punch = 1; g.focus = { x: f.x, y: f.y - 34 };
 }
 
+// A ground jump just after walking off an edge (COYOTE s) is still a ground jump. A player who lets go of the jump key within HOP_T of
+// a ground jump gets a short hop (the computer never does).
+const COYOTE = 0.1, HOP_T = 0.07, HOP_CUT = 0.55, DODGE_INV = 0.25;
 function doJump(f) {
   const d = f.def;
-  if (f.onGround) {
-    f.vy = -d.jump * (f.buff && f.buff.jump || 1); f.onGround = false; f.jumps = d.jumps - 1;
+  if (f.onGround || f.coyote > 0) {
+    f.vy = -d.jump * (f.buff && f.buff.jump || 1); f.onGround = false; f.jumps = d.jumps - 1; f.coyote = 0;
+    if (f.ctrl !== 'cpu') f.hopT = HOP_T;
     puff(f.x, f.y, '#cfd6ff', 6, 90, 0.3, 3); dust(f.x - 8, f.y, 2, 70); dust(f.x + 8, f.y, 2, 70);
   } else {
     f.vy = -d.jump * 0.9 * (f.buff && f.buff.jump || 1); f.jumps--;
@@ -3650,9 +3664,11 @@ function tickLightfall(f, dt) {   // Eula's Lightfall sword: grows with every hi
 }
 
 /* ------------------------------------------------------------------ AI */
+// whether an element landing on an aura sets off a reaction (for the computer's choices)
+const reacts = (aura, inc) => !!aura && aura !== inc && (aura === 'dendro' || inc === 'dendro' ? ['hydro', 'pyro', 'electro'].includes(aura === 'dendro' ? inc : aura) : !['anemo', 'geo'].includes(aura));
 function aiInput(f, foe, dt) {
   const a = f.ai, L = a.level, d = f.def;
-  a.t -= dt; a.cd -= dt; a.jc -= dt; a.downT -= dt; a.guardT -= dt;
+  a.t -= dt; a.cd -= dt; a.jc -= dt; a.downT -= dt; a.guardT -= dt; a.rollT = (a.rollT || 0) - dt;
   if (f.frozen > 0) {   // frozen: it mashes the direction keys too, faster the stronger it is (about 4, 6 or 8 presses a second)
     if (Math.random() < [0.06, 0.1, 0.14][L]) a.mashK = ((a.mashK || 0) + 1) % 3;
     return { ...NEUTRAL, left: a.mashK === 0, right: a.mashK === 1, upHold: a.mashK === 2 };
@@ -3663,10 +3679,16 @@ function aiInput(f, foe, dt) {
     if (game.swapCd[f.idx] <= 0 && f.onGround && !f.act) {   // switch out when badly hurt, or now and then to mix elements
       const m = nextMember(f);
       if (m && ((f.pct > 90 && m.pct < f.pct - 30) || Math.random() < [0.006, 0.012, 0.02][L])) a.pSwap = true;
+      // the opponent carries an element the one on the bench would react with, and the one out now would not: bring them in
+      else if (m && foe.aura && L > 0 && reacts(foe.aura.el, m.def.el) && !reacts(foe.aura.el, d.el) && Math.random() < [0, 0.08, 0.16][L]) a.pSwap = true;
     }
     if (!foe.dead) {
       const dx = foe.x - f.x, dy = foe.y - f.y, adx = Math.abs(dx);
-      if (foe.act && adx < 130 && Math.abs(dy) < 80 && f.guard > 30 && Math.random() < [0.04, 0.14, 0.28][L]) a.guardT = 0.35;
+      const threat = foe.act && (foe.act.kind === 'atk' || foe.act.kind === 'skill' || foe.act.kind === 'burst') && adx < 140 && Math.abs(dy) < 80;
+      if (threat && f.onGround && f.dodgeCd <= 0 && !f.act && Math.random() < [0, 0.07, 0.14][L]) {   // roll: away when hurt, through them to their back when not
+        a.rollDir = f.pct > 70 ? -sgn(dx) || 1 : sgn(dx) || 1; a.rollT = 0.1;   // guard goes down first, the direction a moment later
+      } else if (threat && f.guard > 30 && Math.random() < [0.04, 0.14, 0.28][L]) a.guardT = 0.35;
+      const opening = !foe.dead && (foe.hitstun > 0 || (foe.act && foe.act.t > 0.15 && foe.act.kind !== 'dash'));   // stuck in a hit, or still in a move: go in
       // lost = in the air with no solid ground underneath. Head for the ground the opponent stands on, or the main ground.
       const M = PLATS[0], lost = !f.onGround && !PLATS.some(p => p.solid && f.x > p.x0 - 5 && f.x < p.x1 + 5 && p.y >= f.y - 3);
       const away = foe.onGround && foe.plat && (foe.x < M.x0 || foe.x > M.x1);   // the opponent is standing somewhere off the main ground
@@ -3678,7 +3700,7 @@ function aiInput(f, foe, dt) {
         if (d.id === 'venti' && f.cd <= 0 && f.vy > 0 && f.y > 380 && !f.act) a.pSkill = true;
       } else {
         const rng = f.buff && f.buff.blades ? 66 : d.aiRange;
-        if (adx > rng + 18) a.mx = sgn(dx);
+        if (adx > rng + 18 || (opening && L > 0 && adx > rng - 10)) a.mx = sgn(dx);
         else if (adx < rng - 35 && L > 0 && Math.random() < 0.25) a.mx = -sgn(dx);
         // crossing to where the opponent stands: take off from the edge with a ground jump so the air jump is still in hand
         const room = f.onGround && f.plat ? (dx > 0 ? f.plat.x1 - f.x : f.x - f.plat.x0) : 999;   // ground left in front, toward the opponent
@@ -3691,7 +3713,7 @@ function aiInput(f, foe, dt) {
         const inReach = archer ? adx < 420 && Math.abs(dy) < 170 : adx < 76 && Math.abs(dy) < 75;
         if (a.cd <= 0 && adx < 70 && dy < -50 && dy > -170 && Math.random() < [0.1, 0.25, 0.4][L]) { a.pAtk = true; a.pUp = true; a.cd = 0.3; if (!f.act) f.dir = sgn(dx) || f.dir; }   // opponent just above: uppercut
         else if (a.cd <= 0 && !f.onGround && adx < 45 && dy > 70 && highUp(f) && Math.random() < [0.1, 0.25, 0.4][L]) { a.pAtk = true; a.pDown = true; a.cd = 0.4; }   // right above them: plunge
-        else if (inReach && a.cd <= 0 && Math.random() < [0.45, 0.7, 0.9][L]) {
+        else if (inReach && a.cd <= 0 && (Math.random() < [0.45, 0.7, 0.9][L] || (opening && L > 0))) {
           if ((surge || (adx < 110 && Math.abs(dy) < 75)) && !((d.id === 'hutao' || (d.id === 'cyno' && !(f.buff && f.buff.jackal))) && room < 290) && Math.random() < [0.06, 0.12, 0.18][L]) a.pHeavy = true; else a.pAtk = true;
           if (!f.act) f.dir = sgn(dx); a.cd = archer ? 0.2 : 0.08;
         }
@@ -3764,14 +3786,16 @@ function aiInput(f, foe, dt) {
           if (ok && room < ({ diluc: 190, clorinde: f.buff && f.buff.gun ? 240 : 0, mavuika: 400, kinich: 260, skirk: 250, cyno: 240, shenhe: 240, durin: 320, varka: 310, yelan: 290, xiao: 220, varesa: 300, xilonen: 230, tartaglia: f.buff && f.buff.blades ? 210 : 0 }[d.id] || 0)) ok = false;   // would carry it off the ledge
           if (ok) { a.pSkill = true; if (!f.act) f.dir = sgn(dx); }
         }
-        if (f.energy >= 100 && adx < 240 && Math.abs(dy) < 150 && Math.random() < 0.5) a.pBurst = true;
+        if (f.energy >= 100 && adx < 240 && Math.abs(dy) < 150 && Math.random() < (L === 0 ? 0.5 : foe.hitstun > 0 || foe.pct > 90 || foe.frozen > 0 ? 0.9 : 0.25)) a.pBurst = true;
         if (f.onGround && dy < -90 && Math.random() < 0.35) a.pJump = true;
         else if (Math.random() < [0.01, 0.02, 0.03][L]) a.pJump = true;
         if (f.onGround && f.y < 395 && dy > 100) a.downT = 0.2;
       }
     }
   }
-  const inp = { left: a.mx < 0, right: a.mx > 0, down: a.downT > 0 || a.pDown, jump: a.pJump, atk: a.pAtk, skill: a.pSkill, burst: a.pBurst, swap: a.pSwap, guard: a.guardT > 0, atkHold: false, heavy: a.pHeavy, upHold: a.pUp };
+  const rolling = a.rollT > 0, rollGo = rolling && a.rollT < 0.05;   // a roll: guard held, then the direction pressed
+  const inp = { left: rolling ? rollGo && a.rollDir < 0 : a.mx < 0, right: rolling ? rollGo && a.rollDir > 0 : a.mx > 0, down: a.downT > 0 || a.pDown, jump: a.pJump, atk: a.pAtk, skill: a.pSkill, burst: a.pBurst, swap: a.pSwap,
+                guard: a.guardT > 0 || rolling, atkHold: false, heavy: a.pHeavy, upHold: a.pUp };
   a.pJump = a.pAtk = a.pSkill = a.pBurst = a.pSwap = a.pHeavy = a.pUp = a.pDown = false;
   return inp;
 }
@@ -3798,10 +3822,10 @@ function stepFighter(f, foe, dt) {
   tickLightfall(f, dt);
 
   const inp = live ? (f.ctrl === 'cpu' ? (game.mode === 'train' && TRAIN.act !== 'cpu' ? dummyInput(f, dt) : aiInput(f, foe, dt)) : f.ctrl === 'net' ? netInput(f.idx) : humanInput(f)) : NEUTRAL;
-  if (inp.atk) f.buf.atk = 0.18;
-  if (inp.skill) f.buf.skill = 0.18;
-  if (inp.burst) f.buf.burst = 0.18;
-  if (inp.jump) f.buf.jump = 0.12;
+  if (inp.atk) f.buf.atk = 0.24;   // pressed a little early, a press still counts once the move in hand ends
+  if (inp.skill) f.buf.skill = 0.24;
+  if (inp.burst) f.buf.burst = 0.24;
+  if (inp.jump) f.buf.jump = 0.15;
   // Charged attack: keep the attack key down for HOLD_T. One per press.
   if (inp.atkHold) { f.hold += dt; if (f.hold >= (f.quickHeavy > 0 ? NEFER_HOLD : HOLD_T * (f.buff && f.buff.fly ? 0.7 : 1)) && !f.held) { f.held = true; f.buf.heavy = 0.3; } }   // Wanderer hovering: 30% sooner; Nefer after her skill: almost a tap
   else { f.hold = 0; f.held = false; }
@@ -3844,7 +3868,22 @@ function stepFighter(f, foe, dt) {
   if (f.mir) alhaithamTick(f, dt);
   if (f.quickHeavy > 0) { f.quickHeavy -= dt; if (Math.random() < 0.2) puff(f.x + rnd(-8, 8), f.y - 4, '#7dffb0', 1, 30, 0.4, 2, -60); }   // Nefer's quick charge: green motes at her feet
   const free = f.hitstun <= 0 && f.frozen <= 0;
+  f.coyote = Math.max(0, (f.coyote || 0) - dt); f.dodgeCd = Math.max(0, (f.dodgeCd || 0) - dt);
+  if (f.hopT > 0) { f.hopT -= dt; if (!inp.upHold && !inp.jump && f.vy < 0) { f.vy *= HOP_CUT; f.hopT = 0; } }   // let go at once: a short hop
   if (inp.swap && free && live && !f.act && trySwap(f)) return;
+  // Dodges: on the ground, guard held and a direction pressed fresh = a quick roll that way; in the air, a fresh press of guard = a short
+  // air dodge (once until landing). Both make the fighter untouchable for DODGE_INV seconds. (Walking and then pressing guard still guards.)
+  const gEdge = !!inp.guard && !f.guardPrev; f.guardPrev = !!inp.guard;
+  const mv0 = (inp.right ? 1 : 0) - (inp.left ? 1 : 0), mvEdge = mv0 && mv0 !== (f.lastMv || 0);
+  if (free && live && f.dodgeCd <= 0 && !f.inDome && (!f.act || f.act.kind === 'guard')) {
+    if (f.onGround && inp.guard && mvEdge) {
+      startAct(f, 'roll', 0.3, { slow: 0 }); f.dir = mv0; f.vx = mv0 * 760; f.inv = Math.max(f.inv, DODGE_INV); f.dodgeCd = 0.7; f.run = 0;
+      dust(f.x - mv0 * 8, f.y, 6, 150); puff(f.x, f.y - 30, '#ffffff', 6, 140, 0.25, 3); SFX.play('jump');
+    } else if (gEdge && !f.onGround && !f.airDodged) {
+      f.airDodged = true; f.inv = Math.max(f.inv, DODGE_INV); f.dodgeCd = 0.5; f.vx *= 0.35; f.vy = Math.min(f.vy, 40);
+      puff(f.x, f.y - 34, '#ffffff', 10, 180, 0.3, 3); puff(f.x, f.y - 34, EL[d.el].color, 6, 140, 0.3, 3); SFX.play('jump');
+    }
+  }
   // Guard: held with H. It blocks hits but the meter wears down, both over time and with every blocked hit.
   f.guarding = inp.guard && free && live && !f.act && f.guard > 0 && f.guardLock <= 0 && !f.inDome;
   f.sealT = Math.max(0, (f.sealT || 0) - dt);
@@ -3858,13 +3897,13 @@ function stepFighter(f, foe, dt) {
   if (free && live && !f.guarding) {
     const a = f.act;
     if (a && a.kind === 'atk' && !a.charged && f.buf.heavy > 0 && a.t <= 0.12) { f.buf.heavy = 0; f.buf.atk = 0; faceHeld(f, inp); heldAttack(f); }
-    else if (a && a.kind === 'atk' && f.buf.atk > 0 && a.t <= 0.1 && f.combo < 3) { f.buf.atk = 0; faceHeld(f, inp); doAttack(f); }
+    else if (a && a.kind === 'atk' && f.buf.atk > 0 && a.t <= 0.12 && f.combo < 3) { f.buf.atk = 0; faceHeld(f, inp); doAttack(f); }
     else if (!a) {
       if (f.buf.burst > 0 && f.energy >= 100) doBurst(f, foe);
       else if (f.buf.skill > 0 && f.cd <= 0) { f.buf.skill = 0; doSkill(f); }
       else if (f.buf.heavy > 0) { f.buf.heavy = 0; f.buf.atk = 0; faceHeld(f, inp); heldAttack(f); }
       else if (f.buf.atk > 0) { f.buf.atk = 0; faceHeld(f, inp); doAttack(f); }
-      else if (f.buf.jump > 0 && (f.onGround || f.jumps > 0)) { f.buf.jump = 0; doJump(f); }
+      else if (f.buf.jump > 0 && (f.onGround || f.coyote > 0 || f.jumps > 0)) { f.buf.jump = 0; doJump(f); }
     }
   }
   if (inp.down && free && f.onGround && f.plat && !f.plat.solid && !f.act) { f.drop = 0.22; f.y += 2; f.onGround = false; }
@@ -3932,7 +3971,8 @@ function stepFighter(f, foe, dt) {
       }
     }
   }
-  if (f.wasGround && !f.onGround && f.vy >= 0 && f.jumps >= d.jumps) f.jumps = d.jumps - 1;
+  if (f.wasGround && !f.onGround && f.vy >= 0 && f.jumps >= d.jumps) { f.jumps = d.jumps - 1; f.coyote = COYOTE; }   // walked off: the ground jump still works for a moment
+  if (f.onGround) f.airDodged = false;
   if (wasPlat && !f.onGround) { f.leftPlat = wasPlat; f.leftT = 0.5; }   // just stepped or jumped off: that platform's corners are not grabbed straight away
   // Grabbing a ledge: falling past the top corner at either end of a platform, with the feet a little below its top.
   if (!f.onGround && !f.hang && f.vy > 0 && f.hitstun <= 0 && f.frozen <= 0 && f.suspend <= 0 && !dashing && !(f.ledgeCd > 0) && !(inp.down && free)) {
@@ -5282,7 +5322,11 @@ function spriteSilhouette(id, col) {
    for frames drawn with a long stride (so the feet keep up with the ground). Frames: [x, y, w, h, anchor x (the head), anchor y (the soles)] in atlas pixels.
    They hold their own weapon, so the game draws none for them. k: game units per atlas pixel. */
 const SPRITE_ANIM = {
-  nefer: { k: 0.41696, walk: 1.4, src: 'img/sprite/nefer-anim.webp', f: { upper: [2, 2, 115, 257, 83.0, 257.0], hang: [119, 2, 82, 218, 39.0, 218.0], burst: [203, 2, 157, 217, 92.0, 217.0], idle1: [362, 2, 131, 193, 93.0, 193.0], idle2: [495, 2, 134, 191, 93.0, 191.0], blink: [631, 2, 131, 190, 91.0, 190.0], skill: [764, 2, 177, 188, 90.0, 188.0], guard: [943, 2, 157, 184, 93.0, 184.0], atk3: [1102, 2, 167, 184, 72.0, 184.0], jump: [1271, 2, 142, 177, 92.0, 177.0], fall: [1415, 2, 160, 173, 83.0, 173.0], heavy: [1577, 2, 258, 172, 151.0, 172.0], atk1: [1837, 2, 203, 162, 123.0, 162.0], hurt: [2, 261, 182, 160, 86.0, 160.0], run2: [186, 261, 203, 159, 126.5, 159.0], windup: [391, 261, 161, 154, 103.0, 154.0], run3: [554, 261, 199, 153, 115.0, 153.0], run4: [755, 261, 156, 152, 119.0, 152.0], run1: [913, 261, 185, 150, 115.0, 150.0], atk2: [1100, 261, 198, 144, 127.5, 144.0] } },   // the two-sheet set: wide walk, run, charged attack
+  durin: { k: 0.43309, walk: 1.4, src: 'img/sprite/durin-anim.webp', f: { upper: [2, 2, 106, 245, 70.0, 245.0], hang: [110, 2, 119, 198, 61.0, 198.0], idle2: [231, 2, 110, 191, 78.0, 191.0], guard: [343, 2, 153, 191, 103.0, 191.0], idle1: [498, 2, 110, 188, 77.0, 188.0], blink: [610, 2, 111, 188, 78.0, 188.0], windup: [723, 2, 167, 186, 109.0, 186.0], fall: [892, 2, 158, 175, 84.0, 175.0], jump: [1052, 2, 129, 170, 95.0, 170.0], run4: [1183, 2, 162, 161, 131.5, 161.0], heavy: [1347, 2, 214, 156, 107.0, 156.0], hurt: [1563, 2, 217, 154, 68.0, 154.0], run1: [1782, 2, 177, 154, 146.0, 154.0], atk2: [2, 249, 223, 154, 97.0, 154.0], atk1: [227, 249, 164, 153, 89.0, 153.0], burst: [393, 249, 264, 153, 123.0, 153.0], atk3: [659, 249, 277, 151, 127.0, 151.0], run2: [938, 249, 173, 147, 144.0, 147.0], skill: [1113, 249, 227, 147, 116.0, 147.0], run3: [1342, 249, 173, 146, 143.5, 146.0] } },   // the two-sheet set: wide walk, run, charged attack
+  qiqi: { k: 0.49083, walk: 1.4, src: 'img/sprite/qiqi-anim.webp', f: { upper: [2, 2, 110, 242, 64.0, 242.0], hang: [114, 2, 83, 196, 44.0, 196.0], idle2: [199, 2, 95, 186, 60.0, 186.0], idle1: [390, 2, 96, 185, 64.0, 185.0], guard: [488, 2, 138, 185, 85.0, 185.0], windup: [628, 2, 127, 171, 88.0, 171.0], hurt: [757, 2, 162, 165, 61.0, 165.0], skill: [921, 2, 164, 164, 109.5, 164.0], fall: [1087, 2, 146, 163, 82.0, 163.0], atk1: [1235, 2, 155, 162, 79.0, 162.0], burst: [1392, 2, 246, 161, 122.0, 161.0], jump: [1640, 2, 117, 160, 81.0, 160.0], atk2: [1759, 2, 198, 158, 101.0, 158.0], run3: [2, 246, 150, 157, 120.0, 157.0], run4: [154, 246, 148, 157, 118.0, 157.0], run1: [304, 246, 162, 155, 135.0, 155.0], atk3: [468, 246, 243, 155, 115.0, 155.0], run2: [713, 246, 157, 149, 119.0, 149.0], heavy: [872, 246, 209, 149, 112.0, 149.0] } },   // the two-sheet set: wide walk, run, charged attack
+  xiao: { k: 0.43863, walk: 1.4, src: 'img/sprite/xiao-anim.webp', f: { upper: [2, 2, 111, 255, 63.0, 255.0], idle1: [115, 2, 129, 219, 70.0, 219.0], idle2: [246, 2, 129, 219, 70.0, 219.0], blink: [377, 2, 131, 217, 73.0, 217.0], hang: [510, 2, 74, 213, 36.0, 213.0], burst: [586, 2, 167, 207, 102.0, 207.0], jump: [755, 2, 98, 179, 57.0, 179.0], guard: [855, 2, 208, 172, 103.0, 172.0], atk2: [1065, 2, 234, 165, 96.0, 165.0], run3: [1301, 2, 206, 161, 143.0, 161.0], atk1: [1509, 2, 264, 161, 82.0, 161.0], run1: [1775, 2, 204, 160, 136.0, 160.0], windup: [2, 259, 187, 158, 74.0, 158.0], skill: [191, 259, 255, 157, 103.0, 157.0], atk3: [448, 259, 228, 156, 82.0, 156.0], heavy: [678, 259, 276, 152, 112.0, 152.0], hurt: [956, 259, 183, 151, 58.0, 151.0], fall: [1141, 259, 173, 151, 86.0, 151.0], run4: [1316, 259, 158, 150, 115.0, 150.0], run2: [1476, 259, 213, 148, 136.0, 148.0] } },   // the two-sheet set: wide walk, run, charged attack
+  yelan: { k: 0.3952, walk: 1.4, src: 'img/sprite/yelan-anim.webp', f: { upper: [2, 2, 108, 257, 58.0, 257.0], burst: [112, 2, 137, 218, 72.5, 218.0], hang: [251, 2, 71, 216, 36.0, 216.0], idle1: [324, 2, 125, 186, 74.5, 186.0], idle2: [451, 2, 125, 186, 74.0, 186.0], blink: [578, 2, 128, 186, 76.0, 186.0], atk3: [708, 2, 150, 183, 62.0, 183.0], heavy: [860, 2, 202, 182, 113.0, 182.0], atk1: [1064, 2, 193, 181, 83.0, 181.0], windup: [1259, 2, 178, 180, 75.0, 180.0], guard: [1439, 2, 176, 179, 101.0, 179.0], atk2: [1617, 2, 172, 176, 76.0, 176.0], run1: [1791, 2, 206, 166, 134.0, 166.0], run3: [2, 261, 201, 164, 130.0, 164.0], fall: [205, 261, 182, 161, 91.0, 161.0], skill: [389, 261, 191, 158, 136.0, 158.0], run2: [582, 261, 205, 153, 131.0, 153.0], jump: [789, 261, 103, 151, 67.0, 151.0], run4: [894, 261, 172, 148, 125.0, 148.0], hurt: [1068, 261, 184, 147, 52.0, 147.0] } },   // the two-sheet set: wide walk, run, charged attack
+  nefer: { k: 0.41696, walk: 1.4, src: 'img/sprite/nefer-anim.webp', f: { upper: [2, 2, 115, 257, 83.0, 257.0], hang: [119, 2, 82, 218, 39.0, 218.0], burst: [203, 2, 171, 208, 87.0, 208.0], idle1: [376, 2, 131, 193, 93.0, 193.0], idle2: [509, 2, 134, 191, 93.0, 191.0], blink: [645, 2, 131, 190, 91.0, 190.0], skill: [778, 2, 177, 188, 90.0, 188.0], guard: [957, 2, 157, 184, 93.0, 184.0], atk3: [1116, 2, 167, 184, 72.0, 184.0], jump: [1285, 2, 142, 177, 92.0, 177.0], fall: [1429, 2, 160, 173, 83.0, 173.0], heavy: [1591, 2, 258, 172, 151.0, 172.0], atk1: [2, 261, 203, 162, 123.0, 162.0], hurt: [207, 261, 182, 160, 86.0, 160.0], run2: [391, 261, 203, 159, 126.5, 159.0], windup: [596, 261, 161, 154, 103.0, 154.0], run3: [759, 261, 199, 153, 115.0, 153.0], run4: [960, 261, 156, 152, 119.0, 152.0], run1: [1118, 261, 185, 150, 115.0, 150.0], atk2: [1305, 261, 198, 144, 127.5, 144.0] } },   // the two-sheet set: wide walk, run, charged attack
   flins: { k: 0.38601, walk: 1.4, src: 'img/sprite/flins-anim.webp', f: { upper: [2, 2, 112, 255, 94.0, 255.0], idle1: [116, 2, 129, 234, 69.0, 234.0], idle2: [247, 2, 130, 234, 70.0, 234.0], blink: [379, 2, 129, 234, 72.0, 234.0], hang: [510, 2, 84, 229, 42.0, 229.0], skill: [596, 2, 113, 214, 68.0, 214.0], heavy: [711, 2, 267, 190, 120.0, 190.0], atk2: [980, 2, 225, 176, 92.0, 176.0], guard: [1207, 2, 186, 171, 103.0, 171.0], jump: [1395, 2, 132, 168, 75.0, 168.0], fall: [1529, 2, 173, 167, 85.5, 167.0], run4: [1704, 2, 157, 165, 131.0, 165.0], windup: [1863, 2, 170, 163, 95.5, 163.0], atk1: [2, 259, 289, 161, 109.0, 161.0], run1: [293, 259, 194, 160, 166.0, 160.0], burst: [489, 259, 259, 160, 126.0, 160.0], run3: [750, 259, 186, 159, 142.0, 159.0], hurt: [938, 259, 183, 158, 42.0, 158.0], run2: [1123, 259, 171, 158, 150.0, 158.0], atk3: [1296, 259, 249, 150, 121.0, 150.0] } },   // the two-sheet set: wide walk, run, charged attack
   columbina: { k: 0.40814, walk: 1.4, src: 'img/sprite/columbina-anim.webp', f: { upper: [2, 2, 120, 250, 92.0, 250.0], heavy: [124, 2, 118, 223, 63.0, 223.0], hang: [244, 2, 80, 213, 38.5, 213.0], idle2: [326, 2, 129, 204, 86.0, 204.0], idle1: [457, 2, 138, 200, 93.0, 200.0], blink: [597, 2, 134, 196, 86.0, 196.0], run4: [582, 254, 192, 169, 142.0, 169.0], fall: [871, 2, 181, 189, 93.0, 189.0], guard: [1054, 2, 139, 187, 109.0, 187.0], jump: [1195, 2, 124, 186, 83.0, 186.0], burst: [1321, 2, 203, 183, 108.0, 183.0], windup: [1526, 2, 161, 177, 105.0, 177.0], run3: [1689, 2, 190, 176, 155.0, 176.0], atk1: [2, 254, 189, 176, 124.0, 176.0], atk2: [193, 254, 203, 176, 135.0, 176.0], hurt: [398, 254, 182, 171, 74.0, 171.0], run2: [582, 254, 192, 169, 142.0, 169.0], run1: [776, 254, 204, 168, 166.0, 168.0], atk3: [982, 254, 200, 164, 134.0, 164.0], skill: [1184, 254, 218, 149, 135.0, 149.0] } },   // the two-sheet set: wide walk, run, charged attack
   tartagliablades: { k: 0.41791, walk: 1.4, src: 'img/sprite/tartagliablades-anim.webp', f: { upper: [2, 2, 119, 260, 82.0, 260.0], hang: [123, 2, 88, 210, 47.5, 210.0], idle2: [213, 2, 161, 189, 85.0, 189.0], jump: [376, 2, 147, 184, 85.0, 184.0], idle1: [525, 2, 163, 182, 88.0, 182.0], run4: [1335, 264, 188, 145, 120.0, 145.0], blink: [838, 2, 155, 179, 80.0, 179.0], guard: [995, 2, 152, 179, 83.0, 179.0], hurt: [1149, 2, 184, 164, 60.0, 164.0], windup: [1335, 2, 181, 164, 89.0, 164.0], burst: [1518, 2, 223, 164, 120.0, 164.0], fall: [1743, 2, 158, 161, 83.0, 161.0], atk2: [2, 264, 214, 159, 98.0, 159.0], atk1: [218, 264, 235, 155, 102.0, 155.0], run1: [455, 264, 190, 151, 126.0, 151.0], atk3: [647, 264, 240, 149, 121.0, 149.0], heavy: [889, 264, 254, 148, 122.0, 148.0], run3: [1145, 264, 188, 147, 114.5, 147.0], run2: [1335, 264, 188, 145, 120.0, 145.0], skill: [1525, 264, 248, 136, 142.0, 136.0] } },   // the two-sheet set: wide walk, run, charged attack
@@ -5475,7 +5519,7 @@ function drawFighter(f, t, o = {}) {
     if (kind === 1) hop = Math.sin(Math.PI * clamp(p * 1.15, 0, 1)) * 9;
     else if (kind === 2) { const sp = clamp(p / 0.8, 0, 1); turn = Math.cos(2 * Math.PI * sp * sp * (3 - 2 * sp)); crouch = Math.sin(Math.PI * clamp(p * 1.1, 0, 1)) * 7; }
     else if (kind === 3) { hop = Math.sin(Math.PI * clamp(p / 0.8, 0, 1)) * 50; const fp = clamp(p / w, 0, 1); flip = -2 * Math.PI * fp * fp * (3 - 2 * fp); }
-    else crouch = kq * 11;
+    else { const sp = clamp(ap.p / NEFER_SPIN, 0, 1); hop = Math.sin(Math.PI * sp) * 30; flip = -2 * Math.PI * sp * sp * (3 - 2 * sp); }   // charged: a somersault in a small hop, then the kick
   }
   const moving = f.onGround && Math.abs(f.vx) > 40 && !pose && !kq, air = (!f.onGround || hop > 0) && !pose;
   const ph = f.runPhase, swing = moving ? Math.sin(ph) : 0;
@@ -5522,13 +5566,25 @@ function drawFighter(f, t, o = {}) {
     ctx.fillStyle = jg; ctx.beginPath(); ctx.arc(0, -34, 60 + 3 * Math.sin(t * 9), 0, 7); ctx.fill(); ctx.restore();
   }
   if (anim) {
-    const fr = (o.fr && SPRITE_ANIM[anim].f[o.fr] ? o.fr : null) || animFrame(f, o, moving, air, ph, t, anim), musouLit = musouSword && !o.tint;
+    let fr = (o.fr && SPRITE_ANIM[anim].f[o.fr] ? o.fr : null) || animFrame(f, o, moving, air, ph, t, anim), spin = 0;
+    const musouLit = musouSword && !o.tint;
+    if ((kind === 3 || kind === 4) && anim === 'nefer' && !o.fr) {   // Nefer's somersaults, tucked up and turning once through her upside-down frame halfway round:
+      // the third kick (up from a crouch at the top of the leap, the kick down as it lands at 0.5) and the charged attack (in a small hop, then the strong side kick)
+      const p = ap.p, [a0, a1, after] = kind === 3 ? [0.1, 0.5, 'atk1'] : [0, NEFER_SPIN, 'heavy'];
+      if (p < a0) fr = 'windup';
+      else if (p < a1) {
+        const q = (p - a0) / (a1 - a0); spin = -2 * Math.PI * q * q * (3 - 2 * q);
+        if (Math.abs(spin + Math.PI) < 0.32 * Math.PI) { fr = 'atk3'; spin += Math.PI; } else fr = 'jump';
+      } else fr = after;
+    }
     if (!o.tint && !o.pose) f.lastFr = fr;   // the afterimages show the pose of the moment they were left
+    if (spin) { ctx.save(); ctx.translate(0, -36); ctx.rotate(spin); ctx.translate(0, 36); }
     if (musouLit) drawMusouAura(anim, fr, t, false);   // Raiden holding the Musou blade: her drawn frames have only the naginata, so she burns with violet lightning instead
     const lift = (fr === 'run2' || fr === 'run4') && !air ? 3 : 0;
     if (lift) { ctx.save(); ctx.translate(0, -lift); }
     drawAnim(anim, fr, { flash: !o.tint && f.flash > 0 ? clamp(f.flash / 0.08, 0.35, 1) : 0, tint: o.tint || null });
     if (lift) ctx.restore();
+    if (spin) ctx.restore();
     if (musouLit) drawMusouAura(anim, fr, t, true);
   }
   else if (spr) drawSprite(spr, t, { moving, air, ph, bob, flash: f.flash > 0 && !o.tint, tint: o.tint || null, f });
@@ -7427,15 +7483,16 @@ function drawHits(t, under = false) {
         }
         break;
       }
-      case 'kick': {   // Nefer's kicks leave bright green crescents: 1 a short rising arc, 2 a flat sweep, 3 a tall one coming down, 4 a low streak
+      case 'kick': {   // Nefer's kicks leave bright green crescents: 1 a short rising arc, 2 a flat sweep, 3 a tall one coming down, 4 (the charged side kick) a wide arc finishing in a streak straight out at body height
         ctx.scale(h.sdir, 1);
         const al = 1 - k * k, g2 = easeOut(Math.min(1, k * 3)), kd = h.kind || 1;
         if (kd === 1) { ctx.translate(-14, 4); ctx.rotate(-0.5); kickCrescent(h.w * 0.78, -1.0, lerp(-0.6, 0.75, g2), 10, al); }
         else if (kd === 2) { ctx.translate(-h.w * 0.25, 8); ctx.scale(1, 0.36); kickCrescent(h.w * 0.78, -1.35, lerp(-0.9, 1.35, g2), 26, al); }
         else if (kd === 3) { ctx.translate(-h.w * 0.35, 10); kickCrescent(h.h * 0.72, lerp(-0.2, -1.45, g2), 0.75, 15, al); }
         else {
-          ctx.translate(-h.w * 0.3, 14); ctx.scale(1, 0.4); kickCrescent(h.w * 0.7, -1.2, 1.2, 24, al);
-          ctx.globalAlpha = al * 0.8; ctx.fillStyle = '#c8ff8a'; ctx.fillRect(-h.w * 0.9, 20, h.w * 1.1, 5);
+          ctx.save(); ctx.translate(-h.w * 0.3, 0); ctx.scale(1, 0.55); kickCrescent(h.w * 0.78, -1.5, lerp(-0.4, 1.5, g2), 22, al); ctx.restore();
+          ctx.globalAlpha = al * 0.85; ctx.fillStyle = '#c8ff8a'; ctx.fillRect(-h.w * 0.5, -2.5, h.w * (0.4 + 0.6 * g2), 5);
+          ctx.fillStyle = '#f4fff0'; ctx.fillRect(-h.w * 0.5, -1, h.w * (0.4 + 0.6 * g2), 2);
         }
         break;
       }
@@ -9022,7 +9079,7 @@ const KIT = {
   wriothesley: { cd: 6.0, skill: '피해 4%를 내주고 4초 동안 주먹에 얼음이 실립니다. 피해 +30%, 밀쳐내는 힘이 커집니다.', burst: '앞으로 연속 주먹을 퍼붓고, 마지막에 거대한 얼음 주먹을 상대 쪽으로 날립니다. 주먹은 상대를 지나 멀리까지 날아가며 크게 날려 보냅니다.' },
   clorinde: { cd: 5.0, skill: '4초 동안 사냥 태세가 됩니다. 태세 중에는 평타가 상대 쪽으로 쏘는 번개 총알로 바뀝니다(유도 없음). 태세 중에 스킬을 다시 누르면 앞으로 찌르며 돌진합니다(재사용 1.2초). 태세가 끝나면 5초 뒤 다시 쓸 수 있습니다.', burst: '전장이 어두워지고 상대가 있던 자리에 별빛이 반짝입니다. 클로린드는 모습을 감추고(그동안 무적) 그 자리를 번개 빛줄기로 가른 뒤, 사방에서 다섯 번 빠르게 베고, 마지막에 빛의 고리를 터뜨려 날려 보냅니다. 끝나면 그 자리 옆에 다시 나타납니다. 자리를 따라가지 않습니다.' },
   wanderer: { cd: 6.0, skill: '스킬을 쓴 자리에서 정해진 높이만큼만 살짝 떠올라 3초 동안 그 높이에 머뭅니다. 점프해도 더 올라가지 않습니다. 떠 있는 동안에도 평타·강공격·필살기를 쓸 수 있고, 피해 +20%, 이동 속도가 60% 빨라집니다. 떠 있는 동안에는 공격하면서도 이동 속도가 그대로이고, 평타가 20% 빨라지며 강공격은 30% 짧게 눌러도 나갑니다.', burst: '상대가 있는 자리에 공 모양 바람 소용돌이를 만들어 1초 동안 가두고 여러 번 맞힌 뒤 터뜨립니다. 다 맞으면 22 정도 들어갑니다.' },
-  nilou: { cd: 7.0, skill: '5초 동안 평타 전부에 물 원소가 실립니다. 그동안 강공격(꾹)을 쓰면 바라보는 쪽으로 80도 부채꼴의 물결이 날아가며, 멀어질수록 넓게 퍼집니다.', burst: '자신을 중심으로 바닥에 원형 물결을 퍼뜨리고, 0.9초 뒤 한 번 더 크게 퍼뜨립니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
+  nilou: { cd: 6.0, skill: '주위로 물을 한 바퀴 휘둘러 피해를 주고, 5초 동안 평타 전부에 물 원소가 실리며 피해가 15% 늘어납니다. 그동안 강공격(꾹)을 쓰면 바라보는 쪽으로 80도 부채꼴의 물결이 날아가며, 멀어질수록 넓게 퍼집니다.', burst: '자신을 중심으로 바닥에 원형 물결을 퍼뜨리고, 0.9초 뒤 한 번 더 크게 퍼뜨립니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
   mavuika: { cd: 3.6, skill: '오토바이를 타고 상대가 있는 쪽으로 빠르게 돌진합니다. 공중에서도 쓸 수 있습니다.', burst: '불붙은 대검을 한 바퀴 크게 휘둘러, 자신을 중심으로 바닥에 원형으로 불 원소 피해를 줍니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
   kinich: { cd: 6, skill: '가까운 상대에게 갈고리줄을 걸고 8초 동안 밤혼 가호 상태가 됩니다. 이때 평타는 상대를 넘어 반대편으로 날아가며 두 발을 쏘는 회전 사격이 되고, 밤혼이 쌓입니다(초당 2, 명중마다 1.5, 상대 뒤의 사각지대를 밟으면 4). 밤혼 20을 채우고 다시 쓰면 비늘 관통포를 발사합니다. 주변에 상대가 없으면 앞쪽 위로 갈고리줄을 쏴 날아가고 금방 다시 쓸 수 있습니다.', burst: '신성한 용 아쥬의 힘을 풀어 주변에 풀 원소 충격파를 일으킵니다. 커진 아쥬가 10초 동안 어깨 뒤를 따라다니며 2초마다 상대가 있던 자리에 용의 숨결을 내뿜고, 그 자리가 잠시 뒤 터집니다(조준선이 보이니 피할 수 있습니다). 교체해도 나온 캐릭터를 따라다닙니다. 밤혼 가호 중이면 가호가 1.7초 늘어납니다.' },
   mualani: { cd: 5.0, skill: '3.5초 동안 파도를 타고 빠르게 달립니다. 달리며 적에 부딪힐 때마다 파도 기세가 쌓이고(최대 3), 다음 평타에 기세 1개당 피해가 6.5 늘어납니다(3개면 +19.5). 맞아서 밀려나도 파도타기는 끊기지 않습니다.', burst: '적을 향해 큰 물 덩어리를 쏩니다. 닿거나 끝까지 날아가면 크게 폭발합니다. 유도는 없습니다.' },
@@ -9035,13 +9092,13 @@ const KIT = {
   columbina: { cd: 6.0, skill: '상대가 서 있는 자리에 달의 고리를 2.4초 동안 띄웁니다. 고리는 안의 적을 살짝 끌어당기며 0.75초마다 물 원소 피해를 줍니다.', burst: '적의 위치에 달빛 기둥을 내리꽂아 크게 띄우고, 그 자리에 1.6초 동안 물의 고리를 남깁니다.' },
   sandrone: { cd: 7.0, skill: '옆에 거대한 기계 인형을 4초 동안 소환합니다. 인형은 스스로 상대를 쫓아가 닿을 때마다 주먹으로 때려 5% 얼음 원소 피해를 줍니다. 인형은 공격받지 않고, 산드로네를 교체해도 남습니다.', burst: '기계 인형이 상대 쪽으로 0.85초 동안 긴 얼음 광선을 쏴 여러 번 맞히고, 마지막에 크게 날려 보냅니다. 인형이 나와 있으면 그 자리에서, 없으면 산드로네 옆에 불려 나와 쏩니다.' },
   arlecchino: { cd: 7.0, skill: '상대가 가까이(가로 420 이내) 있으면 그 곁으로 순식간에 이동해 한 바퀴 베고, 곧이어 상대 발밑에서 붉은 가시가 솟구쳐 띄워 올립니다. 5초 동안 평타에 불이 실리고 피해가 20% 늘어납니다.', burst: '등 뒤로 붉은 달이 떠오르고 발밑부터 땅이 붉게 갈라집니다. 상대가 있는 자리에 검붉은 X자가 새겨지고 붉은 띠가 엇갈려 베어 낸 뒤, 0.5초 뒤 그 자리가 터져 크게 날려 보냅니다. 자신의 피해를 10% 회복합니다.' },
-  sigewinne: { cd: 6.0, skill: '상대가 있는 자리로 통통 튀는 물방울을 던지고, 자신의 피해를 6% 회복합니다. 유도는 없습니다.', burst: '지금 쌓인 자신의 피해 중 30%를 회복하고 큰 주사기를 꺼냅니다(예: 100%면 30% 회복). 5초 동안 주사기에서 상대 쪽으로 파란 물고리가 점점 커지며 퍼져 나가고, 그 사이로 하트 모양 거품이 0.42초마다 날아가 피해를 줍니다(12발, 유도 없음). 거품도 멀리 갈수록 커집니다. 쏘는 동안에도 자유롭게 움직일 수 있습니다.' },
+  sigewinne: { cd: 6.0, skill: '상대가 있는 자리로 통통 튀는 물방울을 던지고, 자신의 피해를 6% 회복합니다. 유도는 없습니다.', burst: '지금 쌓인 자신의 피해 중 30%를 회복하고 큰 주사기를 꺼냅니다(예: 100%면 30% 회복). 5초 동안 주사기에서 상대 쪽으로 파란 물고리가 점점 커지며 퍼져 나가고, 그 사이로 하트 모양 거품이 0.42초마다 날아가 피해를 줍니다(12발, 유도 없음, 밀려나지 않음). 거품도 멀리 갈수록 커집니다. 쏘는 동안에도 자유롭게 움직일 수 있습니다.' },
   keqing: { cd: 5.6, skill: '앞으로 번개 쐐기를 던집니다. 쐐기는 멈춘 자리(적에 맞으면 그 자리)에 3초 동안 떠 있고, 그동안 스킬을 다시 누르면 쐐기로 순간이동해 주변을 벱니다. 다시 누르지 않으면 쐐기가 사라지고 3초 뒤 다시 던질 수 있습니다.', burst: '모습을 감추고(그동안 무적) 연보라색 분신 여덟이 차례로 나타나 자기 주변을 가로지르며 벱니다. 0.7초 동안 여러 번 맞히며 끌어당기고, 마지막에 각청이 다시 나타나 크게 베어 날려 보냅니다.' },
   tartaglia: { cd: 6.0, skill: '5초 동안 물의 쌍검을 듭니다. 그동안 평타가 물 원소 근접 공격으로 바뀌고 피해가 10% 늘어납니다. 쌍검을 든 채 스킬을 다시 누르면 앞으로 돌진하며 벱니다(재사용 2.1초). 쌍검이 사라지면 6초 뒤 다시 쓸 수 있습니다.', burst: '활을 들고 있으면 상대 쪽으로 물 화살을 쏴, 닿은 자리에서 크게 터뜨립니다(유도 없음). 쌍검을 들고 있으면 자신을 중심으로 양옆을 크게 휩쓸어 날려 보냅니다.' },
-  qiqi: { cd: 7.0, skill: '자신의 피해를 5% 회복하고, 5초 동안 얼음 귀신이 주위를 돌며 가까운 적에게 0.9초마다 얼음 원소 피해를 줍니다. 교체해도 귀신은 나와 있는 캐릭터를 따라다닙니다.', burst: '자신의 피해를 8% 회복하고 상대가 있는 자리에 부적을 떨어뜨려 터뜨립니다. 그 뒤 8초 동안 상대 머리 위에 부적이 붙고, 그동안 치치의 공격이 맞을 때마다 치치의 피해가 2.5% 회복됩니다.' },
+  qiqi: { cd: 7.0, skill: '자신의 피해를 5% 회복하고, 5초 동안 얼음 귀신이 주위를 돌며 가까운 적에게 0.9초마다 얼음 원소 피해를 줍니다. 교체해도 귀신은 나와 있는 캐릭터를 따라다닙니다.', burst: '자신의 피해를 8% 회복하고 상대가 있는 자리에 부적을 떨어뜨려 터뜨립니다. 그 뒤 8초 동안 상대 머리 위에 부적이 붙고, 그동안 치치의 공격이 맞을 때마다 치치의 피해가 1.5% 회복됩니다.' },
   shenhe: { cd: 6.0, skill: '앞으로 돌진하며 얼음을 실어 찌릅니다. 그 뒤 5초 동안 평타에 얼음이 실리고 피해가 15% 늘어납니다. 공중에서도 쓸 수 있습니다.', burst: '상대가 있는 자리에 서리 결계를 4초 동안 펼칩니다. 결계 안의 적은 0.5초마다 얼음 원소 피해를 받고, 맞은 뒤 잠시 동안 더 멀리 밀려납니다. 결계는 상대를 따라가지 않습니다.' },
   flins: { cd: 6.0, skill: '5초 동안 푸른 번개 불꽃에 휩싸입니다. 그동안 모든 평타에 번개가 실리고 피해가 20% 늘어납니다. 불꽃이 켜진 채 스킬을 다시 누르면 앞으로 창을 세 번 연달아 찌릅니다(재사용 2.8초). 불꽃이 꺼지면 6초 뒤 다시 쓸 수 있습니다.', burst: '푸른 불꽃에 휩싸여 전장을 밤으로 물들입니다. 상대가 있던 자리를 길게 한 번 베고, 그 자리에 번개가 연달아 내리친 뒤, 반대 방향으로 한 번 더 크게 베어 날려 보냅니다. 자리를 따라가지 않습니다.' },
-  nefer: { cd: 5.0, skill: '상대가 서 있는 자리 양옆에 초록 그림자 둘이 솟아나 차례로 덮칩니다. 두 번째 그림자가 네페르 반대쪽으로 날려 보냅니다. 자리를 따라가지 않습니다. 쓰고 나면 6초 동안 강공격 충전 시간이 평타처럼 짧아집니다(0.32초 → 0.12초).', burst: '상대가 있던 자리에 거대한 눈이 열려 0.9초 동안 끌어당기며 여러 번 맞히고, 크게 터뜨립니다.' },
+  nefer: { cd: 5.0, skill: '상대가 서 있는 자리 양옆에 초록 그림자 둘이 솟아나 차례로 덮칩니다. 두 번째 그림자가 네페르 반대쪽으로 날려 보냅니다. 그림자는 덮치기 직전까지 상대를 따라가서(공중으로 떠도) 피하기 어렵습니다. 쓰고 나면 6초 동안 강공격 충전 시간이 평타처럼 짧아집니다(0.32초 → 0.12초).', burst: '상대가 있던 자리에 거대한 눈이 열려 0.9초 동안 끌어당기며 여러 번 맞히고, 크게 터뜨립니다.' },
   durin: { cd: 4.9, skill: '날개를 펴고 앞쪽 위로 비스듬히 날아오르며 들이받습니다. 공중에서도 쓸 수 있어 복귀에도 씁니다.', burst: '검은 용이 하늘에서 상대가 있던 자리로 비스듬히 내리꽂혀 지나가는 길과 떨어진 자리에 피해를 줍니다. 그 아래 땅이 있으면 2.5초 동안 불타며 0.5초마다 약한 피해를 줍니다. 유도는 없습니다.' },
   varka: { cd: 4.9, skill: '바람 늑대와 함께 앞으로 길게 돌진하며 들이받습니다. 공중에서도 쓸 수 있습니다. 그 뒤 6초 동안 평타와 강공격에 불 원소와 바람 원소가 함께 실립니다(불로 먼저 베고 바로 뒤 바람이 따라 붙어 확산 반응이 납니다).', burst: '두 자루 대검으로 앞쪽을 X자로 두 번 베고, 이어서 늑대의 포효로 크게 날려 보냅니다.' },
   zibai: { cd: 4.9, skill: '초승달 칼날을 앞으로 던집니다. 칼날은 느려지다가 되돌아오며, 나갈 때 한 번, 돌아올 때 한 번 더 맞힐 수 있습니다. 돌아오는 칼날에 맞으면 자백 쪽으로 끌려옵니다.', burst: '상대가 있는 자리에 보름달을 떨어뜨려 크게 날려 보내고, 6초 동안 방어막을 얻습니다.' },
@@ -9069,7 +9126,7 @@ const BASIC = {
   catalyst: '상대가 있는 쪽으로 원소 구슬을 쏩니다. 유도는 없고, 맞을 때마다 원소가 묻습니다. 3타째가 더 강합니다. 보통은 밀쳐내지 않고, 네 발에 한 발꼴로만 밀쳐냅니다. 꾹 누르면 상대가 서 있는 자리에 원소 기둥이 솟아올라 위로 띄웁니다. 겨냥은 한 번만 하고 따라가지 않습니다.',
   blade: '상대가 있는 쪽으로 바람 칼날을 날립니다. 유도는 없고, 매번 바람 원소 공격으로 들어갑니다. 3타째가 더 강합니다. 보통은 밀쳐내지 않고, 네 발에 한 발꼴로만 밀쳐냅니다. 꾹 누르면 상대가 서 있는 자리에 바람 기둥이 솟아올라 위로 띄웁니다. 겨냥은 한 번만 하고 따라가지 않습니다.',
   fist: '주먹으로 치는 근접 3연타입니다. 3타째에 원소가 실립니다. 꾹 누르면 강한 주먹 한 방을 날립니다.',
-  kick: '발차기 3연타입니다. 1타는 높이 올려 차고, 2타는 몸을 돌리며 낮고 넓게 휩쓸고, 3타는 높이 뛰어올라 공중제비를 돈 뒤 내려찍으며 풀 원소가 실립니다(3타는 다른 캐릭터보다 조금 느립니다). 꾹 누르면 낮게 미끄러지며 차는 슬라이딩 킥 한 방을 날립니다. 상대가 장병기 강공격이 닿을 만한 거리 안에 있으면 그쪽으로 돌아 상대 앞까지 미끄러져 들어가며 찹니다.',
+  kick: '발차기 3연타입니다. 1타는 높이 올려 차고, 2타는 몸을 돌리며 낮고 넓게 휩쓸고, 3타는 높이 뛰어올라 공중제비를 돈 뒤 내려찍으며 풀 원소가 실립니다(3타는 다른 캐릭터보다 조금 느립니다). 꾹 누르면 살짝 뛰어 공중제비를 한 바퀴 돈 뒤 몸통 높이로 강한 옆차기를 날립니다. 상대가 장병기 강공격이 닿을 만한 거리 안에 있으면 그쪽으로 공중제비를 돌며 상대 앞까지 날아 들어가 찹니다.',
 };
 function fighterStatus(f) {
   const s = [];
