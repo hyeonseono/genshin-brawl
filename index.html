@@ -988,8 +988,8 @@ const CHARS = [
     speed: 290, jump: 735, weight: 1.1, atk: 1.1, jumps: 2, grav: 1.05, scale: 1.02, reach: 1.15, aiRange: 120,
     skill: '장미의 예포', burst: '축포의 날', desc: '대검 화력형. 필살기 포탄 여섯 발로 결정 반응을 많이 일으키고, 주운 결정으로 산탄 스킬을 강화합니다.' },
   { id: 'wriothesley', name: '라이오슬리', title: '메로피드 요새 공작', el: 'cryo', color: '#8fc8ff', body: '#2a3140', dark: '#15181f', hair: '#2a2a30', eye: '#9fb4d8', skin: '#f2d4bc',
-    speed: 330, jump: 730, weight: 1.3, atk: 1.3, jumps: 2, grav: 1.05, scale: 1.1, reach: 1.2, aiRange: 60,
-    skill: '얼음 주먹', burst: '냉혹한 판결', desc: '격투 근접형. 피해를 조금 내주고 얼음 주먹을 강화하며, 필살기로 연속 주먹을 퍼붓습니다.' },
+    speed: 345, jump: 730, weight: 1.3, atk: 1.35, jumps: 2, grav: 1.05, scale: 1.1, reach: 1.2, aiRange: 60,   // buffed 2026-10-26 (was speed 330, atk 1.3)
+    skill: '얼음 주먹', burst: '냉혹한 판결', desc: '격투 근접형. 얼음 주먹으로 돌진하며 피해를 조금 내주고 주먹을 강화하며, 필살기로 연속 주먹을 퍼붓습니다.' },
   { id: 'clorinde', name: '클로린드', title: '결투 대리인', el: 'electro', color: '#9a6ad8', body: '#2a2340', dark: '#15112a', hair: '#1f2440', eye: '#c077ff', skin: '#ffe3d6',
     speed: 330, jump: 760, weight: 0.92, atk: 1.05, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 66,
     skill: '사냥의 맹세', burst: '최후의 종언', desc: '검과 총을 함께 쓰는 결투가. 스킬로 4초 동안 번개 총을 쏘는 태세가 되고, 그 사이 스킬을 다시 누르면 찌르며 돌진합니다.' },
@@ -1078,8 +1078,8 @@ const CHARS = [
     speed: 325, jump: 755, weight: 0.95, atk: 1.04, jumps: 2, grav: 1, scale: 1.02, reach: 1.1, aiRange: 70,
     skill: '카미사토류 · 경수', burst: '카미사토류 · 수월', desc: '한손검 태세형. 물 분신을 남기고 6초 동안 물의 검으로 길고 빠르게 벱니다. 필살기로 넓은 물의 정원을 펼쳐 물칼날 비를 내립니다.' },
   { id: 'yoimiya', name: '요이미야', title: '한여름 불꽃의 여왕', el: 'pyro', color: '#ff8a3d', body: '#c0392b', dark: '#3a1a10', hair: '#f2c27a', eye: '#e8a040', skin: '#ffe6d6',
-    speed: 315, jump: 755, weight: 0.9, atk: 1.0, jumps: 2, grav: 1, scale: 0.95, reach: 1, aiRange: 190,
-    skill: '정원 불꽃놀이', burst: '류킨 범의 귀', desc: '활 화력형. 스킬로 6초 동안 모든 화살에 불을 싣고, 필살기로 불꽃 로켓을 쏘아 상대에게 불꽃 표식을 남깁니다.' },
+    speed: 315, jump: 755, weight: 0.95, atk: 1.0, jumps: 2, grav: 1, scale: 0.95, reach: 1, aiRange: 190,   // buffed 2026-10-26 (was weight 0.9; also her skill, and a new burst)
+    skill: '정원 불꽃놀이', burst: '류킨 범의 귀', desc: '활 화력형. 스킬로 8초 동안 모든 화살에 불을 싣고 맞힐 때마다 작은 불꽃이 터지며, 필살기로 불꽃 로켓을 쏘아 상대에게 불꽃 표식을 남깁니다.' },
   { id: 'kokomi', name: '산고노미야 코코미', title: '와타츠미의 현인신', el: 'hydro', color: '#7fc8ff', body: '#e9e6f4', dark: '#3a3f8a', hair: '#f2d0d6', eye: '#7a8ad8', skin: '#fdeee8',
     speed: 305, jump: 750, weight: 0.9, atk: 0.92, jumps: 2, grav: 1, scale: 0.96, reach: 1, aiRange: 190,
     skill: '해파리의 맹세', burst: '해인의 화신', desc: '법구 회복형. 해파리를 띄워 주변을 적시며 회복하고, 필살기로 평타에 물을 싣고 강해집니다.' },
@@ -1090,7 +1090,7 @@ const CHARS = [
     speed: 315, jump: 745, weight: 1.15, atk: 1.2, jumps: 2, grav: 1, scale: 1.1, reach: 1.2, aiRange: 76,
     skill: '이글거리는 성역', burst: '사자의 이빨', desc: '대검 근접형. 발밑에 불꽃 결계를 깔고, 필살기로 불주먹을 연타한 뒤 발차기로 날려 보냅니다.' },
   { id: 'chiori', name: '치오리', title: '천의무봉', el: 'geo', color: '#e8b84a', body: '#e0a030', dark: '#3a2a1a', hair: '#4a2a20', eye: '#c03030', skin: '#fbe6da',
-    speed: 325, jump: 760, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 1.0, reach: 1.12, aiRange: 66,
+    speed: 325, jump: 760, weight: 0.95, atk: 1.1, jumps: 2, grav: 1, scale: 1.0, reach: 1.12, aiRange: 66,   // buffed 2026-10-26 (was atk 1.05)
     skill: '소매 인형', burst: '쌍검 · 히요쿠', desc: '한손검 소환형. 베면서 소매 인형을 세워 가까운 적을 함께 베게 하고, 필살기로 두 칼을 X자로 휘두릅니다.' },
   { id: 'xilonen', name: '실로닌', title: '대장장이 장인', el: 'geo', color: '#f5d77a', body: '#2a2a2a', dark: '#151515', hair: '#f0d080', eye: '#3ab07a', skin: '#c99a78',
     speed: 340, jump: 770, weight: 0.95, atk: 1.0, jumps: 2, grav: 1, scale: 1.0, reach: 1.08, aiRange: 66,
@@ -1494,7 +1494,7 @@ function startMatch(mapId) {
     ms: { t: 0, next: 5, gust: 0, dir: 1, warned: false, phase: 0, pt: 8, pad: [0, 0], cold: 0 },   // per-map hazard state
     env: { grav: curMap.grav || 1, ice: !!curMap.ice, wind: 0, water: null },
     fighters: [teams[0][0], teams[1][0]],
-    hits: [], particles: [], texts: [], bolts: [], sparks: [], blasts: [], rifts: [], waves: [], marks: [], pickups: [], punch: 0, focus: { x: W / 2, y: H / 2 },
+    hits: [], particles: [], texts: [], bolts: [], sparks: [], blasts: [], rifts: [], waves: [], marks: [], pickups: [], flares: [], runes: [], punch: 0, focus: { x: W / 2, y: H / 2 },
     hitstop: 0, shake: 0, flash: 0, dark: 0, bf: null, intro: 3.4, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
   };
   if (mode === 'arcade' && ARC.boss) for (const b of game.teams[1]) {
@@ -1533,6 +1533,137 @@ function streaks(x, y, color, n, ang, sp = 760) {
     const a = ang + rnd(-0.55, 0.55), v = sp * rnd(0.45, 1.1);
     g.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.12, 0.24), max: 0.24, size: rnd(1.6, 3.2), color, grav: 0, ln: true });
   }
+}
+// Light that costs little: a soft glow is one small ready-made image per colour, stamped and stretched where it is needed (no blur, no
+// redrawing the scene), so it is on at every graphics setting. Flares (bursts of light on hits, skills, bursts and reactions) and rune
+// circles use it. Only what they look like is random here, from the browser's own random numbers, so online matches stay in step.
+const GLOW_SPR = {}; let glowN = 0;
+function glowSpr(col) {
+  let c = GLOW_SPR[col]; if (c) return c;
+  if (glowN > 160 && GLOW_SPR['#ffffff']) return GLOW_SPR['#ffffff'];   // odd colour strings never pile up
+  glowN++;
+  c = GLOW_SPR[col] = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  if (/^#[0-9a-f]{6}$/i.test(col)) { gr.addColorStop(0, hexA(col, 1)); gr.addColorStop(0.22, hexA(col, 0.75)); gr.addColorStop(0.5, hexA(col, 0.25)); gr.addColorStop(1, hexA(col, 0)); }
+  else { gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); }
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+  return c;
+}
+function glow(x, y, r, col, a) {   // under 'lighter'
+  if (a <= 0.01 || r <= 0.5) return;
+  ctx.globalAlpha = Math.min(1, a); ctx.drawImage(glowSpr(col), x - r, y - r, r * 2, r * 2);
+}
+function flare(x, y, r, color, o = {}) {
+  const g = game; if (!g || fxPass || !g.flares) return;
+  if (g.flares.length >= 10) g.flares.shift();   // a dozen at most: glow is cheap per pixel, but big ones cover many
+  const life = o.life || 0.3;
+  g.flares.push({ x, y, r, color: color || '#ffffff', col2: o.col2 || null, life, max: life, rays: o.rays || 0, streak: !!o.streak, rot: NATIVE_RND() * 6.3 });
+}
+// Yoimiya's burst, a fireworks festival over the marked opponent: every 0.8 s a shell shoots up from the ground beneath them and bursts
+// in coloured stars just above (a little damage), and when the mark runs out a grand finale bursts on them and throws them up.
+// Where the shells go is game-side (rnd), so online matches stay in step; only the sparks' looks use the browser's random numbers.
+const FW_COLS = ['#ff5a7a', '#ffd24d', '#7fd8ff', '#b98aff', '#7dffb0', '#ffffff', '#ff9a3d'];
+function firework(x, y, sc = 1) {
+  const g = game; if (!g || fxPass) return;
+  const c1 = FW_COLS[(NATIVE_RND() * FW_COLS.length) | 0], c2 = FW_COLS[(NATIVE_RND() * FW_COLS.length) | 0], n = Math.round(34 * sc);
+  for (let i = 0; i < n; i++) {   // a sphere of stars that falls and fades
+    const a = i / n * 6.283 + NATIVE_RND() * 0.2, v = (240 + NATIVE_RND() * 160) * sc;
+    g.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.7 + NATIVE_RND() * 0.4, max: 1.1, size: 3.2 + NATIVE_RND() * 1.8, color: i % 3 ? c1 : c2, grav: 260, drag: 1.6 });
+  }
+  for (let i = 0; i < 8 * sc; i++) g.particles.push({ x, y, vx: (NATIVE_RND() - 0.5) * 120, vy: (NATIVE_RND() - 0.5) * 120, life: 0.9, max: 0.9, size: 1.6, color: '#ffffff', grav: 120, k: 'ember', rot: NATIVE_RND() * 6 });
+  flare(x, y, 60 * sc, c1, { col2: c2, rays: 12, life: 0.35 });
+  g.waves.push({ x, y, r: 6, R: 70 * sc, life: 0.3, max: 0.3, color: c2 });
+}
+function fireworkShow(o, t) {
+  hb({ owner: o, x: t.x, y: t.y - 34, w: 0, h: 0, life: 6, harmless: true, persist: true, keep: true, vis: 'none',
+       onTick: (h, dt) => {
+         if (t.dead || game.fighters[t.idx] !== t) { h.life = 0; h.nofinale = true; return; }   // knocked out or swapped out: the show stops
+         h.x = t.x; h.y = t.y - 34;
+         h.fire = (h.fire ?? 0.5) - dt; if (h.fire > 0) return; h.fire = 0.8;
+         const gp = groundBelow(t), x0 = t.x + rnd(-50, 50), y0 = gp ? gp.y : t.y + 40, ty = t.y - 105 * t.def.scale;   // a shell rising from the ground beneath them
+         hb({ owner: o, proj: true, harmless: true, shape: 'circle', r: 6, x: x0, y: y0, vx: 0, vy: -(y0 - ty) / 0.36, life: 0.36, vis: 'arrow', color: '#ffe08a', trail: true,   // straight up: step aside and it misses
+              onEnd: s => {   // a little damage, without stopping them (it never juggles)
+                hb({ owner: o, shape: 'circle', x: s.x, y: s.y, r: 62, life: 0.1, dmg: 1.2, kb: 0, noKb: true, noLaunch: true, chip: true, ang: 80, radial: true, persist: true, vis: 'none', color: '#ffd24d', burst: true, blazeFx: true });   // (noLaunch: a spark never lands as a black flash; nor does it set off the mark's own blasts)
+                firework(s.x, s.y, 1); SFX.play('hit');
+              } });
+       },
+       onEnd: h => {   // the grand finale: a big shell rises for half a second toward where they stand (move and it misses), then bursts
+         if (h.nofinale || t.dead) return;
+         const gp = groundBelow(t), x = t.x, y = t.y - 60 * t.def.scale, y0 = gp ? gp.y : t.y + 40;
+         ftext(x, y - 90, '피날레!', '#ffd24d', 22, 1.2); SFX.play('swing');
+         hb({ owner: o, proj: true, harmless: true, shape: 'circle', r: 10, x, y: y0, vx: 0, vy: -(y0 - y) / 0.5, life: 0.5, vis: 'arrow', color: '#ffd24d', trail: true,
+              onEnd: s => {
+                hb({ owner: o, shape: 'circle', x: s.x, y: s.y, r: 110, life: 0.12, dmg: 5, kb: 0.8, ang: 65, el: 'pyro', radial: true, persist: true, vis: 'boom', color: '#ffd24d', burst: true, blazeFx: true,
+                     src: { kind: 'burst', rolled: new Set([t]) } });   // a show-piece, not a finisher: it never lands as a black flash
+                firework(s.x, s.y - 30, 2); firework(s.x - 70, s.y - 70, 1.2); firework(s.x + 70, s.y - 70, 1.2);
+                flare(s.x, s.y, 170, '#ffd24d', { col2: '#ff5a7a', rays: 16, streak: true, life: 0.55 });
+                game.shake = Math.max(game.shake, 12); SFX.play('heavy');
+              } });
+       } });
+}
+function rune(f, size = 1) {
+  const g = game; if (!g || fxPass || !g.runes) return;
+  const gp = groundBelow(f), y = gp && gp.y - f.y < 60 ? gp.y : f.y;
+  if (g.runes.length >= 8) g.runes.shift();
+  const life = size > 1.5 ? 0.8 : 0.55;
+  g.runes.push({ x: f.x, y, s: f.def.scale * size, color: EL[f.def.el].color, life, max: life, rot: NATIVE_RND() * 6.3 });
+}
+function drawFlares() {
+  const g = game; if (!g.flares || !g.flares.length) return;
+  const F = (OPT.flash ? 1 : 0.55) * (gfxHigh() ? 0.8 : 1);   // on 'high' the bloom adds a glow of its own
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const f of g.flares) {
+    const k = 1 - f.life / f.max, fade = Math.pow(1 - k, 1.6) * F, R = f.r * (0.55 + 0.75 * easeOut(k));
+    if (fade < 0.03) continue;
+    glow(f.x, f.y, R * 1.1, f.color, 0.8 * fade);
+    if (f.col2) glow(f.x, f.y, R * 0.8, f.col2, 0.55 * fade);
+    glow(f.x, f.y, R * 0.4, '#ffffff', 0.95 * fade);
+    if (f.streak) {   // a lens streak: the glow squeezed flat and drawn long
+      ctx.globalAlpha = 0.85 * fade; ctx.drawImage(glowSpr(f.color), f.x - R * 2.8, f.y - R * 0.1, R * 5.6, R * 0.2);
+      ctx.globalAlpha = 0.9 * fade; ctx.drawImage(glowSpr('#ffffff'), f.x - R * 1.6, f.y - R * 0.045, R * 3.2, R * 0.09);
+    }
+    if (f.rays) {   // thin rays turning a little, long and short in turn
+      const L = R * 1.9 * (0.6 + 0.4 * easeOut(k)), w = 0.07, r0 = R * 0.15;
+      ctx.globalAlpha = 0.55 * fade; ctx.fillStyle = f.color; ctx.beginPath();
+      for (let i = 0; i < f.rays; i++) {
+        const a = f.rot + k * 0.6 + i * 6.283 / f.rays, l = L * (i % 2 ? 0.6 : 1);
+        ctx.moveTo(f.x + Math.cos(a - w) * r0, f.y + Math.sin(a - w) * r0); ctx.lineTo(f.x + Math.cos(a) * l, f.y + Math.sin(a) * l); ctx.lineTo(f.x + Math.cos(a + w) * r0, f.y + Math.sin(a + w) * r0);
+      }
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+function drawRunes() {   // a magic circle lying on the ground (squashed for the angle), turning, with a pillar of light rising from it
+  const g = game; if (!g.runes || !g.runes.length) return;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  for (const r of g.runes) {
+    const k = 1 - r.life / r.max, fade = Math.pow(1 - k, 1.3) * Math.min(1, k * 8), R = (42 + 34 * easeOut(Math.min(1, k * 2.5))) * r.s, sp = r.rot + k * 2.2;
+    ctx.globalAlpha = 0.65 * fade; ctx.drawImage(glowSpr(r.color), r.x - 22 * r.s, r.y - 160 * r.s, 44 * r.s, 170 * r.s);   // the pillar
+    ctx.save(); ctx.translate(r.x, r.y + 2); ctx.scale(1, 0.3);
+    glow(0, 0, R * 1.4, r.color, 0.8 * fade);
+    ctx.globalAlpha = fade; ctx.strokeStyle = r.color; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.stroke();
+    ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 0, R * 0.74, 0, 7); ctx.stroke();
+    ctx.strokeStyle = '#ffffff'; ctx.globalAlpha = 0.7 * fade; ctx.lineWidth = 1.4; ctx.beginPath();   // two triangles turning opposite ways
+    for (const [d, ph] of [[1, sp], [-1, -sp + 0.52]]) for (let i = 0; i <= 3; i++) { const a = ph * d + i * 2.094; i ? ctx.lineTo(Math.cos(a) * R * 0.74, Math.sin(a) * R * 0.74) : ctx.moveTo(Math.cos(a) * R * 0.74, Math.sin(a) * R * 0.74); }
+    ctx.stroke();
+    ctx.fillStyle = r.color; ctx.globalAlpha = 0.95 * fade;   // marks round the rim
+    for (let i = 0; i < 8; i++) { const a = -sp * 0.7 + i * 0.785, x = Math.cos(a) * R * 0.87, y = Math.sin(a) * R * 0.87; ctx.beginPath(); ctx.moveTo(x, y - 5); ctx.lineTo(x + 3, y); ctx.lineTo(x, y + 5); ctx.lineTo(x - 3, y); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+  }
+  ctx.restore();
+}
+// A soft glow under every flying shot, so they read as light (on 'high' the bloom pass does most of this)
+function drawShotGlow() {
+  const g = game, a = gfxHigh() ? 0.22 : 0.42;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const h of g.hits) {
+    if (!h.proj || h.harmless || h.dead || h.age < h.delay) continue;
+    const c = hbCenter(h), rad = Math.min(60, h.r || Math.max(h.w || 0, h.h || 0) / 2 || 14);
+    glow(c.x, c.y, rad * 1.9, h.color || (h.el ? EL[h.el].color : '#ffffff'), a);
+  }
+  ctx.restore();
 }
 function bolt(x1, y1, x2, y2, color) {
   if (game && !fxPass) game.bolts.push({ x1, y1, x2, y2, color, life: 0.16 });
@@ -1774,6 +1905,7 @@ function applyHit(h, t) {
   let dmg = h.dmg * o.def.atk * (o.buff ? o.buff.mul : 1), kbMul = h.kb, broke = false;
   if (o.buff && o.buff.kb) kbMul *= o.buff.kb;
   if (t.guarding) {
+    if (h.chip) return;   // a light extra hit (Yoimiya's little fireworks): stopped by a guard without wearing it down
     t.guard -= dmg * 4.5 + 3;
     if (t.guard > 0) {   // blocked: no damage, no element, just a nudge
       puff(t.x + dirX * -14, t.y - 34, '#cfe6ff', 8, 180, 0.3, 3);
@@ -1807,6 +1939,7 @@ function applyHit(h, t) {
     if (au && au.t > 0 && au.el !== h.el) {
       const r = reaction(o, t, au.el, h.el);
       if (r) {
+        flare(t.x, t.y - 34, 120, r.color, { col2: EL[au.el] ? EL[au.el].color : null, rays: 12, streak: true, life: 0.5 });   // a reaction: both elements' light at once
         if (r.keep) { au.t -= 0.8; if (au.t <= 0) t.aura = null; } else t.aura = null;
         dmg = dmg * r.dmgMul + r.dmgAdd; kbMul *= r.kbMul;
       }
@@ -1870,6 +2003,8 @@ function applyHit(h, t) {
   if (dmg >= 6 || v > 800) { const gp = groundBelow(t); if (gp && gp.y - t.y < 30) markGround(t.x, gp, h.el, clamp(dmg / 8, 0.6, 1.5)); }
   if (v > 900 || dmg >= 9) g.roll = clamp((g.roll || 0) + dirX * 0.022, -0.04, 0.04);   // the view tips a degree or so with the blow
   g.waves.push({ x: t.x, y: t.y - 34, r: 10, R: 40 + Math.min(80, dmg * 4 + v / 28), life: 0.3, max: 0.3, color: h.color || '#ffffff' });
+  flare(t.x, t.y - 34, 26 + Math.min(40, dmg * 3 + v / 40), h.el ? EL[h.el].color : EL[o.def.el] ? EL[o.def.el].color : '#ffffff',   // in the attacker's element colour even on plain hits   // a burst of light where it lands: a lens streak on a firm hit, rays on a big one
+        { streak: dmg >= 5 || v > 700, rays: dmg >= 8 || v > 1000 || bf ? 10 : 0, life: 0.28 });
   streaks(t.x, t.y - 34, h.color || '#ffffff', 5 + Math.min(9, dmg | 0), la);
   // the blows that decide things: a moment of slow motion with the view pushed in on them (not more than about once a second)
   if (!bf && (v > 1150 || (h.burst && dmg >= 7)) && g.time - (g.slowAt ?? -9) > 1.2) { g.slowAt = g.time; g.slowHit = { real: 0, dur: 0.3, x: t.x, y: t.y - 34 }; }
@@ -2135,7 +2270,12 @@ function shootArrow(f, n, s) {
        vx: Math.cos(f.aim) * sp * f.dir, vy: Math.sin(f.aim) * sp, delay: s.delay, life: 0.65,
        dmg: big ? 7 : 4.2, kb: s.kb * 0.6, noKb: !push, ang: s.ang, el: (f.buff && f.buff.el) || (big ? f.def.el : null), vis: 'arrow', trail: big || !!(f.buff && f.buff.el),
        color: (f.buff && f.buff.el) ? EL[f.buff.el].color : big ? EL[f.def.el].color : '#e8ecff',
-       onStart: big ? h => FINISH_FX[f.def.id](f, h.x, h.y) : null });
+       onStart: big ? h => FINISH_FX[f.def.id](f, h.x, h.y) : null,
+       onHit: f.buff && f.buff.niwabi ? (h, t) => {   // Yoimiya's blazing arrows: a little spray of fire where one lands (no knockback, no second pyro)
+         hb({ owner: f, shape: 'circle', x: t.x, y: t.y - 34, r: 50, delay: 0.08, life: 0.1, dmg: 0.9, kb: 0, noKb: true, noLaunch: true, chip: true, ang: 45, radial: true, persist: true, vis: 'boom', color: '#ffb04d',
+             src: { kind: 'skill', rolled: new Set() } });
+         puff(t.x, t.y - 34, '#ffe08a', 6, 200, 0.4, 3, -80);
+       } : null });
   SFX.play('swing');
 }
 
@@ -2680,10 +2820,11 @@ const SKILLS = {
     f.buff = { t: 3, mul: 1, el: 'geo' };   // 3 seconds of geo-infused basic attacks
     if (f.onGround) f.vx = -f.dir * 160;
   },
-  wriothesley(f) {
-    startAct(f, 'skill', 0.25, { slow: 0.3 }); f.cd = 6;
-    f.pct += 4; ftext(f.x, f.y - 96, '+4% 반격 태세', '#dff2ff', 16, 1);
-    f.buff = { t: 4, mul: 1.3, el: 'cryo', kb: 1.2 };
+  wriothesley(f) {   // a dash forward behind an ice punch (works in the air), then 5 seconds of harder, icy fists for 2% of his own health
+    startAct(f, 'dash', 0.22, { slow: 0 }); f.cd = 6; f.vx = f.dir * 760; f.vy = Math.min(f.vy, 0);
+    hb({ owner: f, follow: true, ox: 40, oy: 36, w: 96, h: 70, delay: 0.04, life: 0.18, dmg: 5.5, kb: 1.05, ang: 32, el: 'cryo', vis: 'dash', color: '#dff2ff' });
+    f.pct += 2; ftext(f.x, f.y - 96, '+2% 반격 태세', '#dff2ff', 16, 1);
+    f.buff = { t: 5, mul: 1.35, el: 'cryo', kb: 1.2 };
     puff(f.x, f.y - 34, '#dff2ff', 16, 220, 0.5, 4);
   },
   clorinde(f) {
@@ -2950,9 +3091,9 @@ const SKILLS = {
     f.buff = { t: 6, mul: 1.1, el: 'hydro', reach: 1.3, shun: true, cdAfter: 6 };
     ftext(f.x, f.y - 96, '경수', '#9fd4ff', 17, 1); puff(f.x, f.y - 34, '#7fc8ff', 20, 260, 0.5, 4, 200);
   },
-  yoimiya(f) {   // Niwabi Fire-Dance: for 6 seconds every arrow is a blazing one
+  yoimiya(f) {   // Niwabi Fire-Dance: for 6 seconds every arrow is a blazing one, and bursts in a little spray of fire where it lands
     startAct(f, 'skill', 0.25, { slow: 0.5 }); f.cd = 7;
-    f.buff = { t: 6, mul: 1.2, el: 'pyro', niwabi: true };
+    f.buff = { t: 6, mul: 1.25, el: 'pyro', niwabi: true };
     ftext(f.x, f.y - 96, '불꽃놀이 화살', '#ffb04d', 16, 1); puff(f.x, f.y - 40, '#ffb04d', 18, 240, 0.6, 4, -150);
   },
   kokomi(f) {   // Kurage's Oath: a jellyfish of water hangs where she stands for 6 seconds, soaking the area and healing her side
@@ -2977,12 +3118,12 @@ const SKILLS = {
     hb({ owner: f, x: f.x, y: f.y - 35, w: 280, h: 70, delay: 0.15, life: 6, rehit: 1.0, dmg: 2.2, kb: 0.1, noKb: true, ang: 80, el: 'pyro', persist: true, vis: 'embers' });
     puff(f.x, f.y - 20, '#ffb04d', 20, 260, 0.6, 4, -200);
   },
-  chiori(f) {   // Fluttering Hasode: a cut, and a sleeve doll that stays for 5 seconds and cuts anyone who comes near
-    startAct(f, 'skill', 0.32, { slow: 0.2 }); f.cd = 8;
-    hb({ owner: f, follow: true, ox: 56, oy: 36, w: 110, h: 70, delay: 0.08, life: 0.12, dmg: 5, kb: 1.0, ang: 35, el: 'geo', vis: 'slash' });
-    summon(f, { vis: 'doll', dx: -20, dy: 46, life: 5, every: 1.1, first: 0.5, range: 260,
+  chiori(f) {   // Fluttering Hasode: a cut, and a sleeve doll that stays for 6 seconds and cuts anyone who comes near
+    startAct(f, 'skill', 0.32, { slow: 0.2 }); f.cd = 7;
+    hb({ owner: f, follow: true, ox: 56, oy: 36, w: 110, h: 70, delay: 0.08, life: 0.12, dmg: 5.5, kb: 1.0, ang: 35, el: 'geo', vis: 'slash' });
+    summon(f, { vis: 'doll', dx: -20, dy: 46, life: 6, every: 0.9, first: 0.45, range: 270,
       shot: (h, o, t) => {
-        const v = hb({ owner: o, x: t.x, y: t.y - 34, w: 90, h: 70, life: 0.1, dmg: 2.6, kb: 0.5, ang: 40, el: 'geo', persist: true, vis: 'slash', color: EL.geo.color });
+        const v = hb({ owner: o, x: t.x, y: t.y - 34, w: 90, h: 70, life: 0.1, dmg: 2.8, kb: 0.5, ang: 40, el: 'geo', persist: true, vis: 'slash', color: EL.geo.color });
         v.sdir = sgn(t.x - h.x) || 1; puff(h.x, h.y, '#f5d77a', 6, 140, 0.3, 3);
       } });
   },
@@ -3038,6 +3179,7 @@ function doSkill(f) {
   try { SKILLS[f.def.id](f); } finally { hbSrc = prev; }
   if (f.cd < CD_SHORT && f.def.id !== 'clorinde') f.cd *= CD_SCALE;
   f.cdMax = f.cd; BGM.cast(f.def.el);
+  rune(f, 1); flare(f.x, f.y - 40 * f.def.scale, 55, EL[f.def.el].color, { life: 0.25 });   // a circle of the element lights up under them
 }
 
 // A burst that strikes "around" the user: a circle on the ground (the x-y plane of the world), seen from the side.
@@ -3628,12 +3770,12 @@ const BURSTS = {
   } },
   yoimiya: { name: '류킨 범의 귀', fn(f, foe) {   // a rocket at the opponent; it bursts and leaves them marked for 6 seconds (Aurous Blaze)
     const sx = f.x + f.dir * 20, sy = f.y - 50, tx = foe.dead ? sx + f.dir * 300 : foe.x, ty = foe.dead ? sy : foe.y - 34, a = Math.atan2(ty - sy, tx - sx);
-    hb({ owner: f, proj: true, shape: 'circle', r: 20, w: 40, h: 40, x: sx, y: sy, vx: Math.cos(a) * 950, vy: Math.sin(a) * 950, delay: 0.1, life: 0.9, dmg: 8, kb: 1.0, ang: 50, el: 'pyro', vis: 'fireball', trail: true,
+    hb({ owner: f, proj: true, shape: 'circle', r: 20, w: 40, h: 40, x: sx, y: sy, vx: Math.cos(a) * 950, vy: Math.sin(a) * 950, delay: 0.1, life: 0.9, dmg: 9, kb: 1.0, ang: 50, el: 'pyro', vis: 'fireball', trail: true,
          onEnd: h => {
-           hb({ owner: h.owner, shape: 'circle', x: h.x, y: h.y, r: 120, life: 0.12, dmg: 5, kb: 1.2, ang: 55, el: 'pyro', radial: true, persist: true, vis: 'boom' });
+           hb({ owner: h.owner, shape: 'circle', x: h.x, y: h.y, r: 130, life: 0.12, dmg: 6, kb: 1.25, ang: 55, el: 'pyro', radial: true, persist: true, vis: 'boom' });
            puff(h.x, h.y, '#ffe08a', 24, 380, 0.8, 4, 80); puff(h.x, h.y, '#ff5a2a', 14, 300, 0.6, 5); game.shake = Math.max(game.shake, 9); SFX.play('heavy');
          } });
-    if (!foe.dead) { foe.blazeUntil = game.time + 6.1; foe.blazeNext = 0; ftext(foe.x, foe.y - 110, '불꽃 표식', '#ffb04d', 16, 1); }
+    if (!foe.dead) { foe.blazeUntil = game.time + 6.1; foe.blazeNext = 0; ftext(foe.x, foe.y - 110, '불꽃 표식', '#ffb04d', 16, 1); fireworkShow(f, foe); }
   } },
   kokomi: { name: '해인의 화신', fn(f) {   // a wave around her, a heal, and 8 seconds of hydro on every basic attack; her jellyfish is renewed
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 170, life: 0.14, dmg: 7, kb: 1.3, ang: 50, el: 'hydro', radial: true, persist: true, vis: 'boom' });
@@ -3655,7 +3797,7 @@ const BURSTS = {
   chiori: { name: '쌍검 · 히요쿠', fn(f) {   // two blades crossing in an X in front of her
     f.act.t = f.act.dur = 0.6;
     for (let i = 0; i < 2; i++) {
-      hb({ owner: f, follow: true, ox: 100, oy: 40, w: 240, h: 140, delay: 0.1 + i * 0.2, life: 0.12, dmg: i ? 9 : 7, kb: i ? 1.6 : 0.3, ang: i ? 40 : 80, el: 'geo', persist: true, vis: 'none',
+      hb({ owner: f, follow: true, ox: 100, oy: 40, w: 240, h: 140, delay: 0.1 + i * 0.2, life: 0.12, dmg: i ? 10 : 8, kb: i ? 1.6 : 0.3, ang: i ? 40 : 80, el: 'geo', persist: true, vis: 'none',
            onStart: () => { game.shake = Math.max(game.shake, i ? 10 : 6); SFX.play('heavy'); } });
       hb({ owner: f, x: 0, y: 0, follow: true, ox: 100, oy: 40, w: 0, h: 0, delay: 0.1 + i * 0.2, life: 0.4, harmless: true, persist: true, vis: 'cslash', a: i ? 0.6 : -0.6, L: 300, wd: 14 });
     }
@@ -3715,6 +3857,9 @@ function finishBurst() {
   try { BURSTS[f.def.id].fn(f, foe); } finally { inBurst = false; hbSrc = null; }
   BGM.burstHit(f.def.el);
   g.shake = Math.max(g.shake, 10); g.flash = 0.3; g.punch = 1; g.focus = { x: f.x, y: f.y - 34 };
+  const bc = EL[f.def.el].color;   // the moment it goes off: a big flare with rays, a double ring and a large rune circle
+  rune(f, 2.2); flare(f.x, f.y - 40 * f.def.scale, 140, bc, { rays: 14, streak: true, life: 0.45 });
+  g.waves.push({ x: f.x, y: f.y - 40, r: 30, R: 300, life: 0.5, max: 0.5, color: bc }, { x: f.x, y: f.y - 40, r: 10, R: 190, life: 0.38, max: 0.38, color: '#ffffff' });
 }
 
 // A ground jump just after walking off an edge (COYOTE s) is still a ground jump. A player who lets go of the jump key within HOP_T of
@@ -4000,7 +4145,7 @@ function aiInput(f, foe, dt) {
           else if (d.id === 'neuvillette') ok = aligned && adx > 60 && adx < 380;
           else if (d.id === 'lyney') ok = adx < 110;
           else if (d.id === 'navia') ok = aligned && adx < 220;
-          else if (d.id === 'wriothesley') ok = adx < 160 && !f.buff;
+          else if (d.id === 'wriothesley') ok = aligned && adx < 230 && !f.buff;   // the dash reaches
           else if (d.id === 'clorinde') ok = f.buff && f.buff.gun ? aligned && adx > 80 && adx < 260 : adx < 420;
           else if (d.id === 'wanderer') ok = !f.buff && adx < 300;
           else if (d.id === 'nilou') ok = aligned && adx < 150;
@@ -4602,6 +4747,7 @@ function updateEffects(dt) {
   g.flash = Math.max(0, g.flash - dt); g.dark = Math.max(0, g.dark - dt);
   for (let i = g.rifts.length - 1; i >= 0; i--) { g.rifts[i].life -= dt; if (g.rifts[i].life <= 0) g.rifts.splice(i, 1); }
   for (let i = g.waves.length - 1; i >= 0; i--) { g.waves[i].life -= dt; if (g.waves[i].life <= 0) g.waves.splice(i, 1); }
+  for (const L of [g.flares, g.runes]) if (L) for (let i = L.length - 1; i >= 0; i--) { L[i].life -= dt; if (L[i].life <= 0) L.splice(i, 1); }
   if (g.marks) for (let i = g.marks.length - 1; i >= 0; i--) { g.marks[i].life -= dt; if (g.marks[i].life <= 0) g.marks.splice(i, 1); }
   if (g.roll) { g.roll *= Math.pow(0.02, dt); if (Math.abs(g.roll) < 0.0005) g.roll = 0; }
   if (g.combo) { g.combo.t -= dt; if (g.combo.t <= 0) g.combo = null; }
@@ -5297,7 +5443,10 @@ function loadArtHd(id) {
   if (ART_HD[id] !== undefined) return;
   ART_HD[id] = null;
   const im = new Image(); im.decoding = 'async';
-  im.onload = () => { const done = () => { ART_HD[id] = im; dropSideCache(id); }; if (im.decode) im.decode().then(done, done); else done(); };   // decoded off the main thread first
+  im.onload = () => {   // decoded off the main thread first (or after 1.5 s anyway, if a background page holds the decode back)
+    const done = () => { if (ART_HD[id] === im) return; ART_HD[id] = im; dropSideCache(id); };
+    if (im.decode) { im.decode().then(done, done); setTimeout(done, 1500); } else done();
+  };
   im.onerror = () => { ART_HD[id] = false; dropSideCache(id); };
   im.src = 'img/art/' + id + '.webp';
 }
@@ -5591,8 +5740,15 @@ function spriteSilhouette(id, col) {
 // Heights by body type (2026-10-24): every drawn set was first sized to Nilou's standing height (a medium woman), then scaled by its
 // Genshin body type: tall man x1.13, medium man x1.04, tall woman x1.07, medium woman x1, small child x0.84. Only the picture: the
 // fighters' hit areas (def.scale) are as they were. BODY_TYPE records it.
-const BODY_TYPE = {'diluc': 'TM', 'zhongli': 'TM', 'neuvillette': 'TM', 'wriothesley': 'TM', 'alhaitham': 'TM', 'tartaglia': 'TM', 'tartagliablades': 'TM', 'flins': 'TM', 'xiao': 'MM', 'cyno': 'MM', 'cynojackal': 'MM', 'kinich': 'MM', 'wanderer': 'MM', 'lyney': 'MM', 'tighnari': 'MM', 'albedo': 'MM', 'xingqiu': 'MM', 'kazuha': 'MM', 'venti': 'MM', 'durin': 'MM', 'yelan': 'TF', 'nefer': 'TF', 'arlecchino': 'TF', 'skirk': 'TF', 'mualani': 'TF', 'mavuika': 'TF', 'clorinde': 'TF', 'navia': 'TF', 'yae': 'TF', 'eula': 'TF', 'raiden': 'TF', 'citlali': 'MF', 'furina': 'MF', 'hutao': 'MF', 'ganyu': 'MF', 'keqing': 'MF', 'nilou': 'MF', 'mona': 'MF', 'columbina': 'MF', 'sandrone': 'MF', 'yoimiya': 'MF', 'ayaka': 'MF', 'qiqi': 'S', 'klee': 'S', 'nahida': 'S'};
+const BODY_TYPE = {'diluc': 'TM', 'zhongli': 'TM', 'neuvillette': 'TM', 'wriothesley': 'TM', 'alhaitham': 'TM', 'tartaglia': 'TM', 'tartagliablades': 'TM', 'flins': 'TM', 'xiao': 'MM', 'cyno': 'MM', 'cynojackal': 'MM', 'kinich': 'MM', 'wanderer': 'MM', 'lyney': 'MM', 'tighnari': 'MM', 'albedo': 'MM', 'xingqiu': 'MM', 'kazuha': 'MM', 'venti': 'MM', 'durin': 'MM', 'yelan': 'TF', 'nefer': 'TF', 'arlecchino': 'TF', 'skirk': 'TF', 'mualani': 'TF', 'mavuika': 'TF', 'clorinde': 'TF', 'navia': 'TF', 'yae': 'TF', 'eula': 'TF', 'raiden': 'TF', 'citlali': 'MF', 'furina': 'MF', 'hutao': 'MF', 'ganyu': 'MF', 'keqing': 'MF', 'nilou': 'MF', 'mona': 'MF', 'columbina': 'MF', 'sandrone': 'MF', 'yoimiya': 'MF', 'ayaka': 'MF', 'chiori': 'MF', 'ineffa': 'MF', 'dehya': 'TF', 'qiqi': 'S', 'klee': 'S', 'nahida': 'S', 'sigewinne': 'S', 'ayato': 'TM', 'varka': 'TM', 'shenhe': 'TF'};
 const SPRITE_ANIM = {
+  ineffa: { k: 0.40531, walk: 1.4, src: 'img/sprite/ineffa-anim.webp', f: { upper: [2, 2, 91, 249, 66.0, 249.0], burst: [95, 2, 106, 219, 62.0, 219.0], hang: [203, 2, 64, 208, 34.0, 208.0], idle1: [269, 2, 98, 201, 61.0, 201.0], idle2: [369, 2, 101, 201, 64.0, 201.0], blink: [472, 2, 102, 198, 62.0, 198.0], guard: [576, 2, 198, 163, 106.0, 163.0], atk2: [776, 2, 213, 163, 75.0, 163.0], atk3: [991, 2, 177, 163, 83.0, 163.0], fall: [1170, 2, 157, 156, 83.0, 156.0], jump: [1329, 2, 102, 155, 61.5, 155.0], windup: [1433, 2, 155, 152, 66.0, 152.0], skill: [0, 404, 341, 184, 152.0, 184.0], hurt: [1775, 2, 187, 150, 61.0, 150.0], atk1: [2, 253, 216, 148, 97.0, 148.0], run3: [220, 253, 181, 144, 110.0, 144.0], run1: [403, 253, 194, 142, 137.0, 142.0], run4: [599, 253, 158, 139, 104.5, 139.0], run2: [759, 253, 188, 134, 112.0, 134.0], heavy: [949, 253, 252, 129, 116.5, 129.0] } },   // the two-sheet set: wide walk, run, charged attack
+  dehya: { k: 0.35717, walk: 1.4, src: 'img/sprite/dehya-anim.webp', f: { upper: [2, 2, 113, 262, 72.0, 262.0], guard: [117, 2, 158, 227, 91.0, 227.0], blink: [277, 2, 128, 208, 86.0, 208.0], idle1: [407, 2, 129, 206, 97.0, 206.0], idle2: [538, 2, 130, 206, 87.5, 206.0], hang: [670, 2, 73, 204, 38.0, 204.0], windup: [745, 2, 159, 195, 84.0, 195.0], burst: [906, 2, 177, 177, 99.0, 177.0], fall: [1085, 2, 162, 169, 80.0, 169.0], atk2: [1249, 2, 231, 168, 87.0, 168.0], skill: [1482, 2, 162, 167, 113.0, 167.0], hurt: [1646, 2, 198, 163, 81.0, 163.0], atk1: [1846, 2, 196, 163, 89.0, 163.0], run3: [2, 266, 212, 161, 120.0, 161.0], jump: [216, 266, 107, 160, 75.0, 160.0], heavy: [325, 266, 260, 154, 120.0, 154.0], run1: [587, 266, 215, 151, 131.0, 151.0], run2: [804, 266, 213, 145, 123.5, 145.0], run4: [1019, 266, 157, 138, 94.0, 138.0], atk3: [1178, 266, 204, 136, 113.5, 136.0] } },   // the two-sheet set: wide walk, run, charged attack
+  chiori: { k: 0.36006, walk: 1.4, src: 'img/sprite/chiori-anim.webp', f: { upper: [2, 2, 115, 263, 71.0, 263.0], idle1: [119, 2, 106, 209, 73.0, 209.0], blink: [227, 2, 102, 209, 69.0, 209.0], idle2: [331, 2, 109, 208, 77.0, 208.0], guard: [442, 2, 162, 207, 91.0, 207.0], hang: [606, 2, 81, 199, 44.0, 199.0], windup: [689, 2, 175, 197, 108.0, 197.0], hurt: [866, 2, 179, 190, 61.0, 190.0], burst: [0, 439, 315, 166, 161.0, 166.0], jump: [1196, 2, 123, 176, 88.0, 176.0], atk1: [1321, 2, 205, 172, 104.0, 172.0], run2: [1528, 2, 160, 171, 137.0, 171.0], atk2: [1690, 2, 250, 169, 106.0, 169.0], fall: [2, 267, 172, 169, 99.0, 169.0], run3: [176, 267, 207, 161, 143.0, 161.0], run1: [385, 267, 158, 160, 133.0, 160.0], heavy: [545, 267, 257, 158, 103.0, 158.0], run4: [804, 267, 159, 145, 135.0, 145.0], atk3: [965, 267, 254, 142, 115.0, 142.0], skill: [1221, 267, 275, 131, 124.0, 131.0] } },   // the two-sheet set: wide walk, run, charged attack
+  shenhe: { k: 0.36691, walk: 1.4, src: 'img/sprite/shenhe-anim.webp', f: { upper: [2, 2, 105, 262, 57.0, 262.0], idle2: [109, 2, 138, 236, 72.5, 236.0], blink: [249, 2, 136, 236, 73.0, 236.0], idle1: [387, 2, 133, 234, 73.0, 234.0], hang: [522, 2, 91, 209, 50.0, 209.0], guard: [615, 2, 216, 199, 110.0, 199.0], burst: [833, 2, 150, 197, 88.0, 197.0], windup: [985, 2, 176, 189, 119.0, 189.0], jump: [1163, 2, 114, 187, 76.0, 187.0], hurt: [1279, 2, 192, 182, 64.0, 182.0], atk2: [1473, 2, 237, 180, 95.0, 180.0], atk1: [1712, 2, 256, 171, 80.0, 171.0], fall: [2, 266, 164, 171, 80.0, 171.0], run1: [168, 266, 167, 163, 134.0, 163.0], run3: [337, 266, 204, 154, 135.5, 154.0], atk3: [543, 266, 247, 154, 98.0, 154.0], run2: [792, 266, 166, 152, 131.0, 152.0], heavy: [960, 266, 277, 149, 104.0, 149.0], run4: [1239, 266, 159, 143, 122.0, 143.0], skill: [1400, 266, 287, 138, 134.0, 138.0] } },   // the two-sheet set: wide walk, run, charged attack
+  varka: { k: 0.37534, walk: 1.4, src: 'img/sprite/varka-anim.webp', f: { upper: [2, 2, 139, 272, 66.0, 272.0], hang: [143, 2, 107, 230, 52.0, 230.0], guard: [252, 2, 178, 215, 95.0, 215.0], idle1: [432, 2, 156, 209, 97.0, 209.0], idle2: [590, 2, 136, 209, 78.0, 209.0], burst: [728, 2, 190, 209, 96.0, 209.0], blink: [920, 2, 133, 208, 76.0, 208.0], windup: [1055, 2, 180, 198, 122.0, 198.0], atk1: [1237, 2, 202, 189, 111.0, 189.0], atk2: [1441, 2, 258, 187, 107.0, 187.0], hurt: [1701, 2, 183, 181, 44.0, 181.0], run2: [2, 276, 182, 174, 153.0, 174.0], jump: [186, 276, 137, 174, 75.0, 174.0], fall: [325, 276, 183, 174, 89.0, 174.0], run1: [510, 276, 184, 172, 153.0, 172.0], run3: [696, 276, 186, 170, 128.0, 170.0], run4: [884, 276, 166, 169, 139.0, 169.0], heavy: [1052, 276, 256, 166, 107.0, 166.0], atk3: [1310, 276, 196, 155, 130.0, 155.0], skill: [1508, 276, 234, 153, 145.0, 153.0] } },   // the two-sheet set: wide walk, run, charged attack
+  ayato: { k: 0.41292, walk: 1.4, src: 'img/sprite/ayato-anim.webp', f: { upper: [2, 2, 104, 252, 64.0, 252.0], guard: [108, 2, 162, 221, 90.0, 221.0], hang: [272, 2, 92, 206, 48.0, 206.0], idle1: [366, 2, 129, 201, 75.0, 201.0], idle2: [497, 2, 120, 200, 74.0, 200.0], blink: [619, 2, 129, 200, 74.0, 200.0], burst: [750, 2, 139, 193, 69.0, 193.0], windup: [891, 2, 162, 181, 96.0, 181.0], atk2: [1055, 2, 236, 175, 96.0, 175.0], atk1: [1293, 2, 199, 173, 104.0, 173.0], fall: [1494, 2, 169, 173, 80.0, 173.0], skill: [1665, 2, 200, 171, 108.0, 171.0], jump: [1867, 2, 134, 170, 90.0, 170.0], hurt: [2, 256, 150, 168, 43.0, 168.0], run1: [154, 256, 144, 163, 102.0, 163.0], run3: [300, 256, 179, 163, 130.0, 163.0], run2: [481, 256, 161, 155, 127.0, 155.0], run4: [644, 256, 145, 150, 114.0, 150.0], heavy: [791, 256, 248, 147, 114.0, 147.0], atk3: [1041, 256, 294, 143, 121.0, 143.0] } },   // the two-sheet set: wide walk, run, charged attack
+  sigewinne: { k: 0.3895, walk: 1.4, src: 'img/sprite/sigewinne-anim.webp', f: { upper: [2, 2, 122, 217, 78.5, 217.0], idle2: [126, 2, 113, 193, 66.0, 193.0], blink: [241, 2, 112, 188, 65.0, 188.0], idle1: [355, 2, 111, 186, 65.0, 186.0], hang: [468, 2, 89, 185, 43.0, 185.0], atk2: [559, 2, 150, 178, 72.0, 178.0], guard: [711, 2, 129, 174, 85.0, 174.0], atk3: [842, 2, 136, 171, 78.0, 171.0], burst: [980, 2, 183, 171, 78.0, 171.0], skill: [1165, 2, 189, 169, 97.0, 169.0], windup: [1356, 2, 162, 168, 76.0, 168.0], jump: [1520, 2, 119, 162, 72.0, 162.0], atk1: [1641, 2, 138, 161, 74.0, 161.0], hurt: [1781, 2, 190, 159, 67.0, 159.0], fall: [2, 221, 142, 159, 75.0, 159.0], run3: [146, 221, 168, 152, 135.0, 152.0], run1: [316, 221, 159, 151, 128.5, 151.0], run4: [477, 221, 143, 150, 105.0, 150.0], run2: [622, 221, 154, 145, 114.0, 145.0], heavy: [778, 221, 150, 144, 67.0, 144.0] } },   // the two-sheet set: wide walk, run, charged attack
   ayaka: { k: 0.39834, walk: 1.4, src: 'img/sprite/ayaka-anim.webp', f: { upper: [2, 2, 118, 243, 84.0, 243.0], idle2: [122, 2, 109, 203, 73.0, 203.0], hang: [233, 2, 84, 201, 43.0, 201.0], burst: [319, 2, 204, 198, 104.0, 198.0], blink: [525, 2, 111, 197, 79.0, 197.0], idle1: [638, 2, 112, 196, 75.0, 196.0], guard: [752, 2, 129, 195, 88.0, 195.0], windup: [883, 2, 145, 173, 55.0, 173.0], atk1: [1030, 2, 180, 166, 91.0, 166.0], fall: [1212, 2, 167, 166, 91.0, 166.0], run4: [1381, 2, 146, 164, 119.0, 164.0], atk2: [1529, 2, 224, 164, 92.0, 164.0], heavy: [1755, 2, 170, 164, 98.0, 164.0], skill: [2, 247, 205, 164, 152.0, 164.0], run1: [209, 247, 174, 163, 135.0, 163.0], jump: [385, 247, 122, 162, 91.0, 162.0], hurt: [509, 247, 193, 159, 74.0, 159.0], run3: [704, 247, 183, 159, 135.0, 159.0], run2: [889, 247, 161, 144, 122.0, 144.0], atk3: [1052, 247, 275, 142, 109.0, 142.0] } },   // the two-sheet set: wide walk, run, charged attack
   yoimiya: { k: 0.43375, walk: 1.4, src: 'img/sprite/yoimiya-anim.webp', f: { upper: [2, 2, 113, 231, 65.0, 231.0], hang: [117, 2, 90, 200, 46.0, 200.0], burst: [209, 2, 123, 200, 66.0, 200.0], atk1: [334, 2, 163, 187, 68.0, 187.0], atk2: [499, 2, 161, 186, 76.0, 186.0], atk3: [662, 2, 186, 186, 81.0, 186.0], guard: [850, 2, 137, 185, 87.0, 185.0], idle2: [989, 2, 115, 184, 62.0, 184.0], blink: [1106, 2, 114, 184, 61.0, 184.0], windup: [1222, 2, 164, 184, 64.0, 184.0], idle1: [1388, 2, 121, 183, 61.0, 183.0], fall: [1511, 2, 162, 167, 88.0, 167.0], heavy: [1675, 2, 161, 160, 65.0, 160.0], run1: [1838, 2, 180, 155, 131.0, 155.0], run4: [2, 235, 162, 155, 111.0, 155.0], run3: [166, 235, 180, 153, 128.0, 153.0], jump: [348, 235, 111, 153, 78.0, 153.0], hurt: [461, 235, 198, 151, 56.0, 151.0], skill: [661, 235, 179, 146, 137.0, 146.0], run2: [842, 235, 163, 144, 116.0, 144.0] } },   // the two-sheet set: wide walk, run, charged attack
   durin: { k: 0.45041, walk: 1.4, src: 'img/sprite/durin-anim.webp', f: { upper: [2, 2, 106, 245, 70.0, 245.0], hang: [110, 2, 119, 198, 61.0, 198.0], idle2: [231, 2, 110, 191, 78.0, 191.0], guard: [343, 2, 153, 191, 103.0, 191.0], idle1: [498, 2, 110, 188, 77.0, 188.0], blink: [610, 2, 111, 188, 78.0, 188.0], windup: [723, 2, 167, 186, 109.0, 186.0], fall: [892, 2, 158, 175, 84.0, 175.0], jump: [1052, 2, 129, 170, 95.0, 170.0], run4: [1183, 2, 162, 161, 131.5, 161.0], heavy: [1347, 2, 214, 156, 107.0, 156.0], hurt: [1563, 2, 217, 154, 68.0, 154.0], run1: [1782, 2, 177, 154, 146.0, 154.0], atk2: [2, 249, 223, 154, 97.0, 154.0], atk1: [227, 249, 164, 153, 89.0, 153.0], burst: [393, 249, 264, 153, 123.0, 153.0], atk3: [659, 249, 277, 151, 127.0, 151.0], run2: [938, 249, 173, 147, 144.0, 147.0], skill: [1113, 249, 227, 147, 116.0, 147.0], run3: [1342, 249, 173, 146, 143.5, 146.0] } },   // the two-sheet set: wide walk, run, charged attack
@@ -5648,8 +5804,8 @@ function loadAnim(id) {
     if (!SPRITE_ANIM[a] || SPRITE_ANIM_IMG[a] || ANIM_LOADING[a]) continue;
     const im = new Image(); ANIM_LOADING[a] = im;
     im.onload = () => {   // decoded off the main thread first, and its outline and hit-flash copies made while the browser is idle, so the first frames drawn don't stall
-      const done = () => { SPRITE_ANIM_IMG[a] = im; idle(() => { try { animSilhouette(a, '#0a0c1a'); animSilhouette(a, '#ffffff'); } catch (e) { /* drawn later instead */ } }); };
-      if (im.decode) im.decode().then(done, done); else done();
+      const done = () => { if (SPRITE_ANIM_IMG[a]) return; SPRITE_ANIM_IMG[a] = im; idle(() => { try { animSilhouette(a, '#0a0c1a'); animSilhouette(a, '#ffffff'); } catch (e) { /* drawn later instead */ } }); };
+      if (im.decode) { im.decode().then(done, done); setTimeout(done, 1500); } else done();   // (a page in the background may hold the decode back: then use it anyway)
     };
     im.src = SPRITE_ANIM[a].src;
   }
@@ -8184,8 +8340,10 @@ function drawParticles(glowOnly = false) {   // glowOnly: the bloom pass, withou
   }
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   ctx.lineCap = 'round';
+  let haloN = !glowOnly && !gfxHigh() ? 90 : 0;   // on 'mid' (no bloom) the bright bits get a small ready-made halo instead, up to 90 a frame
   for (const p of g.particles) {
     const q = clamp(p.life / p.max, 0, 1);
+    if (haloN > 0 && p.size >= 2 && !p.ln && p.k !== 'smoke' && p.k !== 'rock' && p.k !== 'leaf') { haloN--; glow(p.x, p.y, p.size * 3.4, p.color, q * 0.35); }
     ctx.globalAlpha = q;
     if (p.ln) { ctx.strokeStyle = p.color; ctx.lineWidth = p.size; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.04, p.y - p.vy * 0.04); ctx.stroke(); continue; }
     switch (p.k) {
@@ -9443,7 +9601,7 @@ function render(t) {
     ctx.translate(sh.x, sh.y); ctx.scale(z, z); ctx.translate(-sh.x, -sh.y);
   }
   if (gfxHigh()) drawStageLit(t); else drawStage(t);
-  if (g) drawMarks(t);
+  if (g) { drawMarks(t); drawRunes(); }
   if (g) {
     for (const f of g.fighters) {
       if (f.dead) continue;
@@ -9479,10 +9637,12 @@ function render(t) {
     drawHits(t, true);
     for (const f of g.fighters) if (!f.dead) { if (gfxHigh()) drawFighterLit(f, t); else drawFighter(f, t); }
     for (const f of g.fighters) if (!f.dead) { drawSpin(f, t, true); if (flinsFire(f)) blueBlaze(f, t, flinsFire(f), true); }
+    drawShotGlow();
     drawHits(t);
     for (const f of g.fighters) if (f.ks && !f.dead) drawKinich(f, t);
     for (const f of g.fighters) if (f.mir && f.mir.n && !f.dead) drawMirrors(f, t);
     drawParticles();
+    drawFlares();
     if (gfxHigh()) drawBloom(t);
     drawMapFx(t);
   }
@@ -9731,7 +9891,7 @@ const KIT = {
   neuvillette: { cd: 5.6, skill: '1초 동안 앞으로 긴 물줄기 광선을 쏴서 여러 번 맞힙니다. 쓰는 동안 움직일 수 없고, 맞으면 끊깁니다.', burst: '주변에 큰 물결을 일으키고, 적의 위치에 물기둥 두 개를 떨어뜨립니다.' },
   lyney: { cd: 3.9, skill: '주변에 불꽃을 터뜨리고 그 자리에 모자 폭탄을 남깁니다. 모자는 1.4초 뒤, 또는 상대가 밟는 즉시 폭발해 크게 날려 보냅니다.', burst: '잠시 무적이 되어 앞으로 길게 질주한 뒤 멈춘 곳에서 크게 폭발합니다. 땅 위를 달리다 끝에 닿으면 그 자리에서 멈춰 터집니다. 출발한 자리의 모자 폭탄도 따라 터집니다.' },
   navia: { cd: 3.1, skill: '수정 파편 세 발을 부채꼴로 쏘고, 3초 동안 평타에 바위 원소가 실립니다. 결정 반응으로 생긴 결정을 주우면 1개당 다음 스킬 피해가 20% 늘어납니다(최대 6개, 쓰면 소모).', burst: '적 주변에 포탄 여섯 발이 하늘에서 지면까지 차례로 떨어집니다. 떨어지는 포탄에 직접 맞거나 땅에서 터질 때 휘말리면 한 발당 10% 바위 원소 피해를 받습니다(유도 없음, 한 발에 두 번 맞지는 않음). 적에게 불·물·번개·얼음이 묻어 있으면 맞을 때마다 결정이 생깁니다.' },
-  wriothesley: { cd: 6.0, skill: '피해 4%를 내주고 4초 동안 주먹에 얼음이 실립니다. 피해 +30%, 밀쳐내는 힘이 커집니다.', burst: '앞으로 연속 주먹을 퍼붓고, 마지막에 거대한 얼음 주먹을 상대 쪽으로 날립니다. 주먹은 상대를 지나 멀리까지 날아가며 크게 날려 보냅니다.' },
+  wriothesley: { cd: 6.0, skill: '얼음 주먹을 앞세워 앞으로 돌진합니다(공중에서도 가능). 피해 2%를 내주고 5초 동안 주먹에 얼음이 실립니다. 피해 +35%, 밀쳐내는 힘이 커집니다.', burst: '앞으로 연속 주먹을 퍼붓고, 마지막에 거대한 얼음 주먹을 상대 쪽으로 날립니다. 주먹은 상대를 지나 멀리까지 날아가며 크게 날려 보냅니다.' },
   clorinde: { cd: 5.0, skill: '4초 동안 사냥 태세가 됩니다. 태세 중에는 평타가 상대 쪽으로 쏘는 번개 총알로 바뀝니다(유도 없음). 태세 중에 스킬을 다시 누르면 앞으로 찌르며 돌진합니다(재사용 1.2초). 태세가 끝나면 5초 뒤 다시 쓸 수 있습니다.', burst: '전장이 어두워지고 상대가 있던 자리에 별빛이 반짝입니다. 클로린드는 모습을 감추고(그동안 무적) 그 자리를 번개 빛줄기로 가른 뒤, 사방에서 다섯 번 빠르게 베고, 마지막에 빛의 고리를 터뜨려 날려 보냅니다. 끝나면 그 자리 옆에 다시 나타납니다. 자리를 따라가지 않습니다.' },
   wanderer: { cd: 6.0, skill: '스킬을 쓴 자리에서 정해진 높이만큼만 살짝 떠올라 3초 동안 그 높이에 머뭅니다. 점프해도 더 올라가지 않습니다. 떠 있는 동안에도 평타·강공격·필살기를 쓸 수 있고, 피해 +20%, 이동 속도가 60% 빨라집니다. 떠 있는 동안에는 공격하면서도 이동 속도가 그대로이고, 평타가 20% 빨라지며 강공격은 30% 짧게 눌러도 나갑니다.', burst: '상대가 있는 자리에 공 모양 바람 소용돌이를 만들어 1초 동안 가두고 여러 번 맞힌 뒤 터뜨립니다. 다 맞으면 22 정도 들어갑니다.' },
   nilou: { cd: 6.0, skill: '주위로 물을 한 바퀴 휘둘러 피해를 주고, 5초 동안 평타 전부에 물 원소가 실리며 피해가 15% 늘어납니다. 그동안 강공격(꾹)을 쓰면 바라보는 쪽으로 80도 부채꼴의 물결이 날아가며, 멀어질수록 넓게 퍼집니다.', burst: '자신을 중심으로 바닥에 원형 물결을 퍼뜨리고, 0.9초 뒤 한 번 더 크게 퍼뜨립니다. 좌우로 넓게 닿지만 높이 떠 있는 적은 맞지 않습니다.' },
@@ -9760,11 +9920,11 @@ const KIT = {
   yelan: { cd: 4.2, skill: '실을 끌며 앞으로 길게 달려 지나친 적에게 약한 피해를 주고, 멈춘 직후 실이 당겨지며 지나친 적 자리에서 한 번 더 터집니다. 공중에서도 쓸 수 있습니다.', burst: '주변에 물 폭발을 일으키고, 6초 동안 주사위가 곁에 떠서 0.9초마다 상대 쪽으로 물 화살 세 발을 쏩니다(유도 없음). 교체해도 주사위는 나와 있는 캐릭터를 따라다닙니다.' },
   ayaka: { cd: 3.5, skill: '발밑에 얼음꽃을 피워 가까운 적을 끌어당긴 뒤 위로 띄웁니다. 그 뒤 5초 동안 평타에 얼음이 실리고 피해가 12% 늘어납니다.', burst: '눈보라와 칼날이 휘몰아치는 구체를 앞으로 천천히 날립니다. 3초 동안 지나는 적을 끌어당기며 계속 베고, 끝나면 얼음꽃으로 터져 날려 보냅니다.' },
   ayato: { cd: 6.0, skill: '제자리에 물 분신을 남기고(잠시 뒤 터짐) 뒤로 물러나, 6초 동안 물의 검을 듭니다. 평타에 물이 실리고 사거리가 30%, 피해가 10% 늘어납니다. 태세 중 스킬을 다시 누르면 앞으로 세 번 빠르게 벱니다. 태세가 끝나면 6초 뒤 다시 쓸 수 있습니다.', burst: '주변에 물을 터뜨리고 5초 동안 넓은 물의 정원을 펼칩니다. 정원 안에는 물칼날이 비처럼 떨어지고, 상대가 정원 안에 있으면 그 주변에 떨어집니다.' },
-  yoimiya: { cd: 7.0, skill: '6초 동안 불꽃놀이 화살을 씁니다. 모든 화살에 불이 실리고 피해가 20% 늘어납니다.', burst: '상대에게 불꽃 로켓을 쏘아 터뜨리고, 6초 동안 불꽃 표식을 남깁니다. 표식이 있는 동안 아군의 공격이 맞으면 1.2초에 한 번 작은 불꽃이 터져 추가 피해를 줍니다.' },
+  yoimiya: { cd: 6.0, skill: '8초 동안 불꽃놀이 화살을 씁니다. 모든 화살에 불이 실리고 피해가 30% 늘어나며, 맞힐 때마다 작은 불꽃이 터져 추가 피해를 줍니다.', burst: '상대에게 불꽃 로켓을 쏘아 터뜨리고 6초 동안 불꽃 표식을 남기며 불꽃놀이 축제가 열립니다. 0.8초마다 상대 발밑에서 불꽃이 곧게 쏘아 올라 머리 위에서 알록달록 터지고(옆으로 비키면 피할 수 있고, 맞아도 움직임이 끊기지 않습니다), 아군의 공격이 맞으면 1.2초에 한 번 작은 불꽃이 더 터집니다. 표식이 끝나면 커다란 피날레 불꽃이 0.5초 동안 솟아올라 상대가 있던 자리에서 터집니다. 상대가 쓰러지거나 교체되면 축제는 끝납니다.' },
   kokomi: { cd: 9.0, skill: '조금 앞에 해파리를 6초 동안 띄웁니다. 해파리는 1.6초마다 주변에 물 피해를 주고, 나와 있는 아군의 피해를 2.5% 회복합니다.', burst: '주변에 물결을 일으키고 피해 5%를 회복합니다. 8초 동안 모든 평타에 물이 실리고 피해가 25% 늘어납니다. 해파리가 떠 있으면 시간이 다시 채워집니다.' },
   itto: { cd: 4.9, skill: '소 모양의 바위를 상대 쪽으로 포물선으로 던집니다. 맞으면 바위 피해를 주고, 떨어진 자리에서 작게 터집니다.', burst: '주변에 바위 충격을 일으키고 8초 동안 오니가 됩니다. 평타에 바위가 실리고 피해 +30%, 사거리와 밀쳐내는 힘이 커집니다.' },
   dehya: { cd: 7.0, skill: '주변을 한 번 태우고, 발밑에 불꽃 결계를 6초 동안 깝니다. 결계에 들어선 적은 1초마다 불 피해를 받습니다.', burst: '앞으로 불주먹을 연타한 뒤 강한 발차기로 날려 보냅니다.' },
-  chiori: { cd: 8.0, skill: '앞을 베고 자기 자리에 소매 인형을 5초 동안 세웁니다. 인형은 가까이 온 적을 1.1초마다 베어냅니다.', burst: '두 자루 칼로 앞을 X자로 크게 두 번 베어 날려 보냅니다.' },
+  chiori: { cd: 7.0, skill: '앞을 베고 자기 자리에 소매 인형을 6초 동안 세웁니다. 인형은 가까이 온 적을 0.9초마다 베어냅니다.', burst: '두 자루 칼로 앞을 X자로 크게 두 번 베어 날려 보냅니다.' },
   xilonen: { cd: 7.0, skill: '앞으로 미끄러지며 차고, 6초 동안 롤러스케이트를 탑니다. 이동이 50% 빨라지고 평타에 바위가 실리며 피해가 15% 늘어납니다.', burst: '박자에 맞춰 주변에 바위 음파를 세 번 터뜨리고, 피해 6%를 회복합니다.' },
   mizuki: { cd: 8.0, skill: '5초 동안 꿈결 상태가 됩니다. 주변에 바람 고리가 돌며 0.7초마다 바람 피해를 주고 살짝 끌어당기며, 이동이 20% 빨라집니다.', burst: '앞에 1.6초 동안 적을 끌어모으는 바람 소용돌이를 만들고 마지막에 터뜨립니다. 피해 8%를 회복합니다.' },
   varesa: { cd: 5.6, skill: '앞으로 높이 뛰어오르며 무릎으로 치고, 곧바로 아래로 내리꽂혀 착지한 자리에 번개 피해를 줍니다.', burst: '모습을 감췄다가(무적) 상대가 있던 자리에 하늘에서 번개 날아차기를 내리꽂고, 그 옆에 다시 나타납니다. 자리를 따라가지 않습니다.' },
