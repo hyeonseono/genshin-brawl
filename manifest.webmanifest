@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "원신 대난투",
+  "short_name": "원신 대난투",
+  "description": "일곱 원소가 반응하는 파티 난투 · 비공식 팬 게임",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#05070f",
+  "theme_color": "#090c1b",
+  "categories": ["games"],
+  "icons": [
+    { "src": "img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/app/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "img/app/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

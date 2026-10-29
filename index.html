@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>html,body{margin:0;padding:0}</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#090c1b">
+<link rel="icon" type="image/png" sizes="48x48" href="img/app/favicon-48.png">
+<link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="원신 대난투">
+<script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
 </head>
 <body>
 <title>원신 대난투</title>
@@ -579,6 +588,18 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
   .wide-note { display: block; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+.btn[hidden] { display: none; }
+/* Installed as an app (added to the home screen): the arena grows to fill the screen's height; the header shrinks to one thin row
+   (settings, graphics and sound stay), and the help stays below it. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  body { padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 16px max(10px, env(safe-area-inset-left)); }
+  .app { max-width: none; gap: 6px; }
+  .bar { align-items: center; gap: 8px; flex-wrap: nowrap; }
+  .bar h1 { font-size: 18px; white-space: nowrap; }
+  .bar .tag { visibility: hidden; }
+  .wide-note { display: none !important; }
+  .frame { width: min(100%, calc((100dvh - 58px) * 16 / 9)); margin-inline: auto; }
+}
 </style>
 
 <main class="app">
@@ -587,6 +608,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
     <p class="tag">일곱 원소가 반응하는 파티 난투 · 비공식 팬 게임</p>
     <button class="btn ghost small" id="btnSet" type="button">설정</button>
     <button class="btn ghost small" id="btnGfx" type="button" aria-pressed="true">그래픽 높음</button>
+    <button class="btn primary small" id="btnInstall" type="button" hidden>앱 설치</button>
     <label class="vol" for="volRange"><span class="vol-ico" aria-hidden="true"></span><span class="vol-lbl">소리</span>
       <input id="volRange" type="range" min="0" max="100" step="1" value="100" aria-label="소리 크기">
       <output id="volOut" for="volRange">100%</output></label>
@@ -11411,6 +11433,15 @@ $('diffSeg').addEventListener('click', e => {
   document.querySelectorAll('#diffSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 });
 $('btnGfx').addEventListener('click', () => setGfx(GFX_NEXT[gfx], true));
+// Installing as an app: where the browser offers it (the uploaded copy has an app manifest), this button asks for it
+let installEv = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEv = e; $('btnInstall').hidden = false; });
+addEventListener('appinstalled', () => { installEv = null; $('btnInstall').hidden = true; });
+$('btnInstall').addEventListener('click', async () => {
+  if (!installEv) return;
+  const ev = installEv; installEv = null; $('btnInstall').hidden = true;
+  ev.prompt(); try { await ev.userChoice; } catch (e) { /* closed */ }
+});
 // Settings dialog. Opening it during a match pauses it (not online, where the other side keeps playing).
 function renderKeys() {
   $('setKeys').innerHTML = KEY_ACTS.map(([a, n]) => '<button type="button" class="set-key' + (keyWait === a ? ' wait' : '') + '" data-act="' + a + '"><span>' + n + '</span><kbd>' + (keyWait === a ? '…' : keyName(KEYS[a][0])) + '</kbd></button>').join('');
