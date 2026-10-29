@@ -1,8 +1,9 @@
-// 원신 대난투: what the installed app keeps on the device.
-// The page itself comes from the network first, so every update arrives, with the saved copy as a fallback when offline.
-// Pictures and sounds come from the saved copy when there is one, otherwise from the network, and are saved as they are first used.
-// Other sites (the fonts, the online-play service) are left alone. VER changes with every upload, which clears the old copies.
-const VER = '20261028215256', CACHE = 'brawl-' + VER;
+// 원신 대난투: the installed app's helper. It keeps only the page itself and the app's icons on the device:
+// the page comes from the network first, so every update arrives, with the saved copy as a fallback when offline.
+// Pictures and sounds are NOT handled here: they go to the network and the browser's own cache, exactly as on the web site.
+// (Serving them from here broke the character frames in the iPhone app: they never arrived.)
+// VER changes with every upload; the new version clears the old saved copies, including pictures saved by the first version.
+const VER = '20261028222615', CACHE = 'brawl-' + VER;
 const SHELL = ['./', './manifest.webmanifest', './img/app/icon-192.png', './img/app/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,11 +16,10 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin || req.headers.has('range')) return;
-  const save = r => { if (r && r.status === 200) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } return r; };
-  if (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('.html')) {
-    e.respondWith(fetch(req).then(save).catch(() => caches.match(req).then(r => r || caches.match('./'))));
-    return;
-  }
-  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(save)));
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  if (req.mode !== 'navigate') return;   // only the page itself; everything else goes straight to the network
+  e.respondWith(fetch(req).then(r => {
+    if (r && r.status === 200) { const cp = r.clone(); caches.open(CACHE).then(c => c.put('./', cp)); }
+    return r;
+  }).catch(() => caches.match('./')));
 });

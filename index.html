@@ -1525,7 +1525,7 @@ function startMatch(mapId) {
     env: { grav: curMap.grav || 1, ice: !!curMap.ice, wind: 0, water: null },
     fighters: [teams[0][0], teams[1][0]],
     hits: [], particles: [], texts: [], bolts: [], sparks: [], blasts: [], rifts: [], waves: [], marks: [], pickups: [], flares: [], runes: [], clash: [], slines: [], punch: 0, focus: { x: W / 2, y: H / 2 },
-    hitstop: 0, shake: 0, flash: 0, dark: 0, bf: null, intro: 3.4, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
+    hitstop: 0, shake: 0, flash: 0, dark: 0, bf: null, intro: 3.4, loadWait: 8, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
   };
   if (mode === 'arcade' && ARC.boss) for (const b of game.teams[1]) {
     b.def = { ...b.def, name: '보스 · ' + b.def.name, scale: b.def.scale * 1.5, weight: b.def.weight * 2, atk: b.def.atk * 1.3, jump: b.def.jump * 0.9, speed: b.def.speed * 0.9 };
@@ -5430,6 +5430,10 @@ function step(dt) {
   }
   if (g.bf) { g.bf.t -= dt; if (g.bf.t <= 0) { if (g.bf.finale) g.slow = { scale: 0.4, real: 0, after: 0 }; g.bf = null; g.shake = 26; g.dark = 0.35; g.flash = 0.2; } }
   if (g.hitstop > 0) { g.hitstop -= dt; return; }
+  if (g.loadWait > 0 && g.intro > 0) {   // before the countdown: up to 8 s for the fighters' frames to arrive (not online, where both sides must keep step)
+    if (g.mode !== 'net' && framesMissing(g).length) { g.loadWait -= dt; return; }
+    g.loadWait = 0;
+  }
   g.time += dt;
   if (g.mode === 'train') trainTick(g);
   const sdt = g.over ? dt * 0.4 : dt;
@@ -6554,7 +6558,9 @@ const SPRITE_META = { keqing: [130, 201, 88.0, 201, 156, 66, 111] };   // only K
 const SPRITE_K = 0.38, SPRITE_IMG = {}, SPRITE_SIL = {};
 function loadSprite(id) {   // a still picture, fetched the first time its character is picked
   if (!SPRITE_META[id] || SPRITE_IMG[id] || loadSprite[id]) return;
-  const im = new Image(); loadSprite[id] = im; im.onload = () => { SPRITE_IMG[id] = im; }; im.src = 'img/sprite/' + id + '.webp';
+  const im = new Image(); loadSprite[id] = im; im.onload = () => { SPRITE_IMG[id] = im; };
+  im.onerror = () => { const n = (loadSprite['n' + id] || 0) + 1; loadSprite['n' + id] = n; if (n <= 4) setTimeout(() => { loadSprite[id] = null; loadSprite(id); }, 600 * n); };   // tried again on a patchy connection
+  im.src = 'img/sprite/' + id + '.webp';
 }
 // the sprite filled with one colour (hit flash, afterimages), made once per colour
 function spriteSilhouette(id, col) {
@@ -6637,18 +6643,34 @@ const SPRITE_ANIM = {
 // The drawn frames are fetched only for the characters that are picked (with the extra sets some of them use), not all at start-up.
 const SPRITE_ANIM_IMG = {}, ANIM_LOADING = {};
 const ANIM_EXTRA = { cyno: ['cynojackal'], tartaglia: ['tartagliablades'], sandrone: ['florinia'] };   // the jackal, the twin blades, her machine
+// A failed or stalled fetch (a slow or patchy connection, often on phones) is tried again, up to 4 times, so a fighter doesn't stay
+// the drawn stand-in for the whole match. The frames are asked for ahead of the many small pictures of the select screen.
+const ANIM_TRIES = {};
 function loadAnim(id) {
   for (const a of [id, ...(ANIM_EXTRA[id] || [])]) {
     if (!SPRITE_ANIM[a] || SPRITE_ANIM_IMG[a] || ANIM_LOADING[a]) continue;
     const im = new Image(); ANIM_LOADING[a] = im;
-    im.onload = () => {   // decoded off the main thread first, and its outline and hit-flash copies made while the browser is idle, so the first frames drawn don't stall
+    try { im.fetchPriority = 'high'; } catch (e) { /* older browsers */ }
+    let settled = false;
+    const retry = () => {
+      if (settled || SPRITE_ANIM_IMG[a]) return;
+      settled = true; ANIM_LOADING[a] = null; im.onload = im.onerror = null;
+      const n = ANIM_TRIES[a] = (ANIM_TRIES[a] || 0) + 1;
+      if (n <= 4) setTimeout(() => loadAnim(id), 600 * n);
+    };
+    im.onload = () => {   // decoded off the main thread first, so the first frames drawn don't stall
+      settled = true;
       const done = () => { if (SPRITE_ANIM_IMG[a]) return; SPRITE_ANIM_IMG[a] = im; };
       if (im.decode) { im.decode().then(done, done); setTimeout(done, 1500); } else done();   // (a page in the background may hold the decode back: then use it anyway)
     };
+    im.onerror = retry;
+    setTimeout(retry, 15000);   // still nothing after 15 s: ask again
     im.src = SPRITE_ANIM[a].src;
   }
   loadSprite(id); loadCine(id);
 }
+// the picked fighters whose frames are not in yet (the start of a match waits a little for them)
+const framesMissing = g => g.teams.flat().filter(m => SPRITE_ANIM[m.def.id] && !SPRITE_ANIM_IMG[m.def.id]);
 // which frame fits what the fighter is doing right now
 function animFrame(f, o, moving, air, ph, t, id = f.def.id) {   // id: the atlas in use (Cyno's jackal set while transformed)
   const A = SPRITE_ANIM[id], F = A.f;
@@ -10439,6 +10461,15 @@ function renderCine(t) {
 
 function drawOverlays(t) {
   const g = game;
+  if (g.loadWait > 0 && g.intro > 0 && g.mode !== 'net') {   // waiting for the frames: a quiet note instead of the countdown
+    const miss = framesMissing(g), all = g.teams.flat().filter(m => SPRITE_ANIM[m.def.id]).length;
+    if (miss.length) {
+      glowText('캐릭터 불러오는 중' + '.'.repeat(1 + (Math.floor(t * 3) % 3)), W / 2, 200, 30, '#ffffff');
+      glowText((all - miss.length) + ' / ' + all, W / 2, 238, 18, '#cdd5f7', '#05070f', BODY);
+      if (g.intro > 0.6 && !g.cut) glowText(g.map.name + ' · ' + g.map.sub, W / 2, 96, 26, '#ffffff');
+      return;
+    }
+  }
   if (g.intro > 0) {
     const n = g.intro > 2.6 ? '3' : g.intro > 1.8 ? '2' : g.intro > 1.0 ? '1' : g.intro > 0 ? 'FIGHT!' : '';
     const phase = g.intro > 1.0 ? (g.intro % 0.8) / 0.8 : g.intro / 1.0;
