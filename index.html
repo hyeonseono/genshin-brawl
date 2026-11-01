@@ -1140,6 +1140,22 @@ const CHARS = [
   { id: 'escoffier', name: '에스코피에', title: '미식의 지휘자', el: 'cryo', color: '#9fd8f0', body: '#f4f4f8', dark: '#2a2a3a', hair: '#f2c060', eye: '#5ab0d0', skin: '#fdeee8',
     speed: 315, jump: 755, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 1.0, reach: 1.3, aiRange: 76,
     skill: '저온 조리', burst: '칼질의 정점', desc: '장병기 지원형. 얼음으로 베며 요리 로봇을 세워 얼음 구슬을 쏘게 하고, 필살기로 길게 베며 회복합니다.' },
+  // added 2026-11-01 (drawn figures until motion sheets are made)
+  { id: 'jean', name: '진', title: '민들레 기사', el: 'anemo', color: '#62e6b4', body: '#2a3a6a', dark: '#1a2340', hair: '#f2c86a', eye: '#4a7ab0', skin: '#fdeee8',
+    speed: 340, jump: 780, weight: 1.0, atk: 1.0, jumps: 2, grav: 1, scale: 1.0, reach: 1.05, aiRange: 76,
+    skill: '풍압검', burst: '민들레 바람', desc: '한손검 근접형. 스킬을 누르고 있으면 회오리로 상대를 붙잡았다가 떼는 순간 멀리 날려 보내고, 필살기로 바람을 터뜨린 뒤 회복하는 민들레 들판을 남깁니다.' },
+  { id: 'odette', name: '오데트', title: '백조의 프리마', el: 'cryo', color: '#86c8ff', body: '#2a4aa8', dark: '#141a40', hair: '#cfe4ff', eye: '#9a8cff', skin: '#fdf2f0',
+    speed: 335, jump: 790, weight: 0.9, atk: 1.2, jumps: 2, grav: 1, scale: 1.0, reach: 1.0, aiRange: 76,
+    skill: '안단테: 새벽의 피날레', burst: '프레스토: 파랑새 피날레', desc: '한손검 근접형. 회전하며 얼음으로 베고 곁에서 함께 춤추는 분신을 불러내며, 필살기로 얼음 파랑새 떼를 날립니다.' },
+  { id: 'vodyanitsa', name: '보댜니차', title: '물의 노래', el: 'hydro', color: '#3fa9ff', body: '#1f3a5a', dark: '#0c1a2a', hair: '#1f6a6a', eye: '#9fd8f0', skin: '#fdeee8',
+    speed: 310, jump: 760, weight: 0.9, atk: 1.0, jumps: 2, grav: 1, scale: 1.0, reach: 1.0, aiRange: 190,
+    skill: '레치타티프: 울리는 새벽', burst: '코다: 너와 함께 가라앉으리', desc: '법구 지원형. 노래하는 물방울이 따라다니며 물 구슬을 쏘고 그때마다 회복하며, 필살기로 큰 물결을 일으킵니다(물방울이 있으면 더 강함).' },
+  { id: 'vesna', name: '베스나', title: '봄의 검', el: 'anemo', color: '#62e6b4', body: '#2a7a7a', dark: '#163a3a', hair: '#f2d27a', eye: '#4ab0c0', skin: '#fdeee8',
+    speed: 340, jump: 790, weight: 1.0, atk: 1.2, jumps: 2, grav: 1, scale: 1.0, reach: 1.05, aiRange: 76,
+    skill: '승리의 기술', burst: '차리차를 위하여!', desc: '한손검 근접형. 바람 검 상태가 되어 평타에 바람을 싣고, 스킬을 다시 누를 때마다 더 강한 바람 검기(최대 3단계)를 날리며, 필살기로 정령 검을 소환합니다.' },
+  { id: 'linnea', name: '린네아', title: '극지의 탐사원', el: 'geo', color: '#f5b83d', body: '#c0303a', dark: '#5a1a20', hair: '#f8b8b0', eye: '#e0406a', skin: '#fdeee8',
+    speed: 325, jump: 780, weight: 0.9, atk: 0.97, jumps: 2, grav: 1, scale: 0.97, reach: 1.0, aiRange: 200,
+    skill: '대응책: 루미의 함성!', burst: '메모: 극한 생존 가이드', desc: '활 지원형. 동료 루미를 불러 결정을 쏘게 하고, 스킬을 다시 누를 때마다 루미가 커지며 내려찍으며, 필살기로 루미의 일격과 함께 회복합니다.' },
 ];
 const CHAR = Object.fromEntries(CHARS.map(c => [c.id, c]));
 
@@ -1399,7 +1415,7 @@ const keysOf = f => (game && game.mode === '2p' ? KEYS_2P[f.idx] : KEYS);
 // key names shown in the skill window and on the title screen: [attack, skill, burst, guard, swap]
 const KEY_LABELS = { cpu: [['J', 'K', 'L', 'H', 'R']], '2p': [['F', 'G', 'H', 'Q', 'R'], ['K', 'L', ';', 'O', "'"]] };
 const held = new Set(), edges = new Set();
-const NEUTRAL = Object.freeze({ left: false, right: false, down: false, jump: false, atk: false, skill: false, burst: false, swap: false, guard: false, atkHold: false, heavy: false, upHold: false });
+const NEUTRAL = Object.freeze({ left: false, right: false, down: false, jump: false, atk: false, skill: false, burst: false, swap: false, guard: false, atkHold: false, heavy: false, upHold: false, skillHold: false });
 let keyWait = null;   // the action waiting for its new key in the settings
 const GAME_CODES = new Set(['KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyJ', 'KeyK', 'KeyL', 'KeyR', 'KeyH', 'Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Comma', 'Period', 'Slash',
   'KeyF', 'KeyG', 'KeyQ', 'KeyO', 'Semicolon', 'Quote', 'Numpad0', 'Numpad1', 'Numpad2', 'Numpad3', 'NumpadEnter']);
@@ -1408,7 +1424,7 @@ function humanInput(f) {
   const any = (arr, set) => arr.some(c => set.has(c)), KEYS = f ? keysOf(f) : KEYS_ALL;   // this player's keys
   return {
     left: any(KEYS.left, held), right: any(KEYS.right, held), down: any(KEYS.down, held), guard: any(KEYS.guard, held), atkHold: any(KEYS.atk, held), heavy: false,
-    upHold: any(KEYS.up, held),
+    upHold: any(KEYS.up, held), skillHold: any(KEYS.skill, held),
     jump: any(KEYS.up, edges), atk: any(KEYS.atk, edges), skill: any(KEYS.skill, edges), burst: any(KEYS.burst, edges), swap: any(KEYS.swap, edges),
   };
 }
@@ -2663,6 +2679,7 @@ const WEAPON = {
   yoimiya: { cls: 'bow', len: 22 }, kokomi: { cls: 'catalyst', len: 14 }, itto: { cls: 'sword', len: 58, heavy: true }, dehya: { cls: 'sword', len: 56, heavy: true },
   chiori: { cls: 'sword', len: 44 }, xilonen: { cls: 'sword', len: 44 }, mizuki: { cls: 'catalyst', len: 14 }, varesa: { cls: 'catalyst', len: 14 },
   ineffa: { cls: 'polearm', len: 76 }, lauma: { cls: 'catalyst', len: 14 }, escoffier: { cls: 'polearm', len: 76 },
+  jean: { cls: 'sword', len: 44 }, odette: { cls: 'sword', len: 44 }, vodyanitsa: { cls: 'catalyst', len: 14 }, vesna: { cls: 'sword', len: 46 }, linnea: { cls: 'bow', len: 22 },
 };
 // Bows and catalysts attack from range. Two catalyst users stay melee: Wriothesley boxes with his gauntlets and Nefer kicks.
 // which set of hit sounds an attacker's basic attacks use
@@ -2756,6 +2773,11 @@ const SKILL_SWING = {
   ineffa: { w: [-1.6, -2, -0.15, -2], s: [-0.4, 10, 0.2, 10] },
   lauma: { w: [-0.6, -6, -0.1, -2], s: [0.0, 14, 0.15, 6] },
   escoffier: { w: [-1.6, -2, -0.15, -2], s: [-0.4, 10, 0.2, 10] },
+  jean: { w: [-1.0, -2, -0.2, -3], s: [-2.2, 8, -0.1, 0] },
+  odette: { w: [-1.0, -2, -0.2, -3], s: [-2.2, 8, -0.1, 0] },
+  vodyanitsa: { w: [-0.6, -6, -0.1, -2], s: [0.0, 14, 0.15, 6] },
+  vesna: { w: [-1.0, -2, -0.2, -3], s: [-2.2, 8, -0.1, 0] },
+  linnea: { w: [0.0, 0, -0.05, -2], s: [0.0, 8, 0.1, 4] },
 };
 const BURST_SWING = { w: [-1.8, -4, -0.2, -4], s: [1.3, 12, 0.4, 14] };
 
@@ -2842,6 +2864,11 @@ const FINISH_FX = {
   ineffa(f, x, y) { bolt(x - 34, y - 26, x + 34, y + 18, '#9a8cff'); puff(x, y, '#cfd6ff', 10, 220, 0.4, 3); spark(x, y, '#9a8cff', 60); },
   lauma(f, x, y) { puff(x, y, '#c8ffe0', 16, 220, 0.8, 4, -60); puff(x, y, '#dff6ff', 6, 160, 0.6, 3); spark(x, y, '#7ed9a0', 55); },
   escoffier(f, x, y) { puff(x, y, '#e8f6ff', 18, 260, 0.5, 4); spark(x, y, '#9fd8f0', 60); },
+  jean(f, x, y) { puff(x, y, '#e8fff4', 14, 260, 0.5, 3); puff(x, y, '#ffffff', 6, 140, 0.8, 2.5, -80); spark(x, y, '#62e6b4', 58); },
+  odette(f, x, y) { puff(x, y, '#e8f4ff', 16, 240, 0.5, 4); spark(x, y, '#86c8ff', 60); },
+  vodyanitsa(f, x, y) { puff(x, y, '#bfeaff', 18, 260, 0.6, 4); spark(x, y, '#3fa9ff', 55); },
+  vesna(f, x, y) { puff(x, y, '#e8fff4', 14, 280, 0.5, 3); spark(x, y, '#62e6b4', 62); },
+  linnea(f, x, y) { puff(x, y, '#ffe9a8', 14, 240, 0.5, 4); spark(x, y, '#f5b83d', 56); },
   ayato(f, x, y) { puff(x, y, '#9fd4ff', 18, 260, 0.5, 4, 300); spark(x, y, '#4a8fe0', 60); },
   xiao(f, x, y) { puff(x, y, '#b6fff0', 20, 280, 0.5, 3, -80); puff(x, y, '#1f6a5a', 8, 180, 0.5, 4); spark(x, y, '#5fd6c0', 60); },
 };
@@ -3804,7 +3831,103 @@ const SKILLS = {
         hb({ owner: o, proj: true, shape: 'circle', r: 12, x: h.x, y: h.y, vx: Math.cos(a) * 700, vy: Math.sin(a) * 700, life: 0.8, dmg: 2.2, kb: 0.3, ang: 30, el: 'cryo', persist: true, vis: 'bead', color: EL.cryo.color });
       } });
   },
+  jean(f) {   // Gale Blade. A tap: a gust off the sword that throws the opponent far away. Held (up to 2.5 s): she gathers a whirlwind in front
+              // of her that draws the opponent in and holds them there; letting go flings them far away, further the longer she held.
+    startAct(f, 'skill', JEAN_HOLD + 0.2, { slow: 0 }); f.cd = 3.5; f.vx *= 0.3;
+    hb({ owner: f, follow: true, ox: 96, oy: 44, w: 0, h: 0, life: JEAN_HOLD + 0.3, harmless: true, persist: true, vis: 'galewind',
+         onTick: (h, dt) => {
+           const o = h.owner, t = game.fighters[1 - o.idx];
+           if (game.fighters[o.idx] !== o || o.dead || !o.act || o.act.kind !== 'skill') { h.life = 0; return; }
+           h.hold = (h.hold || 0) + dt;
+           if (o.skillHeld && h.hold < JEAN_HOLD) {   // gathering: she stands her ground and the whirlwind pulls the opponent into its eye
+             o.vx = 0; if (o.onGround) o.vy = Math.min(o.vy, 0);
+             const eye = hbCenter(h), ex = eye.x, ey = eye.y + 34;   // where their feet are held (the eye is at chest height)
+             if (!t.dead && !t.guarding && !(t.inv > 0) && (h.grip || 0) < JEAN_GRIP && Math.hypot(t.x - ex, t.y - ey) < JEAN_REACH) {
+               h.grip = (h.grip || 0) + dt;   // the whirlwind holds them for JEAN_GRIP at most, then lets them slip
+               const k = Math.min(1, dt * 7);
+               t.x += (ex - t.x) * k; t.y += (ey - t.y) * k; t.vx = t.vy = 0; t.onGround = false;
+               t.hitstun = Math.max(t.hitstun, 0.2); t.act = null;
+               h.caught = true;
+             }
+             h.tick = (h.tick ?? 0.3) - dt;
+             if (h.tick <= 0 && h.caught) { h.tick = 0.35; hb({ owner: o, shape: 'circle', x: ex, y: ey - 34, r: 60, life: 0.06, dmg: 0.6, kb: 0, noKb: true, noLaunch: true, ang: 60, el: 'anemo', persist: true, vis: 'none' }); }
+             return;
+           }
+           // let go (or held to the end): the gust
+           h.life = 0;
+           const k = Math.min(1, h.hold / JEAN_HOLD);
+           startAct(o, 'skill', 0.32, { slow: 0.2 });
+           o.cd = Math.max(o.cd, 6 + 2 * k);   // the longer the hold, the longer it rests
+           hb({ owner: o, follow: true, ox: 90, oy: 40, w: 180, h: 120, life: 0.14, dmg: 6 + 3 * k, kb: 1.6 + 0.25 * k, ang: 25, el: 'anemo', persist: true, vis: 'slashbig', color: '#62e6b4',
+                onStart: g2 => { streaks(o.x + o.dir * 70, o.y - 40, '#e8fff4', 12 + Math.round(8 * k), o.dir > 0 ? 0 : Math.PI, 1000); game.shake = Math.max(game.shake, 4 + 6 * k); SFX.play(k > 0.3 ? 'heavy' : 'swing'); } });
+           if (k > 0.3) hb({ owner: o, shape: 'circle', follow: true, ox: 96, oy: 44, r: 110, life: 0.45, harmless: true, persist: true, vis: 'windburst' });
+         } });
+  },
+  odette(f) {   // Andante: she turns three times in place, cutting all round, and calls up her Solo Reflection to dance beside her for 6 s
+    startAct(f, 'skill', 0.45, { slow: 0.2 }); f.cd = 8;
+    for (let i = 0; i < 3; i++)
+      hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 38, r: 96, delay: 0.05 + i * 0.12, life: 0.08, dmg: i === 2 ? 3.5 : 1.8, kb: i === 2 ? 0.9 : 0.15, ang: 60, el: 'cryo',
+           persist: true, vis: i === 2 ? 'boom' : 'none', color: '#86c8ff' });
+    summon(f, { vis: 'reflection', ride: true, dx: -30, dy: 0, life: 6, every: 0.8, first: 0.5, range: 150,
+      shot: (h, o) => { hb({ owner: o, shape: 'circle', x: h.x, y: h.y + 40, r: 96, life: 0.08, dmg: 3, kb: 0.4, ang: 60, el: 'cryo', radial: true, persist: true, vis: 'boom', color: '#86c8ff' }); } });
+  },
+  vodyanitsa(f) {   // Recitative: a singing water bubble follows her for 8 s, throwing water at the opponent every second and healing her a little each time
+    startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 9;
+    summon(f, { vis: 'waterorb', ride: true, dx: -30, dy: 78, life: 8, every: 1.0, first: 0.4, range: 420,
+      shot: (h, o, t) => {
+        const a = Math.atan2(t.y - 34 - h.y, t.x - h.x);
+        hb({ owner: o, proj: true, shape: 'circle', r: 12, x: h.x, y: h.y, vx: Math.cos(a) * 760, vy: Math.sin(a) * 760, life: 0.8, dmg: 2.2, kb: 0.3, ang: 30, el: 'hydro', persist: true, vis: 'bead', color: EL.hydro.color });
+        healSide(o, 0.8, '#9fd8f0');
+      } });
+  },
+  vesna(f) {   // The Art of Victory: 8 s with a blade of wind (her basic attacks carry anemo). Pressed again in it: the Windborne Sword,
+               // stronger each time (1, 2, 3); the third, a great cut, ends the state
+    if (f.buff && f.buff.vesna) {
+      const lv = f.buff.lv = (f.buff.lv || 0) + 1;
+      startAct(f, 'skill', 0.34, { slow: 0.2 }); f.cd = lv < 3 ? 0.9 : 7;
+      ftext(f.x, f.y - 100, '바람 검기 ' + lv + '단계', '#e8fff4', 16, 0.8);
+      if (lv < 3) {
+        for (let i = 0; i < lv; i++)
+          hb({ owner: f, proj: true, anchor: true, shape: 'circle', r: 18 + lv * 4, ox: 40, oy: 40 + (i - (lv - 1) / 2) * 26, vx: f.dir * 980, vy: 0, delay: 0.08 + i * 0.06, life: 0.55,
+               dmg: lv === 1 ? 6 : 5, kb: 0.85, ang: 30, el: 'anemo', vis: 'crescent', color: '#62e6b4', trail: true });
+      } else {
+        hb({ owner: f, follow: true, ox: 110, oy: 40, w: 240, h: 140, delay: 0.1, life: 0.14, dmg: 10, kb: 1.5, ang: 32, el: 'anemo', persist: true, vis: 'slashbig', color: '#62e6b4',
+             onStart: h => { game.shake = Math.max(game.shake, 8); SFX.play('heavy'); } });
+        hb({ owner: f, shape: 'circle', follow: true, ox: 110, oy: 40, r: 150, delay: 0.1, life: 0.5, harmless: true, persist: true, vis: 'windburst' });
+        f.buff.t = Math.min(f.buff.t, 0.3);
+      }
+      return;
+    }
+    startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 0.9;
+    f.buff = { t: 8, mul: 1.18, el: 'anemo', vesna: true, lv: 0 };
+    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 38, r: 90, life: 0.12, dmg: 3, kb: 0.7, ang: 70, el: 'anemo', persist: true, vis: 'updraft' });
+    ftext(f.x, f.y - 100, '바람 검', '#e8fff4', 18, 0.9);
+  },
+  linnea(f) {   // Lumi's Battle Cry: Lumi comes out (6 s) and throws crystals at the opponent. Pressed again while Lumi is out: Lumi grows and
+                // pounces on them; the third pounce is the biggest and sends Lumi back
+    const lumi = game.hits.find(h => h.owner === f && h.vis === 'lumi' && !h.dead);
+    if (lumi && (lumi.grow || 0) < 3) {
+      const g2 = lumi.grow = (lumi.grow || 0) + 1, foe = game.fighters[1 - f.idx];
+      startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = g2 < 3 ? 1.5 : 10;
+      const tx = foe.dead ? f.x + f.dir * 160 : foe.x, gp = groundBelow({ x: tx, y: (foe.dead ? f.y : foe.y) - 10 }), gy = gp ? gp.y : f.y;
+      hb({ owner: f, shape: 'circle', x: tx, y: gy - 40, r: 70 + g2 * 20, delay: 0.3, life: 0.12, dmg: [0, 2, 3, 5][g2], kb: [0, 0.45, 0.7, 1.15][g2], ang: 70, el: 'geo', radial: true, persist: true,
+           vis: 'boom', color: '#f5b83d', onStart: h => { game.shake = Math.max(game.shake, 4 + g2 * 3); SFX.play('heavy'); puff(h.x, gy, '#ffe9a8', 10 + g2 * 4, 260, 0.5, 4); } });
+      ftext(f.x, f.y - 100, g2 < 3 ? '루미, 더 크게!' : '루미, 지금이야!', '#ffe08a', 16, 0.8);
+      if (g2 >= 3) lumi.life = Math.min(lumi.life, lumi.age + 0.6);
+      return;
+    }
+    startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 1.5;
+    const h = summon(f, { vis: 'lumi', ride: true, dx: -30, dy: 70, life: 6, every: 1.4, first: 0.6, range: 420,
+      shot: (h, o, t) => {
+        const a = Math.atan2(t.y - 34 - h.y, t.x - h.x);
+        hb({ owner: o, proj: true, shape: 'circle', r: 12, x: h.x, y: h.y, vx: Math.cos(a) * 760, vy: Math.sin(a) * 760, life: 0.8, dmg: 1.5, kb: 0, noKb: true, noLaunch: true, chip: true, ang: 30, el: 'geo', persist: true, vis: 'bead', color: EL.geo.color });   // damage only: it never stops what they are doing
+      } });
+    h.grow = 0;
+    h.onEnd = () => { f.cd = Math.max(f.cd, 8); };   // Lumi left (or was sent back): the skill rests a while
+    ftext(f.x, f.y - 100, '루미!', '#ffe08a', 18, 0.8);
+  },
 };
+const JEAN_HOLD = 2.5, JEAN_REACH = 160, JEAN_GRIP = 1.5;   // Jean's held Gale Blade: the longest hold, and how far the whirlwind reaches
 function spawnDrone(f, life) {   // Ineffa's drone (her skill and her burst both send it out)
   summon(f, { vis: 'drone', ride: true, dx: -30, dy: 78, life, every: 1.0, first: 0.4, range: 320,
     shot: (h, o, t) => { bolt(h.x, h.y, t.x, t.y - 34, '#9a8cff'); hb({ owner: o, shape: 'circle', x: t.x, y: t.y - 34, r: 46, life: 0.06, dmg: 2.2, kb: 0, noKb: true, noLaunch: true, ang: 60, el: 'electro', persist: true, vis: 'none' }); } });   // damage only: it never stops what they are doing
@@ -4467,6 +4590,52 @@ const BURSTS = {
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 200, life: 0.14, dmg: 9, kb: 1.4, ang: 55, el: 'dendro', radial: true, persist: true, vis: 'boom', color: '#c8ffe0' });
     hb({ owner: f, shape: 'circle', x: f.x, y: f.y - 60, r: 200, delay: 0.2, life: 6, rehit: 0.8, dmg: 1.5, kb: 0.1, ang: 70, el: 'dendro', radial: true, persist: true, vis: 'dome' });
   } },
+  jean: { name: '민들레 바람', fn(f) {   // a blast of wind round her, then for 5 s a field of dandelions that heals whoever of hers stands in it
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 175, life: 0.14, dmg: 12, kb: 1.45, ang: 55, el: 'anemo', radial: true, persist: true, vis: 'none' });
+    healSide(f, 8, '#bfffe9');   // a big heal the moment it goes off
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 175, life: 0.55, harmless: true, persist: true, vis: 'windburst' });
+    const gp = groundBelow(f), gy = gp && gp.y - f.y < 120 ? gp.y : f.y;
+    hb({ owner: f, shape: 'circle', x: f.x, y: gy - 60, r: 150, delay: 0.2, life: 5, harmless: true, persist: true, vis: 'jeanfield',
+         onTick: (h, dt) => {
+           const on = game.fighters[h.owner.idx];
+           h.heal = (h.heal ?? 0.5) - dt; if (h.heal > 0) return; h.heal = 0.5;
+           if (!on.dead && Math.abs(on.x - h.x) < h.r && Math.abs(on.y - 40 - h.y) < h.r) healSide(h.owner, 2.5, '#bfffe9');
+         } });
+  } },
+  odette: { name: '프레스토: 파랑새 피날레', fn(f, foe) {   // five frost bluebirds fly at the opponent one after another, then a last cut in front of her
+    for (let i = 0; i < 5; i++) {
+      const a0 = (foe && !foe.dead) ? Math.atan2(foe.y - 40 - (f.y - 60), foe.x - f.x) : (f.dir > 0 ? 0 : Math.PI), a = a0 + (i - 2) * 0.16;
+      hb({ owner: f, proj: true, shape: 'circle', r: 16, x: f.x, y: f.y - 60, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, delay: 0.08 + i * 0.1, life: 0.7, dmg: 2.4, kb: 0.4, ang: 40,
+           el: 'cryo', persist: true, vis: 'arrow', color: '#bfe4ff', trail: true });
+    }
+    hb({ owner: f, follow: true, ox: 100, oy: 40, w: 220, h: 130, delay: 0.7, life: 0.14, dmg: 8, kb: 1.4, ang: 38, el: 'cryo', persist: true, vis: 'slashbig', color: '#86c8ff',
+         onStart: () => { game.shake = Math.max(game.shake, 9); SFX.play('heavy'); } });
+  } },
+  vodyanitsa: { name: '코다: 너와 함께 가라앉으리', fn(f) {   // a great swell of water round her, stronger while her singing bubble is out
+    const orb = game.hits.some(h => h.owner === f && h.vis === 'waterorb' && !h.dead);
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 190, life: 0.14, dmg: orb ? 13 : 10, kb: orb ? 1.6 : 1.35, ang: 55, el: 'hydro', radial: true, persist: true, vis: 'boom', color: '#3fa9ff',
+         onStart: () => { game.shake = Math.max(game.shake, 11); SFX.play('heavy'); } });
+    game.waves.push({ x: f.x, y: f.y - 40, r: 30, R: 260, life: 0.5, max: 0.5, color: '#3fa9ff' });
+    if (orb) ftext(f.x, f.y - 120, '노래가 물결을 키웁니다', '#bfeaff', 14, 0.9);
+  } },
+  vesna: { name: '차리차를 위하여!', fn(f, foe) {   // eight spirit blades rise behind her and fall on the opponent one by one
+    hb({ owner: f, follow: true, ox: 0, oy: 40, w: 0, h: 0, life: 1.2, harmless: true, persist: true, vis: 'none',
+         onTick: (h, dt) => {
+           h.fire = (h.fire ?? 0.1) - dt; if (h.fire > 0) return; h.fire = 0.12;
+           h.n = (h.n || 0) + 1; if (h.n > 8) { h.life = 0; return; }
+           const o = h.owner, t = game.fighters[1 - o.idx], sx = o.x - o.dir * 30 + (h.n % 2 ? -40 : 40), sy = o.y - 150;
+           const tx = t.dead ? o.x + o.dir * 200 : t.x, ty = t.dead ? o.y - 40 : t.y - 40, a = Math.atan2(ty - sy, tx - sx), big = h.n >= 7;
+           hb({ owner: o, proj: true, shape: 'circle', r: big ? 22 : 16, x: sx, y: sy, vx: Math.cos(a) * 1100, vy: Math.sin(a) * 1100, life: 0.6, dmg: big ? 3 : 1.8, kb: big ? 0.9 : 0.2, ang: 55,
+                el: 'anemo', persist: true, vis: 'spiritblade', color: '#62e6b4' });
+         } });
+  } },
+  linnea: { name: '메모: 극한 생존 가이드', fn(f) {   // Lumi strikes in front of her, everyone of hers is healed, and she keeps healing for 6 s
+    hb({ owner: f, shape: 'circle', follow: true, ox: 110, oy: 40, r: 160, delay: 0.15, life: 0.14, dmg: 9, kb: 1.35, ang: 55, el: 'geo', radial: true, persist: true, vis: 'boom', color: '#f5b83d',
+         onStart: () => { game.shake = Math.max(game.shake, 10); SFX.play('heavy'); } });
+    healSide(f, 3, '#ffe9a8');
+    hb({ owner: f, follow: true, ox: 0, oy: 40, w: 0, h: 0, life: 6, harmless: true, persist: true, vis: 'none',
+         onTick: (h, dt) => { h.heal = (h.heal ?? 1) - dt; if (h.heal > 0) return; h.heal = 1; healSide(h.owner, 0.6, '#ffe9a8'); } });
+  } },
   escoffier: { name: '칼질의 정점', fn(f) {   // one long, wide cut of ice in front of her, and a heal
     hb({ owner: f, follow: true, ox: 120, oy: 40, w: 300, h: 130, delay: 0.1, life: 0.14, dmg: 13, kb: 1.6, ang: 38, el: 'cryo', persist: true, vis: 'slashbig', color: EL.cryo.color,
          onStart: () => { game.shake = Math.max(game.shake, 10); SFX.play('heavy'); } });
@@ -4829,6 +4998,11 @@ function aiInput(f, foe, dt) {
           else if (d.id === 'ineffa') ok = adx < 220;
           else if (d.id === 'lauma') ok = aligned && adx < 260;
           else if (d.id === 'escoffier') ok = adx < 200;
+          else if (d.id === 'jean') { ok = adx < 210 && Math.abs(dy) < 120; if (ok) a.skillHoldT = 0.3 + Math.random() * 1.2; }
+          else if (d.id === 'odette') ok = adx < 170;
+          else if (d.id === 'vodyanitsa') ok = adx < 450 && !game.hits.some(h => h.owner === f && h.vis === 'waterorb' && !h.dead);
+          else if (d.id === 'vesna') ok = f.buff && f.buff.vesna ? aligned && adx < 420 : adx < 260;
+          else if (d.id === 'linnea') ok = adx < 420;
           if (ok && room < ({ diluc: 190, clorinde: f.buff && f.buff.gun ? 240 : 0, mavuika: 400, kinich: 260, skirk: 250, cyno: 240, shenhe: 240, durin: 320, varka: 310, yelan: 290, xiao: 220, varesa: 300, xilonen: 230, tartaglia: f.buff && f.buff.blades ? 210 : 0 }[d.id] || 0)) ok = false;   // would carry it off the ledge
           if (ok) { a.pSkill = true; if (!f.act) f.dir = sgn(dx); }
         }
@@ -4841,7 +5015,7 @@ function aiInput(f, foe, dt) {
   }
   const rolling = a.rollT > 0, rollGo = rolling && a.rollT < 0.05;   // a roll: guard held, then the direction pressed
   const inp = { left: rolling ? rollGo && a.rollDir < 0 : a.mx < 0, right: rolling ? rollGo && a.rollDir > 0 : a.mx > 0, down: a.downT > 0 || a.pDown, jump: a.pJump, atk: a.pAtk, skill: a.pSkill, burst: a.pBurst, swap: a.pSwap,
-                guard: a.guardT > 0 || rolling, atkHold: false, heavy: a.pHeavy, upHold: a.pUp };
+                guard: a.guardT > 0 || rolling, atkHold: false, heavy: a.pHeavy, upHold: a.pUp, skillHold: (a.skillHoldT = Math.max(0, (a.skillHoldT || 0) - dt)) > 0 };
   a.pJump = a.pAtk = a.pSkill = a.pBurst = a.pSwap = a.pHeavy = a.pUp = a.pDown = false;
   return inp;
 }
@@ -4870,6 +5044,7 @@ function stepFighter(f, foe, dt) {
   const inp = live ? (f.ctrl === 'cpu' ? (game.mode === 'train' && TRAIN.act !== 'cpu' ? dummyInput(f, dt) : aiInput(f, foe, dt)) : f.ctrl === 'net' ? netInput(f.idx) : humanInput(f)) : NEUTRAL;
   if (inp.atk) f.buf.atk = 0.24;   // pressed a little early, a press still counts once the move in hand ends
   if (inp.skill) f.buf.skill = 0.24;
+  f.skillHeld = !!inp.skillHold;   // (Jean's held Gale Blade)
   if (inp.burst) f.buf.burst = 0.24;
   if (inp.jump) f.buf.jump = 0.15;
   // Charged attack: keep the attack key down for HOLD_T. One per press.
@@ -6581,8 +6756,10 @@ function spriteSilhouette(id, col) {
 // Heights by body type (2026-10-24): every drawn set was first sized to Nilou's standing height (a medium woman), then scaled by its
 // Genshin body type: tall man x1.13, medium man x1.04, tall woman x1.07, medium woman x1, small child x0.84. Only the picture: the
 // fighters' hit areas (def.scale) are as they were. BODY_TYPE records it.
-const BODY_TYPE = {'diluc': 'TM', 'zhongli': 'TM', 'neuvillette': 'TM', 'wriothesley': 'TM', 'alhaitham': 'TM', 'tartaglia': 'TM', 'tartagliablades': 'TM', 'flins': 'TM', 'xiao': 'MM', 'cyno': 'MM', 'cynojackal': 'MM', 'kinich': 'MM', 'wanderer': 'MM', 'lyney': 'MM', 'tighnari': 'MM', 'albedo': 'MM', 'xingqiu': 'MM', 'kazuha': 'MM', 'venti': 'MM', 'durin': 'MM', 'yelan': 'TF', 'nefer': 'TF', 'arlecchino': 'TF', 'skirk': 'TF', 'mualani': 'TF', 'mavuika': 'TF', 'clorinde': 'TF', 'navia': 'TF', 'yae': 'TF', 'eula': 'TF', 'raiden': 'TF', 'citlali': 'MF', 'furina': 'MF', 'hutao': 'MF', 'ganyu': 'MF', 'keqing': 'MF', 'nilou': 'MF', 'mona': 'MF', 'columbina': 'MF', 'sandrone': 'MF', 'yoimiya': 'MF', 'ayaka': 'MF', 'chiori': 'MF', 'ineffa': 'MF', 'dehya': 'TF', 'mizuki': 'MF', 'varesa': 'TF', 'escoffier': 'TF', 'qiqi': 'S', 'klee': 'S', 'nahida': 'S', 'sigewinne': 'S', 'ayato': 'TM', 'varka': 'TM', 'shenhe': 'TF'};
+const BODY_TYPE = {'diluc': 'TM', 'zhongli': 'TM', 'neuvillette': 'TM', 'wriothesley': 'TM', 'alhaitham': 'TM', 'tartaglia': 'TM', 'tartagliablades': 'TM', 'flins': 'TM', 'xiao': 'MM', 'cyno': 'MM', 'cynojackal': 'MM', 'kinich': 'MM', 'wanderer': 'MM', 'lyney': 'MM', 'tighnari': 'MM', 'albedo': 'MM', 'xingqiu': 'MM', 'kazuha': 'MM', 'venti': 'MM', 'durin': 'MM', 'yelan': 'TF', 'nefer': 'TF', 'arlecchino': 'TF', 'skirk': 'TF', 'mualani': 'TF', 'mavuika': 'TF', 'clorinde': 'TF', 'navia': 'TF', 'yae': 'TF', 'eula': 'TF', 'raiden': 'TF', 'citlali': 'MF', 'furina': 'MF', 'hutao': 'MF', 'ganyu': 'MF', 'keqing': 'MF', 'nilou': 'MF', 'mona': 'MF', 'columbina': 'MF', 'sandrone': 'MF', 'yoimiya': 'MF', 'ayaka': 'MF', 'chiori': 'MF', 'ineffa': 'MF', 'dehya': 'TF', 'mizuki': 'MF', 'varesa': 'TF', 'escoffier': 'TF', 'qiqi': 'S', 'klee': 'S', 'nahida': 'S', 'sigewinne': 'S', 'ayato': 'TM', 'varka': 'TM', 'shenhe': 'TF', 'zibai': 'TF', 'xilonen': 'TF'};
 const SPRITE_ANIM = {
+  xilonen: { k: 0.36405, walk: 1.4, src: 'img/sprite/xilonen-anim.webp', f: { upper: [2, 2, 120, 272, 71.0, 272.0], idle1: [124, 2, 164, 221, 85.0, 221.0], idle2: [290, 2, 134, 220, 83.0, 220.0], blink: [426, 2, 151, 217, 71.0, 217.0], guard: [579, 2, 191, 206, 89.0, 206.0], heavy: [772, 2, 144, 204, 85.0, 204.0], hang: [918, 2, 71, 204, 33.0, 204.0], windup: [991, 2, 196, 193, 106.0, 193.0], burst: [1189, 2, 128, 192, 61.0, 192.0], fall: [1319, 2, 177, 187, 92.0, 187.0], atk1: [1498, 2, 215, 185, 97.0, 185.0], run1: [1715, 2, 200, 182, 107.0, 182.0], run3: [2, 276, 203, 177, 129.0, 177.0], run2: [207, 276, 228, 175, 145.0, 175.0], atk2: [437, 276, 246, 175, 101.0, 175.0], hurt: [685, 276, 212, 168, 55.0, 168.0], atk3: [899, 276, 279, 164, 121.5, 164.0], skill: [1180, 276, 208, 164, 114.5, 164.0], jump: [1390, 276, 104, 162, 63.0, 162.0], run4: [1496, 276, 178, 152, 117.0, 152.0] } },   // the two-sheet set: wide walk, run, charged attack
+  zibai: { k: 0.35749, walk: 1.4, src: 'img/sprite/zibai-anim.webp', f: { upper: [2, 2, 172, 257, 106.0, 257.0], hang: [176, 2, 114, 251, 55.0, 251.0], idle1: [292, 2, 195, 228, 107.0, 228.0], blink: [489, 2, 181, 228, 97.0, 228.0], idle2: [672, 2, 192, 227, 105.0, 227.0], burst: [866, 2, 178, 225, 114.5, 225.0], guard: [1046, 2, 178, 216, 115.0, 216.0], fall: [1226, 2, 198, 213, 100.0, 213.0], hurt: [1426, 2, 203, 203, 76.0, 203.0], skill: [1631, 2, 224, 198, 134.0, 198.0], windup: [2, 261, 211, 194, 133.0, 194.0], atk1: [215, 261, 235, 192, 131.0, 192.0], run3: [452, 261, 214, 191, 156.0, 191.0], heavy: [668, 261, 243, 189, 126.0, 189.0], run4: [913, 261, 182, 188, 140.0, 188.0], atk2: [1097, 261, 270, 186, 116.0, 186.0], run1: [1369, 261, 217, 185, 165.0, 185.0], jump: [1588, 261, 164, 183, 108.0, 183.0], run2: [1754, 261, 214, 176, 156.0, 176.0], atk3: [2, 457, 330, 168, 163.0, 168.0] } },   // the two-sheet set: wide walk, run, charged attack
   escoffier: { k: 0.43606, walk: 1.4, src: 'img/sprite/escoffier-anim.webp', f: { upper: [2, 2, 98, 244, 64.0, 244.0], hang: [102, 2, 68, 210, 35.0, 210.0], idle2: [172, 2, 114, 193, 69.5, 193.0], atk2: [288, 2, 212, 183, 84.0, 183.0], idle1: [502, 2, 123, 182, 71.0, 182.0], guard: [627, 2, 212, 179, 105.0, 179.0], blink: [841, 2, 116, 176, 69.0, 176.0], windup: [959, 2, 215, 175, 93.0, 175.0], run3: [1176, 2, 198, 169, 121.0, 169.0], atk1: [1376, 2, 264, 169, 89.0, 169.0], fall: [1642, 2, 173, 168, 91.0, 168.0], heavy: [2, 248, 290, 158, 125.0, 158.0], burst: [294, 248, 287, 156, 127.0, 156.0], run1: [583, 248, 176, 155, 114.0, 155.0], skill: [761, 248, 219, 148, 108.0, 148.0], atk3: [982, 248, 200, 146, 85.0, 146.0], jump: [1184, 248, 103, 146, 57.0, 146.0], hurt: [1289, 248, 194, 144, 55.0, 144.0], run2: [1485, 248, 208, 143, 121.0, 143.0], run4: [1695, 248, 164, 142, 115.0, 142.0] } },   // the two-sheet set: wide walk, run, charged attack
   varesa: { k: 0.46142, walk: 1.4, src: 'img/sprite/varesa-anim.webp', f: { heavy: [2, 2, 143, 241, 68.0, 241.0], upper: [147, 2, 133, 222, 76.0, 222.0], hang: [282, 2, 106, 209, 39.0, 209.0], atk1: [390, 2, 239, 183, 101.0, 183.0], skill: [631, 2, 160, 182, 88.0, 182.0], windup: [793, 2, 172, 181, 89.0, 181.0], idle2: [967, 2, 148, 178, 80.0, 178.0], blink: [1117, 2, 144, 176, 78.0, 176.0], run3: [1263, 2, 206, 174, 127.0, 174.0], fall: [1471, 2, 203, 173, 89.0, 173.0], idle1: [1676, 2, 142, 171, 78.0, 171.0], run1: [1820, 2, 186, 170, 110.0, 170.0], atk2: [2, 245, 229, 170, 96.0, 170.0], guard: [233, 245, 173, 167, 89.0, 167.0], jump: [408, 245, 140, 166, 66.5, 166.0], atk3: [550, 245, 223, 164, 99.0, 164.0], hurt: [775, 245, 192, 157, 53.0, 157.0], run2: [969, 245, 209, 156, 133.0, 156.0], run4: [1180, 245, 179, 152, 104.0, 152.0], burst: [1361, 245, 219, 152, 118.0, 152.0] } },   // the two-sheet set: wide walk, run, charged attack
   mizuki: { k: 0.35328, walk: 1.4, src: 'img/sprite/mizuki-anim.webp', f: { idle1: [2, 2, 205, 301, 139.0, 301.0], run3: [209, 2, 192, 257, 42.0, 257.0], upper: [403, 2, 131, 251, 89.0, 251.0], idle2: [536, 2, 151, 227, 79.0, 227.0], blink: [689, 2, 145, 223, 78.0, 223.0], guard: [836, 2, 160, 209, 97.0, 209.0], heavy: [998, 2, 148, 206, 96.0, 206.0], hang: [1148, 2, 80, 196, 45.0, 196.0], skill: [1230, 2, 140, 190, 92.0, 190.0], windup: [1372, 2, 174, 188, 78.0, 188.0], atk2: [1548, 2, 198, 188, 87.0, 188.0], atk1: [1748, 2, 223, 186, 94.0, 186.0], atk3: [2, 305, 218, 180, 103.0, 180.0], fall: [222, 305, 167, 180, 85.0, 180.0], hurt: [391, 305, 195, 175, 62.0, 175.0], run1: [588, 305, 182, 174, 116.0, 174.0], jump: [772, 305, 121, 172, 77.0, 172.0], run2: [895, 305, 207, 166, 127.0, 166.0], run4: [1104, 305, 173, 161, 118.0, 161.0], burst: [1279, 305, 226, 155, 115.0, 155.0] } },   // the two-sheet set: wide walk, run, charged attack
@@ -7084,6 +7261,11 @@ function drawFighter(f, t, o = {}) {
     case 'ineffa': hairBack(-11.5, 8, 18); break;
     case 'lauma': hairBack(-10, 15, 58); break;
     case 'escoffier': hairBack(-10.5, 13, 52); break;
+    case 'jean': hairBack(-11, 9, 40, len => { ctx.fillStyle = fl ? WH : '#2a3a6a'; rr(-4, 1, 8, 5, 2); ctx.fill(); }); break;   // a high ponytail with a dark ribbon
+    case 'odette': hairBack(-10, 13, 56, len => { ctx.fillStyle = fl ? WH : '#5a7ad0'; rr(-6.5, len - 14, 13, 14, 5.5); ctx.fill(); }); break;   // long, pale blue fading darker
+    case 'vodyanitsa': hairBack(-10, 15, 64, len => { ctx.fillStyle = fl ? WH : '#7fd0d8'; rr(-7.5, len - 16, 15, 16, 6.5); ctx.fill(); }); break;   // very long sea-green hair
+    case 'vesna': hairBack(-8, 12, 50); hairBack(-14, 10, 44); break;   // long golden curls
+    case 'linnea': hairBack(-11.5, 8, 18); break;
     case 'mavuika':   // long, full hair with flame-coloured ends
       hairBack(-8, 15, 50, len => { ctx.fillStyle = fl ? WH : '#ffb04d'; rr(-7.5, len - 16, 15, 16, 6.5); ctx.fill(); ctx.fillStyle = fl ? WH : '#ffe08a'; rr(-4.5, len - 7, 9, 7, 3.5); ctx.fill(); });
       hairBack(-13, 11, 58, len => { ctx.fillStyle = fl ? WH : '#ffb04d'; rr(-5.5, len - 18, 11, 18, 5); ctx.fill(); ctx.fillStyle = fl ? WH : '#ffe08a'; rr(-3.5, len - 8, 7, 8, 3); ctx.fill(); });
@@ -7292,6 +7474,19 @@ function drawFighter(f, t, o = {}) {
     case 'escoffier':   // a white chef's hat
       ctx.fillStyle = fl ? WH : '#f8f8fc'; rr(-9, -78 + bob, 18, 14, 6); ctx.fill(); ctx.fillRect(-8, -66 + bob, 16, 4);
       ctx.fillStyle = fl ? WH : '#9fd8f0'; ctx.fillRect(-8, -66 + bob, 16, 1.5); break;
+    case 'jean':   // a small dark-blue bow at the crown
+      ctx.fillStyle = fl ? WH : '#2a3a6a'; ctx.beginPath(); ctx.moveTo(2, -70 + bob); ctx.lineTo(10, -74 + bob); ctx.lineTo(10, -66 + bob); ctx.closePath(); ctx.fill(); break;
+    case 'odette':   // a white feather ornament
+      ctx.fillStyle = fl ? WH : '#f4f8ff'; ctx.beginPath(); ctx.ellipse(6, -71 + bob, 7, 2.5, -0.5, 0, 7); ctx.fill(); ctx.fillStyle = fl ? WH : '#86c8ff'; ctx.fillRect(1, -70 + bob, 3, 2); break;
+    case 'vodyanitsa':   // white flowers in her hair
+      ctx.fillStyle = fl ? WH : '#ffffff'; for (const [fx, fy] of [[-7, -68], [-2, -71]]) { ctx.beginPath(); ctx.arc(fx, fy + bob, 2.6, 0, 7); ctx.fill(); }
+      ctx.fillStyle = fl ? WH : '#ffe08a'; ctx.beginPath(); ctx.arc(-7, -68 + bob, 1, 0, 7); ctx.arc(-2, -71 + bob, 1, 0, 7); ctx.fill(); break;
+    case 'vesna':   // a silver tiara with a green stone
+      ctx.fillStyle = fl ? WH : '#dfe6f0'; ctx.beginPath(); ctx.moveTo(-8, -66 + bob); ctx.lineTo(-4, -72 + bob); ctx.lineTo(0, -68 + bob); ctx.lineTo(4, -73 + bob); ctx.lineTo(8, -66 + bob); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = fl ? WH : '#3fd0a8'; ctx.beginPath(); ctx.arc(0, -68 + bob, 1.6, 0, 7); ctx.fill(); break;
+    case 'linnea':   // little white wings at the side of her head, with red clips
+      ctx.fillStyle = fl ? WH : '#f4f8ff'; ctx.beginPath(); ctx.ellipse(-10, -70 + bob, 6, 2.5, 0.6, 0, 7); ctx.ellipse(9, -71 + bob, 6, 2.5, -0.6, 0, 7); ctx.fill();
+      ctx.fillStyle = fl ? WH : '#c0303a'; ctx.fillRect(-7, -68 + bob, 3, 3); ctx.fillRect(5, -69 + bob, 3, 3); break;
     case 'zibai':   // a gold crescent pin
       ctx.strokeStyle = fl ? WH : '#e8c040'; ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(-3, -66 + bob, 6, 3.6, 5.9); ctx.stroke(); break;
   }
@@ -7874,6 +8069,71 @@ function drawHits(t, under = false) {
         ctx.fillStyle = h.cast > 0 ? '#ffffff' : '#9a8cff'; ctx.beginPath(); ctx.arc(3, -2, 4, 0, 7); ctx.fill();
         ctx.strokeStyle = '#8a90a8'; ctx.lineWidth = 2; const rw = 14 * Math.abs(Math.cos(t * 30));
         ctx.beginPath(); ctx.moveTo(-rw, -15); ctx.lineTo(rw, -15); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(0, -15); ctx.stroke();
+        break;
+      }
+      case 'galewind': {   // Jean's gathering whirlwind: spiralling wind round an eye that grows the longer she holds, with air rushing into it
+        const hold = Math.min(1, (h.hold || 0) / JEAN_HOLD), R = 34 + 46 * hold, sp = t * (8 + 6 * hold);
+        ctx.lineCap = 'round';
+        for (let arm = 0; arm < 4; arm++) for (const [w, col, al] of [[5, '#62e6b4', 0.55], [1.6, '#eafff7', 0.95]]) {
+          ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath();
+          for (let i = 0; i <= 18; i++) { const u = i / 18, a = sp + arm * Math.PI / 2 + u * 3.4, r = R * (0.15 + 0.85 * u); i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r * 0.8) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r * 0.8); }
+          ctx.stroke();
+        }
+        ctx.strokeStyle = '#ffffff';
+        for (let i = 0; i < 8; i++) {   // air rushing in
+          const a = i * 0.785 + hash1(i + Math.floor(t * 6)) * 0.5, u = (t * 2.2 + i * 0.13) % 1, r0 = JEAN_REACH * (1 - u), r1 = r0 - 30;
+          ctx.globalAlpha = 0.5 * u; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0 * 0.7); ctx.lineTo(Math.cos(a) * Math.max(R, r1), Math.sin(a) * Math.max(R, r1) * 0.7); ctx.stroke();
+        }
+        glow(0, 0, R * 1.3, '#62e6b4', 0.35 + 0.3 * hold);
+        break;
+      }
+      case 'reflection': {   // Odette's Solo Reflection: a pale-blue, see-through copy of her, turning as it dances
+        const o = h.owner, al = Math.min(1, (h.age - h.delay) * 4, (h.delay + h.life - h.age) * 2);
+        if (!o || al <= 0) break;
+        ctx.translate(-c.x, -c.y);
+        drawFighter(o, t, { x: c.x, y: c.y + 78, dir: Math.sin(t * 5) > 0 ? 1 : -1, tint: '#9fd4ff', alpha: 0.45 * al, sc: 0.95, overlays: false });
+        glow(c.x, c.y + 40, 46, '#86c8ff', 0.35 * al);
+        break;
+      }
+      case 'waterorb': {   // Vodyanitsa's singing bubble: a round drop of water with a note inside, ripples when it throws
+        const al = Math.min(1, (h.age - h.delay) * 4, (h.delay + h.life - h.age) * 2), bob = Math.sin(t * 3) * 3;
+        ctx.globalAlpha = al; ctx.translate(0, bob);
+        const gr = ctx.createRadialGradient(-4, -5, 2, 0, 0, 17); gr.addColorStop(0, 'rgba(230,248,255,.95)'); gr.addColorStop(0.6, 'rgba(90,180,255,.55)'); gr.addColorStop(1, 'rgba(40,120,220,.15)');
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill();
+        ctx.strokeStyle = 'rgba(220,245,255,.9)'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(-2, 4, 3.2, 2.4, -0.4, 0, 7); ctx.fill(); ctx.fillRect(0.6, -7, 1.6, 11); ctx.fillRect(0.6, -7, 5, 1.6);   // a note
+        if (h.cast > 0) { const q = 1 - h.cast / 0.25; ctx.globalAlpha = al * (1 - q); ctx.strokeStyle = '#bfeaff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 18 + q * 16, 0, 7); ctx.stroke(); }
+        break;
+      }
+      case 'spiritblade': {   // Vesna's spirit blades: a long, pale-green blade of light pointing the way it flies
+        ctx.rotate(Math.atan2(h.vy, h.vx));
+        const L = h.r * 2.6;
+        glow(0, 0, L * 0.8, '#62e6b4', 0.5);
+        ctx.fillStyle = '#62e6b4'; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.moveTo(L, 0); ctx.lineTo(0, -5); ctx.lineTo(-L * 0.7, -3); ctx.lineTo(-L * 0.7, 3); ctx.lineTo(0, 5); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(L, 0); ctx.lineTo(0, -1.6); ctx.lineTo(-L * 0.6, 0); ctx.lineTo(0, 1.6); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#e8fff4'; ctx.fillRect(-L * 0.7 - 2, -8, 4, 16);   // the guard
+        break;
+      }
+      case 'lumi': {   // Linnea's Lumi: a round cream-coloured creature with dark eye spots and a little golden crystal, bigger each time it grows
+        ctx.globalCompositeOperation = 'source-over';
+        const al = Math.min(1, (h.age - h.delay) * 4, (h.delay + h.life - h.age) * 3), S = 1 + 0.3 * (h.grow || 0), bob = Math.abs(Math.sin(t * 4)) * -4;
+        ctx.globalAlpha = al; ctx.translate(0, bob); ctx.scale(S * (h.sdir || 1), S);
+        ctx.fillStyle = '#fff3d6'; ctx.beginPath(); ctx.ellipse(0, 0, 18, 14, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = '#c99a4a'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#3a2a1a'; ctx.beginPath(); ctx.ellipse(-6, -1, 3.2, 4.2, 0, 0, 7); ctx.ellipse(6, -1, 3.2, 4.2, 0, 0, 7); ctx.fill();
+        ctx.fillStyle = '#f5b83d'; ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(5, -15); ctx.lineTo(0, -11); ctx.lineTo(-5, -15); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#fff6d0'; ctx.fillRect(-1, -21, 2, 6);
+        if (h.cast > 0) { ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(14, -8, 3, 0, 7); ctx.fill(); }
+        break;
+      }
+      case 'jeanfield': {   // Jean's dandelion field: a soft ring of wind with dandelion seeds drifting up
+        const al = Math.min(1, (h.age - h.delay) * 3, (h.delay + h.life - h.age) * 2), R = h.r;
+        ctx.globalAlpha = al * 0.9;
+        const gg = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R); gg.addColorStop(0, 'rgba(200,255,232,.06)'); gg.addColorStop(1, 'rgba(98,230,180,.26)');
+        ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill();
+        ctx.strokeStyle = 'rgba(200,255,232,.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R, t * 0.8, t * 0.8 + 5.4); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 10; i++) { const u = (t * 0.25 + i * 0.1) % 1, x = Math.sin(i * 2.3 + t) * R * 0.7, y = R * 0.6 - u * R * 1.3; ctx.globalAlpha = al * (1 - u); ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fill(); }
         break;
       }
       case 'mek': {   // Escoffier's cooking mek: a white pot-bodied robot with a frosty lid that puffs when it throws
@@ -10192,6 +10452,11 @@ Object.assign(CUTIN, {
   ineffa: { ...CUTIN.raiden, from: '#0c0e2a', to: '#9a8cff', line: '청소를 시작합니다.' },
   lauma: { ...CUTIN.nahida, from: '#0a2420', to: '#7ed9a0', line: '달빛이 길을 비춰 줄 거야.' },
   escoffier: { ...CUTIN.ganyu, from: '#0a1a2a', to: '#9fd8f0', line: '오늘의 요리, 완성.' },
+  jean: { ...CUTIN.venti, from: '#062a25', to: '#62e6b4', line: '몬드를 지키는 바람이여!' },
+  odette: { ...CUTIN.eula, from: '#0a1240', to: '#86c8ff', line: '마지막 막을 올리겠어요.' },
+  vodyanitsa: { ...CUTIN.furina, from: '#061a36', to: '#3fa9ff', line: '노래가 끝나면, 함께 가라앉자.' },
+  vesna: { ...CUTIN.venti, from: '#08262a', to: '#62e6b4', line: '차리차를 위하여!' },
+  linnea: { ...CUTIN.zhongli, from: '#2a1a08', to: '#f5b83d', line: '루미, 가자!' },
 });
 // Burst pose per character: c = charge [arm angle, hand extension, lean], s = release [angle, extension, lean, lunge].
 const CINE = {
@@ -10255,6 +10520,11 @@ const CINE = {
   ineffa: { c: [-2.3, -2, -0.2], s: [1.4, 12, 0.35, 10] },
   lauma: { c: [-0.5, 10, -0.05], s: [-0.2, 18, 0.15, 8] },
   escoffier: { c: [-2.3, -2, -0.2], s: [1.4, 12, 0.35, 10] },
+  jean: { c: [-2.4, -2, -0.25], s: [1.6, 10, 0.45, 16] },
+  odette: { c: [-2.4, -2, -0.25], s: [1.6, 10, 0.45, 16] },
+  vodyanitsa: { c: [-0.5, 10, -0.05], s: [-0.2, 18, 0.15, 8] },
+  vesna: { c: [-2.4, -2, -0.25], s: [1.6, 10, 0.45, 16] },
+  linnea: { c: [-1.0, 0, -0.12], s: [-1.0, 4, -0.05, 0], bow: true },
 };
 function cinePose(f, k) {
   const p = CINE[f.def.id], a = easeOut(clamp(k / 0.5, 0, 1)), b = easeOut(clamp((k - 0.76) / 0.1, 0, 1));
@@ -10843,14 +11113,14 @@ function showOv(name) {
 
 // The roster is listed by region (as in Genshin; the Travelers and Skirk, who come from beyond Teyvat, go last), each under its heading.
 const REGIONS = [
-  ['mond', '몬드', '#7fe0c8', 'diluc mona venti eula klee albedo durin varka'],
+  ['mond', '몬드', '#7fe0c8', 'diluc jean mona venti eula klee albedo durin varka'],
   ['liyue', '리월', '#f5c35a', 'ganyu zhongli hutao xingqiu keqing qiqi shenhe yelan xiao zibai'],
   ['inazuma', '이나즈마', '#c99aff', 'raiden kazuha yae ayaka ayato yoimiya kokomi itto chiori mizuki'],
   ['sumeru', '수메르', '#8fe06a', 'nahida tighnari wanderer nilou alhaitham cyno dehya'],
   ['fontaine', '폰타인', '#6cbcff', 'furina neuvillette lyney navia wriothesley clorinde sigewinne escoffier'],
   ['natlan', '나타', '#ff8a5a', 'mavuika kinich mualani citlali xilonen varesa'],
-  ['nodkrai', '노드크라이', '#b8c4ff', 'lauma ineffa flins nefer'],
-  ['snezhnaya', '스네즈나야', '#9fe6ff', 'tartaglia arlecchino columbina sandrone'],
+  ['nodkrai', '노드크라이', '#b8c4ff', 'lauma ineffa flins nefer linnea'],
+  ['snezhnaya', '스네즈나야', '#9fe6ff', 'tartaglia arlecchino columbina sandrone odette vesna vodyanitsa'],
   ['beyond', '그 밖', '#cdd5f7', 'aether lumine skirk'],
 ];
 const REGION_OF = {};
@@ -10914,7 +11184,8 @@ const PORTRAIT_SRC = { diluc: 'img/diluc.webp', mona: 'img/mona.webp', raiden: '
   nefer: 'img/nefer.webp', durin: 'img/durin.webp', varka: 'img/varka.webp', zibai: 'img/zibai.webp',
   yelan: 'img/yelan.webp', xiao: 'img/xiao.webp', ayaka: 'img/ayaka.webp', ayato: 'img/ayato.webp',
   yoimiya: 'img/yoimiya.webp', kokomi: 'img/kokomi.webp', itto: 'img/itto.webp', dehya: 'img/dehya.webp', chiori: 'img/chiori.webp', xilonen: 'img/xilonen.webp',
-  mizuki: 'img/mizuki.webp', varesa: 'img/varesa.webp', ineffa: 'img/ineffa.webp', lauma: 'img/lauma.webp', escoffier: 'img/escoffier.webp' };
+  mizuki: 'img/mizuki.webp', varesa: 'img/varesa.webp', ineffa: 'img/ineffa.webp', lauma: 'img/lauma.webp', escoffier: 'img/escoffier.webp',
+  jean: 'img/jean.webp', odette: 'img/odette.webp', vodyanitsa: 'img/vodyanitsa.webp', vesna: 'img/vesna.webp', linnea: 'img/linnea.webp' };
 const PORTRAIT_IMG = {};
 function loadPortraits() {
   for (const id in PORTRAIT_SRC) {
@@ -11084,6 +11355,11 @@ const KIT = {   // short on purpose: one or two plain sentences per move (the de
   ineffa: { cd: 9.0, skill: '창을 휘두르고 방어막을 얻으며, 7초 동안 드론이 번개를 쏩니다. 상대 행동은 끊지 않습니다.', burst: '큰 번개 방전을 일으키고 드론을 다시 띄웁니다.' },
   lauma: { cd: 8.0, skill: '앞에 서리 덩굴 성소를 만들어 풀 피해와 씨앗 표식을 남깁니다.', burst: '달빛 풀 충격 후 6초 동안 풀 결계를 펼칩니다.' },
   escoffier: { cd: 8.0, skill: '얼음으로 베고 6초 동안 요리 로봇이 얼음 구슬을 던집니다.', burst: '앞으로 길게 얼음을 베고 피해 8%를 회복합니다.' },
+  jean: { cd: 6.0, skill: '짧게: 바람으로 상대를 멀리 날립니다. 꾹: 회오리로 상대를 끌어와 붙잡고, 떼면 모은 만큼 더 멀리 날립니다(최대 2.5초).', burst: '바람을 터뜨리고 즉시 8% 회복, 5초 동안 크게 회복하는 민들레 들판을 남깁니다(최대 25%).' },
+  odette: { cd: 8.0, skill: '회전하며 세 번 베고, 6초 동안 곁에서 함께 춤추며 공격하는 분신을 부릅니다.', burst: '얼음 파랑새 다섯 마리를 날린 뒤 앞을 크게 벱니다.' },
+  vodyanitsa: { cd: 9.0, skill: '8초 동안 노래하는 물방울이 따라다니며 물 구슬을 쏘고, 쏠 때마다 조금 회복합니다.', burst: '큰 물결을 일으킵니다. 물방울이 있으면 더 강합니다.' },
+  vesna: { cd: 7.0, skill: '8초 바람 검 상태(평타에 바람). 다시 누를 때마다 바람 검기 1→2→3단계, 3단계 뒤 끝납니다.', burst: '정령 검 여덟 자루가 차례로 상대에게 떨어집니다.' },
+  linnea: { cd: 9.0, skill: '루미가 나와 결정을 쏩니다. 다시 누를 때마다 루미가 커지며 내려찍고, 세 번째가 가장 셉니다.', burst: '루미가 앞을 크게 내려치고, 회복한 뒤 6초 동안 계속 회복합니다.' },
   xiao: { cd: 2.2, skill: '짧게 돌진하며 바람으로 찌릅니다. 재사용이 빠릅니다.', burst: '8초 야차 가면: 바람 평타 +25%, 공중 평타는 내리꽂기가 됩니다.' },
 };
 const BASIC = {
@@ -11525,7 +11801,7 @@ $('volRange').addEventListener('pointerup', e => e.target.blur());   // after a 
 // Two people, each on their own device, through the page's room. Lockstep: both devices run the same simulation from the same seed with the
 // same keys. Each sends its own keys for every frame NET.d frames ahead in its room presence, and a frame runs only once both sides' keys
 // for it are in. The one who made the room (the host) is 1P and leads the screens; the other (the guest) is 2P and follows.
-const IN_BITS = ['left', 'right', 'down', 'guard', 'atkHold', 'upHold', 'jump', 'atk', 'skill', 'burst', 'swap'];
+const IN_BITS = ['left', 'right', 'down', 'guard', 'atkHold', 'upHold', 'jump', 'atk', 'skill', 'burst', 'swap', 'skillHold'];   // (skillHold: a held key, not in EDGE_MASK)
 const EDGE_MASK = 0b11111000000;   // jump, atk, skill, burst, swap: presses, kept until a frame that reads them (as the keyboard's edges are)
 const encodeInput = i => IN_BITS.reduce((m, k, b) => i[k] ? m | 1 << b : m, 0);
 function seededRandom(a) {   // mulberry32
@@ -11755,7 +12031,7 @@ function netRecvKeys(p) {
   if (k && NET.m && k.m === NET.m && Number.isInteger(k.s) && k.s >= 0 && Array.isArray(k.b) && k.b.length <= 400) {
     for (let i = 0; i < k.b.length; i++) {
       const v = k.b[i];
-      if (NET.theirs[k.s + i] === undefined && Number.isInteger(v) && v >= 0 && v < 2048) NET.theirs[k.s + i] = v;
+      if (NET.theirs[k.s + i] === undefined && Number.isInteger(v) && v >= 0 && v < (1 << IN_BITS.length)) NET.theirs[k.s + i] = v;
     }
     while (NET.theirs[NET.ack + 1] !== undefined) NET.ack++;
     if (Number.isInteger(k.a)) NET.peerAck = Math.max(NET.peerAck, k.a);
