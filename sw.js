@@ -3,7 +3,7 @@
 // Pictures and sounds are NOT handled here: they go to the network and the browser's own cache, exactly as on the web site.
 // (Serving them from here broke the character frames in the iPhone app: they never arrived.)
 // VER changes with every upload; the new version clears the old saved copies, including pictures saved by the first version.
-const VER = '20261103125858', CACHE = 'brawl-' + VER;
+const VER = '20261103202928', CACHE = 'brawl-' + VER;
 const SHELL = ['./', './manifest.webmanifest', './img/app/icon-192.png', './img/app/icon-512.png'];
 
 self.addEventListener('install', e => {
