@@ -884,7 +884,6 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
           <tr><td>구르기 (잠깐 무적)</td><td><kbd>H</kbd> 누른 채 <kbd>A</kbd> / <kbd>D</kbd></td></tr>
           <tr><td>공중 회피 (잠깐 무적, 착지 전 한 번)</td><td>공중에서 <kbd>H</kbd></td></tr>
           <tr><td>공중 대시 (착지 전 한 번)</td><td>공중에서 <kbd>A</kbd> 또는 <kbd>D</kbd>를 빠르게 두 번</td></tr>
-          <tr><td>저스트 가드 (튕겨내고 반격 +30%)</td><td>공격이 맞기 직전에 <kbd>H</kbd> (연타하면 안 됨)</td></tr>
           <tr><td>캔슬 (공격이 맞은 직후)</td><td>점프 · 대시 · 스킬 · 필살기로 끊고 바로 이어가기</td></tr>
           <tr><td>추격 점프 (상대를 띄운 직후)</td><td>점프 → 상대 높이까지 따라 올라감</td></tr>
           <tr><td>벽 낙법 (벽·천장에 튕길 때)</td><td><kbd>H</kbd> 누르고 있기</td></tr>
@@ -1546,7 +1545,7 @@ function mkFighter(idx, def, ctrl) {
     ai: ctrl === 'cpu' ? { t: 0.4, cd: 0, jc: 0, downT: 0, mx: 0, level, pAtk: false, pSkill: false, pJump: false, pBurst: false, pSwap: false, pHeavy: false, guardT: 0 } : null,
     slot: 0, maxStocks: 3,
     guard: 100, guarding: false, guardRest: 0, guardLock: 0,   // guard meter: drains while held and when it blocks hits
-    counterT: 0, parryAt: -9, guardOn: -9, hitAt: -9, actAt: 0, jumpAt: -9, skillAt: -9, burstAt: -9, airDashed: false,   // (see 'dynamic combat')
+    counterT: 0, guardOn: -9, hitAt: -9, actAt: 0, jumpAt: -9, skillAt: -9, burstAt: -9, airDashed: false,   // (see 'dynamic combat')
     stat: { dealt: 0, react: 0, kos: 0, maxCombo: 0, moves: { atk: 0, heavy: 0, skill: 0, burst: 0 } },
   };
 }
@@ -2377,7 +2376,7 @@ function fireworkShow(o, t) {
        onEnd: h => {   // the grand finale: a big shell rises for half a second toward where they stand (move and it misses), then bursts
          if (h.nofinale || t.dead) return;
          const gp = groundBelow(t), x = t.x, y = t.y - 60 * t.def.scale, y0 = gp ? gp.y : t.y + 40;
-         ftext(x, y - 90, '피날레!', '#ffd24d', 22, 1.2); SFX.play('swing');
+         SFX.play('swing');
          hb({ owner: o, proj: true, harmless: true, shape: 'circle', r: 10, x, y: y0, vx: 0, vy: -(y0 - y) / 0.5, life: 0.5, vis: 'arrow', color: '#ffd24d', trail: true,
               onEnd: s => {
                 hb({ owner: o, shape: 'circle', x: s.x, y: s.y, r: 110, life: 0.12, dmg: 5, kb: 0.8, ang: 65, el: 'pyro', radial: true, persist: true, vis: 'boom', color: '#ffd24d', burst: true, blazeFx: true,
@@ -2707,33 +2706,12 @@ function reaction(o, t, aura, inc) {
 }
 
 /* ------------------------------------------------------------------ dynamic combat (2026-11-03)
-   Just guard: a guard started just before a hit (PARRY_WIN) knocks it away; up close the attacker reels, and the next hit within
-   1.2 s is a counter (+30% damage). Mashing guard gives no window: a new one opens only PARRY_REARM after the last guard began.
    Clash: two melee swings meeting in the air cancel out (or the far stronger one wins).
    Barriers: invisible walls (WALL_X) and a ceiling (CEIL_Y) short of the blast lines. Someone flung into one bounces back, unless the
    blow would have carried them out anyway (then it breaks and they fly on), so KOs stay as they were. Guard held: they tech off it.
    Cancels: a basic or charged attack that has landed can be cut short by a jump, a dash, a skill or a burst pressed after it began.
    Chase jump: a jump just after landing a hit, with the opponent flung above, carries up to them. Air dash: double-tap in the air. */
-const PARRY_WIN = 0.13, PARRY_REARM = 0.45;
 const WALL_X = [BLAST.l + 380, BLAST.r - 380]; let CEIL_Y = BLAST.t + 230;   // (moved with the map by setMap)
-function parry(h, t, o, dirX) {
-  const g = game, x = t.x - dirX * 18 * t.def.scale, y = t.y - 38 * t.def.scale;
-  t.guard = Math.min(100, t.guard + 20); t.counterT = 1.2; t.energy = Math.min(100, t.energy + 6);
-  if (h.proj && !h.follow) { if (h.pierce) h.dead = true; }   // a shot is batted away
-  else if (o.idx >= 0 && !h.burst && Math.abs(o.x - t.x) < 300) {   // up close: the attacker is thrown off balance
-    o.act = null; o.combo = 0; o.comboT = 0; o.hitstun = Math.max(o.hitstun, 0.5); o.vx = -dirX * 340; o.buf.atk = o.buf.skill = o.buf.heavy = 0;
-    for (const x2 of g.hits) if (x2.owner === o && x2.follow && !x2.persist && !x2.keep) x2.dead = true;
-    ftext(o.x, o.y - 96, '휘청', '#cfd6ff', 16, 0.7);
-  }
-  ftext(t.x, t.y - 114, '저스트 가드!', '#ffffff', 24, 1.0);
-  fx2({ k: 'parry', x, y, s: t.def.scale, col: '#9fd4ff', life: 0.55 });
-  flare(x, y, 120, '#ffffff', { col2: '#9fd4ff', rays: 16, streak: true, life: 0.45 });
-  clash(x, y, '#9fd4ff', dirX > 0 ? Math.PI : 0, true);
-  puff(x, y, '#ffffff', 16, 360, 0.4, 3); puff(x, y, '#9fd4ff', 10, 260, 0.45, 3);
-  g.hitstop = 0.16; g.shake = Math.max(g.shake, 7); g.shakeA = 0; g.flash = Math.max(g.flash, 0.08);
-  if (g.time - (g.slowAt ?? -9) > 0.8) { g.slowAt = g.time; g.slowHit = { real: 0, dur: 0.32, x, y }; }
-  SFX.play('parry');
-}
 function clashable(h, f, dt) {
   return h.owner === f && !h.dead && h.age + dt >= h.delay && h.age - h.delay < 0.14 && h.follow && !h.proj && !h.burst && !h.harmless && !h.persist && !h.chip
     && h.shape === 'rect' && h.dmg >= 1.5 && !h.hit.size;
@@ -2816,7 +2794,6 @@ function cancelAct(f) {   // a landed attack cut short: what has not come out ye
   for (const x of g.hits) if (x.owner === f && x.follow && !x.persist && !x.keep && x.age < x.delay) x.dead = true;
   f.act = null; f.combo = 0; f.comboT = 0; f.buf.atk = f.buf.heavy = 0;
   fx2({ k: 'cancel', x: f.x, y: f.y - 36 * f.def.scale, s: f.def.scale, col: EL[f.def.el].color, life: 0.35 });
-  if (g.time - (f.cancelTxt ?? -9) > 0.6) { f.cancelTxt = g.time; ftext(f.x, f.y - 100, '캔슬', '#e6ecff', 13, 0.5); }
   SFX.play('swing');
 }
 function chaseJump(f, foe) {   // the opponent flung above them: a jump that carries them up to it
@@ -2825,7 +2802,6 @@ function chaseJump(f, foe) {   // the opponent flung above them: a jump that car
   const gr = GRAV * f.def.grav * g.env.grav, hgt = clamp(up + 20, 80, 440), vy = Math.sqrt(2 * gr * hgt), tUp = vy / gr, dx = foe.x + foe.vx * Math.min(tUp, 0.5) * 0.6 - f.x;
   if (f.onGround || f.coyote > 0) { f.onGround = false; f.jumps = f.def.jumps - 1; f.coyote = 0; } else f.jumps--;
   f.vy = -vy; f.vx = clamp(dx / tUp, -820, 820); f.dir = sgn(dx) || f.dir; f.hopT = 0; f.jumpT = 0.12;
-  ftext(f.x, f.y - 96, '추격!', '#bfe6ff', 15, 0.6);
   fx2({ k: 'airring', x: f.x, y: f.y, R: 46 * f.def.scale, col: EL[f.def.el].color, life: 0.4 });
   fx2({ k: 'gring', x: f.x, y: f.y, R: 50 * f.def.scale, col: '#ffffff', life: 0.35 });
   puff(f.x, f.y, EL[f.def.el].color, 10, 200, 0.35, 3); SFX.play('jump');
@@ -2931,7 +2907,6 @@ function applyHit(h, t) {
   let dmg = h.dmg * o.def.atk * (o.buff ? o.buff.mul : 1), kbMul = h.kb, broke = false;
   if (o.buff && o.buff.kb) kbMul *= o.buff.kb;
   if (t.guarding) {
-    if (g.time - t.parryAt <= PARRY_WIN) { parry(h, t, o, dirX); return; }   // just guard
     if (h.chip) return;   // a light extra hit (Yoimiya's little fireworks): stopped by a guard without wearing it down
     t.guard -= dmg * 4.5 + 3;
     if (t.guard > 0) {   // blocked: no damage, no element, just a nudge
@@ -2955,10 +2930,6 @@ function applyHit(h, t) {
     if (t.shield <= 0) { t.shield = 0; puff(t.x, t.y - 34, '#ffe27a', 18, 260, 0.5, 4); BGM.shieldBreak(); }
     t.vx += dirX * 80; g.hitstop = 0.04; BGM.hit();
     return;
-  }
-  let counter = false;
-  if (o.idx >= 0) {
-    if (o.counterT > 0 && !h.burst) { o.counterT = 0; counter = true; dmg *= 1.3; kbMul *= 1.2; }   // the hit after a just guard
   }
   if (!h.suspend) t.suspend = 0;
   if (!h.stun) t.stone = 0;
@@ -2997,14 +2968,10 @@ function applyHit(h, t) {
   if (h.vuln) t.vuln = Math.max(t.vuln, h.vuln);
   if (h.stackUp && o.stack < 3) o.stack++;
   if (o.def.id === 'itto' && o.idx >= 0 && (!h.src || h.ushi || (o.buff && o.buff.oni && h.src.kind !== 'heavy')) && o.stack < ITTO_MAX) {   // Superlative Superstrength
-    o.stack++; if (o.stack === ITTO_MAX) ftext(o.x, o.y - 104, '괴력 최대!', '#f5d77a', 15, 0.7);
+    o.stack++;
   }
   t.pct += dmg; o.stat.dealt += dmg;
   if (o.idx >= 0 && o !== t && !h.burst) o.hitAt = g.time;
-  if (counter) {
-    ftext(t.x, t.y - 124, '반격!', '#ffd24d', 24, 0.9);
-    flare(t.x, t.y - 34, 110, '#ffd24d', { rays: 12, streak: true, life: 0.4 }); puff(t.x, t.y - 34, '#ffd24d', 14, 320, 0.4, 3);
-  }
   if (o.idx >= 0 && o.def.id === 'qiqi' && o.pct > 0 && g.hits.some(x => x.vis === 'talisman' && x.owner === o && !x.dead)) {   // her talisman is on the opponent: every hit she lands heals her
     const heal = Math.min(1.5, o.pct), on = g.fighters[o.idx]; o.pct -= heal;
     ftext(on.x, on.y - 96, '회복 -' + Math.round(heal * 10) / 10 + '%', '#bfe6ff', 13, 0.6);
@@ -3367,7 +3334,7 @@ function shootOrb(f, n, s) {
   f.aim = clamp(Math.atan2(ty - oy, Math.abs(tx - ox) || 1), -1.2, 1.2);
   const big = n === 3, blade = id === 'wanderer', sp = blade ? 760 : 620, push = Math.random() < 0.25;   // only one orb in four knocks back
   const bite = id === 'mualani' ? f.stack : 0;   // Mualani spends her surf stacks on the next basic attack
-  if (bite) { f.stack = 0; ftext(f.x, f.y - 100, '파도 기세 ' + bite + ' 발산', '#9fe6f4', 16, 0.9); }
+  if (bite) { f.stack = 0; }
   hb({ owner: f, proj: true, anchor: true, shape: 'circle', r: big ? 18 : 14, ox: 24 * S, oy: 32 * S,
        vx: Math.cos(f.aim) * sp * f.dir, vy: Math.sin(f.aim) * sp, delay: s.delay * orbPace(f), life: 0.8,
        dmg: (big ? 6 : 3.5) + bite * 6.5, kb: s.kb * 0.6 * (bite ? 1.3 : 1), noKb: !push && !bite, ang: s.ang, el: f.def.el, vis: blade ? 'crescent' : 'bead', trail: big,
@@ -3400,7 +3367,6 @@ function varesaSlam(o, t) {
   startAct(o, 'skill', UP + DOWN + 0.12, { slow: 0 }); o.inv = Math.max(o.inv, UP + DOWN + 0.05); o.vx = o.vy = 0;
   t.act = null; t.combo = 0; t.hitstun = Math.max(t.hitstun, UP + DOWN + 0.3); t.vx = t.vy = 0;
   const nth = o.buff && o.buff.rush ? (o.buff.grabs = (o.buff.grabs || 0) + 1) : 0;
-  ftext(o.x, o.y - 110, nth >= VARESA_GRABS ? '마지막이다!' : '잡았다!', '#ff7ac8', 18, 0.8);
   hb({ owner: o, x: o.x, y: o.y, w: 0, h: 0, life: UP + DOWN, harmless: true, persist: true, keep: true, vis: 'none',
        onTick: h => {
          if (game.fighters[o.idx] !== o || o.dead || t.dead) { h.cancel = true; h.life = 0; return; }
@@ -3415,7 +3381,7 @@ function varesaSlam(o, t) {
          if (h.cancel || t.dead) return;
          o.y = y0; t.y = y0; t.x = o.x + dir * 30 * S;
          hb({ owner: o, shape: 'circle', x: t.x, y: y0 - 24, r: 110, life: 0.12, dmg: 7.5, kb: 1.25, ang: 72, el: 'electro', radial: true, persist: true, vis: 'boom', color: '#ff7ac8' });
-         if (nth >= VARESA_GRABS && o.buff && o.buff.rush) { o.buff.t = Math.min(o.buff.t, 0.05); ftext(o.x, o.y - 120, '가면 해제', '#cdd5f7', 16, 0.9); }   // the third slam ends the mask
+         if (nth >= VARESA_GRABS && o.buff && o.buff.rush) { o.buff.t = Math.min(o.buff.t, 0.05); }   // the third slam ends the mask
          for (let i = 0; i < 6; i++) { const a = -Math.PI + i * Math.PI / 5; bolt(t.x, y0 - 10, t.x + Math.cos(a) * 140, y0 - 10 + Math.sin(a) * 90, i % 2 ? '#ff7ac8' : '#7ffcff'); }
          flare(t.x, y0 - 30, 120, '#ff7ac8', { col2: '#7ffcff', rays: 12, streak: true, life: 0.45 });
          dust(t.x, y0, 16, 320); const gp = groundBelow(t); if (gp && gp.y - y0 < 30) markGround(t.x, gp, 'electro', 1.3);
@@ -3524,7 +3490,6 @@ function chargedAttack(f) {
   const fx = h => { const c = hbCenter(h); FINISH_FX[id](f, c.x, c.y); };
   const act = (kind, dur, slow) => startAct(f, kind, dur, { slow, charged: true });
   f.combo = 3; f.comboT = 0;   // uses the finisher pose; the next tap starts a fresh combo
-  ftext(f.x, f.y - 96, '강공격', col, 15, 0.6);
   if (id === 'nilou' && f.buff && f.buff.dance) {
     act('atk', 0.5, 0.15);
     const ax = f.x + f.dir * 10 * S, ay = f.y - 40 * S;
@@ -3537,7 +3502,6 @@ function chargedAttack(f) {
   if (id === 'itto' && f.stack > 0) {   // Arataki Kesagiri: one spinning slash for every stack, each carrying him forward, then the big cut
     const n = f.stack, gap = 0.2; f.stack = 0;
     act('atk', 0.12 + gap * n + 0.42, 0);
-    ftext(f.x, f.y - 112, '아라타키 참수 ×' + n, '#f5d77a', 17, 0.9);
     for (let i = 0; i < n; i++)
       hb({ owner: f, follow: true, ox: 40 * rm, oy: 44, w: 130 * rm, h: 96, delay: 0.08 + gap * i, life: 0.12, dmg: 2.6, kb: 0.35, ang: 25, noLaunch: true, el, vis: 'slashbig', color: col,
            onStart: h => { const o = h.owner; if (o.onGround) o.vx = o.dir * 380; puff(o.x - o.dir * 20, o.y - 10, '#f5d77a', 6, 180, 0.3, 3); dust(o.x, o.y, 5, 160); SFX.play('swing'); } });
@@ -3680,21 +3644,20 @@ function kinichCannon(f, foe) {   // the Scalespiker Cannon: all the points in o
        vis: 'scalespiker', onStart: () => { puff(sx, sy, '#5ef2c8', 18, 300, 0.4, 4); game.shake = Math.max(game.shake, 7); SFX.play('heavy'); },
        onEnd: m => { puff(m.x, m.y, '#b8f07a', 22, 340, 0.5, 5); puff(m.x, m.y, '#5ef2c8', 12, 260, 0.45, 4); spark(m.x, m.y, '#8fd94a', 70); } });
   kinichBlind(f, foe);
-  ftext(f.x, f.y - 108, '비늘 관통포!', '#b8f07a', 20, 0.9);
 }
 function kinichTick(f, foe, dt) {   // Nightsoul's Blessing while it lasts: points, the line, the blind spot
   const k = f.ks;
   k.t -= dt;
   if (k.t <= 0 || f.dead) { f.ks = null; f.cd = Math.max(f.cd, 6); f.cdMax = f.cd; return; }
   k.pts = Math.min(KN_MAX, k.pts + 2 * dt);
-  if (k.link && (foe.dead || Math.hypot(foe.x - f.x, foe.y - f.y) > KN_LEASH)) { k.link = false; ftext(f.x, f.y - 96, '연결 끊김', '#9fbfb0', 13, 0.6); }
+  if (k.link && (foe.dead || Math.hypot(foe.x - f.x, foe.y - f.y) > KN_LEASH)) { k.link = false; }
   const b = k.blind;
   if (b) {
     b.t -= dt;
     if (b.t <= 0) k.blind = null;
     else if (Math.abs(f.x - b.x) < 36 && f.y > b.y - 60 && f.y < b.y + 20) {   // he stepped into it
       k.pts = Math.min(KN_MAX, k.pts + 4); k.blind = null;
-      puff(b.x, b.y - 10, '#5ef2c8', 14, 220, 0.4, 3, -120); ftext(b.x, b.y - 40, '사각지대 +4', '#5ef2c8', 14, 0.7);
+      puff(b.x, b.y - 10, '#5ef2c8', 14, 220, 0.4, 3, -120); 
     }
   }
 }
@@ -3734,7 +3697,6 @@ function alhaithamMirrors(f, add) {
   const m = f.mir || (f.mir = { n: 0, t: AL_LIFE, gap: 0 });
   if (m.n === 0 || m.n + add > AL_MAX) m.t = AL_LIFE;   // a fresh start, or one too many: the countdown starts over
   m.n = Math.min(AL_MAX, m.n + add);
-  ftext(f.x, f.y - 100, '빛조각 ' + m.n, '#bff7dd', 15, 0.7);
 }
 const mirrorAt = (f, i, n, time) => { const a = time * 2.2 + i * Math.PI * 2 / n; return [f.x + Math.cos(a) * 36 * f.def.scale, f.y - 54 * f.def.scale + Math.sin(a) * 13]; };
 function alhaithamProject(o, t, h) {   // a hit of his landed: the mirrors answer it
@@ -3827,7 +3789,7 @@ const SKILLS = {
   },
   hutao(f) {
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 6;
-    f.pct += 6; ftext(f.x, f.y - 92, '+6% 혈매향', '#ff6a5a', 16, 1);
+    f.pct += 6; 
     f.buff = { t: 4, mul: 1.25, el: 'pyro', speed: 1.12 };
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 70, delay: 0.08, life: 0.1, dmg: 4, kb: 0.8, ang: 45, el: 'pyro', vis: 'none' });
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 70, delay: 0.04, life: 0.7, harmless: true, persist: true, vis: 'paramita', sdir: f.dir });
@@ -3859,7 +3821,7 @@ const SKILLS = {
   },
   eula(f) {
     startAct(f, 'skill', 0.4, { slow: 0.1 }); f.cd = 2.0;
-    f.stack = Math.min(2, f.stack + 1); ftext(f.x, f.y - 92, '냉기 각인 ' + f.stack, '#cfe8ff', 16, 0.9);
+    f.stack = Math.min(2, f.stack + 1); 
     hb({ owner: f, follow: true, ox: 60, oy: 36, w: 120, h: 76, delay: 0.12, life: 0.14, dmg: 7, kb: 1.1, ang: 40, el: 'cryo', vis: 'slash',
          onStart: h => puff(h.owner.x + h.sdir * 60, h.owner.y - 30, '#cfe8ff', 12, 220, 0.5, 4) });
   },
@@ -3933,11 +3895,10 @@ const SKILLS = {
   navia(f) {
     startAct(f, 'skill', 0.35, { slow: 0.1 }); f.cd = 2.2;
     const sx = f.x + f.dir * 40, sy = f.y - 38 * f.def.scale;
-    const n = f.crystals, mul = 1.3 * (1 + 0.2 * n);   // base +30%, then +20% per crystal carried
+    const n = Math.min(3, f.crystals), mul = 1 + 0.5 * n;   // 2026-11-05: all three shards ~20% with no crystal, ~50% with three (+50% per crystal)
     f.crystals = 0;
-    if (n) ftext(f.x, f.y - 104, '결정 ' + n + '개 · 피해 +' + n * 20 + '%', '#f5d77a', 17, 1.2);
     for (const da of [-0.18, 0, 0.18]) {
-      hb({ owner: f, proj: true, shape: 'circle', r: 12, x: sx, y: sy, vx: Math.cos(da) * 900 * f.dir, vy: Math.sin(da) * 900, delay: 0.12, life: 0.28, dmg: 4 * mul, kb: 0.7, ang: 25, el: 'geo', vis: 'shard' });
+      hb({ owner: f, proj: true, shape: 'circle', r: 12, x: sx, y: sy, vx: Math.cos(da) * 900 * f.dir, vy: Math.sin(da) * 900, delay: 0.12, life: 0.28, dmg: 6.1 * mul, kb: 0.7, ang: 25, el: 'geo', vis: 'shard' });
     }
     f.buff = { t: 3, mul: 1, el: 'geo' };   // 3 seconds of geo-infused basic attacks
     if (f.onGround) f.vx = -f.dir * 160;
@@ -3947,7 +3908,7 @@ const SKILLS = {
     hb({ owner: f, follow: true, ox: 36, oy: 36, w: 90, h: 64, delay: 0.03, life: 0.13, dmg: 2, kb: 0.3, ang: 20, noLaunch: true, el: 'cryo', vis: 'dash', color: '#dff2ff' });
     hb({ owner: f, follow: true, ox: 30, oy: 62, w: 84, h: 116, delay: 0.17, life: 0.12, dmg: 3, kb: 1.15, ang: 84, el: 'cryo', vis: 'icefist', color: '#dff2ff',
          onStart: h => { const o = h.owner; if (o.onGround) { o.vy = -360; o.onGround = false; } o.vx *= 0.2; puff(o.x + o.dir * 30, o.y - 70, '#dff2ff', 14, 260, 0.4, 3); SFX.play('heavy'); } });
-    f.pct += 2; ftext(f.x, f.y - 96, '+2% 반격 태세', '#dff2ff', 16, 1);
+    f.pct += 2; 
     f.buff = { t: 5, mul: 1.35, el: 'cryo', kb: 1.2 };
     puff(f.x, f.y - 34, '#dff2ff', 16, 220, 0.5, 4);
   },
@@ -3968,7 +3929,7 @@ const SKILLS = {
     // Stance: for 4 seconds her basic attack fires electro pistol shots. The long cooldown starts when the stance ends.
     startAct(f, 'skill', 0.2, { slow: 0.6 }); f.cd = 0.4;
     f.buff = { t: 4, mul: 1, gun: true, cdAfter: 5 };
-    ftext(f.x, f.y - 96, '사냥 태세', '#c077ff', 17, 1); puff(f.x, f.y - 34, '#c077ff', 16, 220, 0.5, 4);
+    puff(f.x, f.y - 34, '#c077ff', 16, 220, 0.5, 4);
     hb({ owner: f, follow: true, ox: 0, oy: 36, w: 0, h: 0, life: 0.45, harmless: true, persist: true, vis: 'clostance', seed: Math.random() * 100 });   // lightning bursting out around her
     game.flash = Math.max(game.flash, 0.12);
   },
@@ -3981,7 +3942,7 @@ const SKILLS = {
     startAct(f, 'skill', 0.3, { slow: 0.5 }); f.cd = 6;
     f.buff = { t: 5, mul: 1.15, el: 'hydro', dance: true };   // hydro on every basic attack, 15% more damage; a charged attack in the dance sends out a wave
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 36, r: 85, delay: 0.08, life: 0.12, dmg: 5, kb: 0.75, ang: 50, el: 'hydro', persist: true, vis: 'boom', color: EL.hydro.color });
-    ftext(f.x, f.y - 96, '물의 춤', '#9fd4ff', 17, 1); puff(f.x, f.y - 34, '#9fd4ff', 18, 240, 0.5, 4, 200);
+    puff(f.x, f.y - 34, '#9fd4ff', 18, 240, 0.5, 4, 200);
   },
   mavuika(f) {
     const foe = game.fighters[1 - f.idx];
@@ -3998,7 +3959,6 @@ const SKILLS = {
     const foe = game.fighters[1 - f.idx], k = f.ks;
     if (k) {   // already in Nightsoul's Blessing: with full points the Scalespiker Cannon, otherwise nothing yet
       if (k.pts >= KN_MAX && !foe.dead) kinichCannon(f, foe);
-      else if (f.ctrl !== 'cpu') ftext(f.x, f.y - 100, '밤혼 ' + Math.floor(k.pts) + ' / ' + KN_MAX, '#5ef2c8', 13, 0.6);
       f.cd = 0; return;
     }
     if (!foe.dead && Math.hypot(foe.x - f.x, foe.y - f.y) < KN_REACH) {   // the hook catches the opponent: Nightsoul's Blessing begins
@@ -4008,7 +3968,6 @@ const SKILLS = {
       kinichHook(f, foe.x, foe.y - 40);
       hb({ owner: f, shape: 'circle', x: foe.x, y: foe.y - 36, r: 30, delay: 0.1, life: 0.06, dmg: 2, kb: 0.2, ang: 20, el: 'dendro', track: foe, trackY: true, persist: true, vis: 'none' });
       kinichBlind(f, foe);
-      ftext(f.x, f.y - 104, '밤혼 가호', '#5ef2c8', 18, 1);
     } else {   // nothing to catch: the hook flies ahead and up and he swings forward through the air, and the skill comes back much sooner
       startAct(f, 'skill', 0.36, { slow: 0 }); f.cd = 1.2;
       kinichHook(f, f.x + f.dir * 240, f.y - 230);
@@ -4017,8 +3976,8 @@ const SKILLS = {
   },
   mualani(f) {
     startAct(f, 'skill', 0.25, { slow: 1 }); f.cd = 5;
-    f.buff = { t: 3.5, mul: 1, speed: 1.5 };
-    hb({ owner: f, follow: true, ox: 10, oy: 20, w: 80, h: 50, life: 3.5, rehit: 0.6, dmg: 3, kb: 0.5, ang: 40, el: 'hydro', stackUp: true, keep: true, vis: 'surf' });   // keep: being hit does not end the ride
+    f.buff = { t: 5, mul: 1, speed: 1.5 };   // 2026-11-05: 5 s ride (was 3.5), 7 a hit (was 3): three hits are a little over 20%
+    hb({ owner: f, follow: true, ox: 10, oy: 20, w: 80, h: 50, life: 5, rehit: 0.6, dmg: 7, kb: 0.5, ang: 40, el: 'hydro', stackUp: true, keep: true, vis: 'surf' });   // keep: being hit does not end the ride
   },
   citlali(f) {
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 5;
@@ -4087,7 +4046,6 @@ const SKILLS = {
   sandrone(f) {   // her machine appears beside her and fights on its own for 4 seconds
     startAct(f, 'skill', 0.4, { slow: 0.2 }); f.cd = 7;
     spawnRobot(f, 4);
-    ftext(f.x, f.y - 100, '기계 인형 출격', '#9fe6ff', 16, 1);
   },
   arlecchino(f) {   // step through the shadows to the opponent's side and cut once all the way round her; a moment later crimson thorns
     // burst up out of the ground under them and throw them up. Her weapon burns for 5 seconds.
@@ -4142,7 +4100,7 @@ const SKILLS = {
     }
     startAct(f, 'skill', 0.25, { slow: 0.5 }); f.cd = 0.4;
     f.buff = { t: 5, mul: 1.1, el: 'hydro', blades: true, cdAfter: 6 };
-    ftext(f.x, f.y - 96, '마왕의 무장', '#9fd4ff', 17, 1); puff(f.x, f.y - 34, '#7fc8ff', 20, 260, 0.5, 4, 200);
+    puff(f.x, f.y - 34, '#7fc8ff', 20, 260, 0.5, 4, 200);
   },
   qiqi(f) {   // the Herald of Frost circles her for 5 seconds, chilling whoever is close; she recovers a little
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 7;
@@ -4155,7 +4113,6 @@ const SKILLS = {
     startAct(f, 'skill', 0.28, { slow: 0.3 }); f.cd = 6;
     f.buff = { t: 5, mul: 1.15, el: 'cryo' };
     hb({ owner: f, proj: true, pierce: true, anchor: true, ox: 30, oy: 44, w: 96, h: 70, vx: f.dir * 900, delay: 0.08, life: 0.5, dmg: 5.5, kb: 0.9, ang: 32, el: 'cryo', vis: 'shenspirit', color: '#dff6ff', trail: true });
-    ftext(f.x, f.y - 96, '얼음 깃', '#dff6ff', 16, 1);
   },
   flins(f) {   // Manifest Flame for 5 seconds: electro on every basic attack. Pressed again while it burns, a storm of spear thrusts
     if (f.buff && f.buff.flame) {
@@ -4169,14 +4126,14 @@ const SKILLS = {
     }
     startAct(f, 'skill', 0.25, { slow: 0.5 }); f.cd = 0.4;
     f.buff = { t: 5, mul: 1.2, el: 'electro', flame: true, cdAfter: 6 };
-    ftext(f.x, f.y - 100, '현현의 불꽃', '#a8b4ff', 17, 1); puff(f.x, f.y - 60, '#6a7cff', 20, 240, 0.6, 4, -160);
+    puff(f.x, f.y - 60, '#6a7cff', 20, 240, 0.6, 4, -160);
     for (let i = 0; i < 4; i++) { const a = i * 1.57 + rnd(-0.4, 0.4); bolt(f.x + Math.cos(a) * 60, f.y - 36 + Math.sin(a) * 60, f.x + rnd(-8, 8), f.y - 36 + rnd(-20, 20), '#7a8cff'); }
   },
   nefer(f) {   // two green shadows rise beside the opponent and pounce one after the other; the second throws them away from her.
     // Each follows the opponent (up into the air too) until a moment before it pounces, so stepping aside does not dodge it.
     const foe = game.fighters[1 - f.idx];
     startAct(f, 'skill', 0.4, { slow: 0.2 }); f.cd = 5;
-    f.quickHeavy = NEFER_QUICK; ftext(f.x, f.y - 100, '강공격 충전 단축', '#7dffb0', 15, 0.9);
+    f.quickHeavy = NEFER_QUICK; 
     if (!foe.dead && Math.abs(foe.x - f.x) > 4) f.dir = sgn(foe.x - f.x);
     const x = foe.dead ? f.x + f.dir * 180 : foe.x, y = (foe.dead ? f.y : foe.y) - 34, out = sgn(x - f.x) || f.dir;
     for (let i = 0; i < 2; i++) {
@@ -4195,7 +4152,6 @@ const SKILLS = {
     startAct(f, 'dash', 0.3, { slow: 0 }); f.cd = 3.5; f.vx = f.dir * 900; f.vy = 0;
     hb({ owner: f, follow: true, ox: 30, oy: 38, w: 130, h: 84, life: 0.3, dmg: 8, kb: 1.25, ang: 38, el: 'anemo', vis: 'wolf' });
     f.buff = { t: 6, mul: 1, el: 'pyro', el2: 'anemo' };   // then 6 seconds of fire and wind on every basic attack
-    ftext(f.x, f.y - 100, '불·바람 인챈트', '#ffb27a', 16, 1);
   },
   zibai(f) {   // a crescent that flies out, slows, and comes back; it can cut on the way out and again on the way home (pulling them toward her)
     startAct(f, 'skill', 0.35, { slow: 0.2 }); f.cd = 3.5;
@@ -4241,12 +4197,12 @@ const SKILLS = {
          onStart: h => puff(h.x, h.y, '#9fd4ff', 16, 240, 0.5, 4, 300) });
     if (f.onGround) f.vx = -f.dir * 320;   // he slips back out of his double
     f.buff = { t: 6, mul: 1.1, el: 'hydro', reach: 1.3, shun: true, cdAfter: 6 };
-    ftext(f.x, f.y - 96, '경수', '#9fd4ff', 17, 1); puff(f.x, f.y - 34, '#7fc8ff', 20, 260, 0.5, 4, 200);
+    puff(f.x, f.y - 34, '#7fc8ff', 20, 260, 0.5, 4, 200);
   },
   yoimiya(f) {   // Niwabi Fire-Dance: for 6 seconds every arrow is a blazing one, and bursts in a little spray of fire where it lands
     startAct(f, 'skill', 0.25, { slow: 0.5 }); f.cd = 7;
     f.buff = { t: 6, mul: 1.25, el: 'pyro', niwabi: true };
-    ftext(f.x, f.y - 96, '불꽃놀이 화살', '#ffb04d', 16, 1); puff(f.x, f.y - 40, '#ffb04d', 18, 240, 0.6, 4, -150);
+    puff(f.x, f.y - 40, '#ffb04d', 18, 240, 0.6, 4, -150);
   },
   kokomi(f) {   // Kurage's Oath: a jellyfish of water hangs where she stands for 6 seconds, soaking the area and healing her side
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 9;
@@ -4284,7 +4240,6 @@ const SKILLS = {
     hb({ owner: f, follow: true, ox: 28, oy: 14, w: 112, h: 32, life: 0.26, dmg: 2.5, kb: 0.55, ang: 78, el: 'geo', vis: 'slidekick' });
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 40, r: 80, delay: 0.3, life: 0.1, dmg: 3.5, kb: 1.0, ang: 45, el: 'geo', vis: 'boom', onStart: h => dust(h.owner.x, h.owner.y, 10, 220) });
     f.buff = { t: 6, mul: 1.15, el: 'geo', speed: 1.5, skate: true };
-    ftext(f.x, f.y - 96, '롤러스케이트', '#f5d77a', 16, 1);
   },
   mizuki(f) {   // dream-drifting for 5 seconds: rings of wind turn around her, catching and drawing in whoever is close
     startAct(f, 'skill', 0.25, { slow: 0.5 }); f.cd = 8;
@@ -4404,7 +4359,6 @@ const SKILLS = {
     if (f.buff && f.buff.vesna) {
       const lv = f.buff.lv = (f.buff.lv || 0) + 1;
       startAct(f, 'skill', 0.34, { slow: 0.2 }); f.cd = lv < 3 ? 0.9 : 7;
-      ftext(f.x, f.y - 100, '바람 검기 ' + lv + '단계', '#e8fff4', 16, 0.8);
       if (lv < 3) {
         for (let i = 0; i < lv; i++)
           hb({ owner: f, proj: true, anchor: true, shape: 'circle', r: 18 + lv * 4, ox: 40, oy: 40 + (i - (lv - 1) / 2) * 26, vx: f.dir * 980, vy: 0, delay: 0.08 + i * 0.06, life: 0.55,
@@ -4420,7 +4374,6 @@ const SKILLS = {
     startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 0.9;
     f.buff = { t: 8, mul: 1.18, el: 'anemo', vesna: true, lv: 0 };
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 38, r: 90, life: 0.12, dmg: 3, kb: 0.7, ang: 70, el: 'anemo', persist: true, vis: 'updraft' });
-    ftext(f.x, f.y - 100, '바람 검', '#e8fff4', 18, 0.9);
   },
   linnea(f) {   // Lumi's Battle Cry: Lumi comes out (6 s) and throws crystals at the opponent. Pressed again while Lumi is out: Lumi grows and
                 // pounces on them; the third pounce is the biggest and sends Lumi back
@@ -4431,7 +4384,6 @@ const SKILLS = {
       const tx = foe.dead ? f.x + f.dir * 160 : foe.x, gp = groundBelow({ x: tx, y: (foe.dead ? f.y : foe.y) - 10 }), gy = gp ? gp.y : f.y;
       hb({ owner: f, shape: 'circle', x: tx, y: gy - 40, r: 70 + g2 * 20, delay: 0.3, life: 0.12, dmg: [0, 2, 3, 5][g2], kb: [0, 0.45, 0.7, 1.15][g2], ang: 70, el: 'geo', radial: true, persist: true,
            vis: 'boom', color: '#f5b83d', onStart: h => { game.shake = Math.max(game.shake, 4 + g2 * 3); SFX.play('heavy'); puff(h.x, gy, '#ffe9a8', 10 + g2 * 4, 260, 0.5, 4); } });
-      ftext(f.x, f.y - 100, g2 < 3 ? '루미, 더 크게!' : '루미, 지금이야!', '#ffe08a', 16, 0.8);
       if (g2 >= 3) lumi.life = Math.min(lumi.life, lumi.age + 0.6);
       return;
     }
@@ -4443,7 +4395,6 @@ const SKILLS = {
       } });
     h.grow = 0;
     h.onEnd = () => { f.cd = Math.max(f.cd, 8); };   // Lumi left (or was sent back): the skill rests a while
-    ftext(f.x, f.y - 100, '루미!', '#ffe08a', 18, 0.8);
   },
 };
 const ITTO_MAX = 4;   // Itto's Superlative Superstrength stacks at most
@@ -4567,7 +4518,6 @@ const BURSTS = {
     hb({ owner: f, follow: true, ox: 175, oy: 40, w: 350, h: 120, delay: 0.08, life: 0.16, dmg: 20, kb: 1.9, ang: 40, el: 'electro', persist: true, vis: 'slashbig',
          onStart: () => { game.shake = Math.max(game.shake, 12); game.flash = 0.3; SFX.play('heavy'); } });
     f.buff = { t: 5, mul: 1, el: 'electro', musou: true };   // musou: she keeps the blade; basic attacks are slashes that carry electro
-    ftext(f.x, f.y - 100, '몽상의 일태도', '#d0a8ff', 18, 1.2);
   } },
   ganyu: { name: '얼음비', fn(f) {
     hb({ owner: f, x: clamp(f.x + f.dir * 190, -520, 1480), y: 210, w: 400, h: 520, delay: 0.1, life: 2.2, dmg: 3.2, kb: 0.3, ang: 80, el: 'cryo', rehit: 0.35, persist: true, vis: 'hail' });
@@ -4602,7 +4552,7 @@ const BURSTS = {
            if (foe.dead) return;
            const near = Math.hypot(foe.x - h.x, foe.y - 34 - h.y) < h.r + 30;
            if (!h.absorb && near && foe.aura && ['pyro', 'hydro', 'electro', 'cryo'].includes(foe.aura.el)) {   // takes the element in
-             h.absorb = foe.aura.el; ftext(h.x, h.y - 110, '원소 흡수: ' + EL[h.absorb].name, EL[h.absorb].color, 16, 1.1); puff(h.x, h.y, EL[h.absorb].color, 20, 260, 0.6, 4);
+             h.absorb = foe.aura.el; puff(h.x, h.y, EL[h.absorb].color, 20, 260, 0.6, 4);
            }
            h.extra = (h.extra ?? 0.5) - dt;
            if (h.absorb && near && h.extra <= 0) {   // the element it took, with each turn of the wind
@@ -4614,7 +4564,7 @@ const BURSTS = {
          onStart: () => {
            const foe = game.fighters[1 - f.idx];   // the cut itself takes in an element it strikes (before the wind uses it up)
            if (!foe.dead && foe.aura && ['pyro', 'hydro', 'electro', 'cryo'].includes(foe.aura.el) && Math.abs(foe.x - fx) < 160 && foe.y > gy - 260) {
-             field.absorb = foe.aura.el; ftext(fx, gy - 160, '원소 흡수: ' + EL[field.absorb].name, EL[field.absorb].color, 16, 1.1);
+             field.absorb = foe.aura.el; 
            }
            game.shake = Math.max(game.shake, 11); game.shakeA = Math.PI / 2; SFX.play('heavy');
            for (let i = 0; i < 14; i++) game.particles.push({ k: 'leaf', x: fx + rnd(-60, 60), y: gy - rnd(10, 160), vx: rnd(-220, 220), vy: rnd(-260, -40), grav: 160, drag: 0.4, rot: rnd(0, 6.3), vr: rnd(-9, 9), ph: rnd(0, 6.3), life: rnd(0.8, 1.3), max: 1.3, size: rnd(4, 6.5), color: i % 3 ? '#e8452a' : '#f08a3a' });
@@ -4624,7 +4574,7 @@ const BURSTS = {
   } },
   furina: { name: '모두의 축제', fn(f) {
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 220, delay: 0, life: 0.14, dmg: 12, kb: 1.4, ang: 50, el: 'hydro', radial: true, persist: true, vis: 'boom' });
-    f.buff = { t: 5, mul: 1.3 }; ftext(f.x, f.y - 90, '피해 +30%', '#9fd4ff', 18, 1.2);
+    f.buff = { t: 5, mul: 1.3 }; 
   } },
   nahida: { name: '마야의 궁전', fn(f) {
     hb({ owner: f, shape: 'circle', x: f.x, y: f.y - 60, r: 320, delay: 0, life: 4, rehit: 0.7, dmg: 2, kb: 0.2, ang: 60, el: 'dendro', radial: true, persist: true, mark: 10, lock: true, vis: 'dome' });
@@ -4648,7 +4598,7 @@ const BURSTS = {
          } });
   } },
   xingqiu: { name: '고화검 · 재우', fn(f) {
-    f.buff = { t: 6, mul: 1, rain: true }; ftext(f.x, f.y - 90, '비의 검', '#9fd4ff', 18, 1.1);
+    f.buff = { t: 6, mul: 1, rain: true }; 
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 150, life: 0.14, dmg: 8, kb: 1.1, ang: 45, el: 'hydro', radial: true, persist: true, vis: 'boom' });
   } },
   albedo: { name: '탄생식 · 대지의 꽃', fn(f) {
@@ -4778,7 +4728,7 @@ const BURSTS = {
     for (const h of game.hits) if (h.owner === f && h.vis === 'ajaw') h.dead = true;
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 40, r: 150, delay: 0.05, life: 0.12, dmg: 6, kb: 1.15, ang: 55, el: 'dendro', persist: true, vis: 'boom',
          onStart: () => { game.shake = Math.max(game.shake, 9); puff(f.x, f.y - 40, '#b8f07a', 26, 360, 0.6, 5); puff(f.x, f.y - 40, '#5ef2c8', 14, 300, 0.5, 4); } });
-    if (f.ks) { f.ks.t += 1.7; ftext(f.x, f.y - 124, '밤혼 가호 +1.7초', '#5ef2c8', 15, 1); }
+    if (f.ks) { f.ks.t += 1.7; }
     hb({ owner: f, x: f.x - f.dir * 60, y: f.y - 128, life: 10, harmless: true, persist: true, vis: 'ajaw', big: true,
          onTick: (h, dt) => {
            const o = game.fighters[h.owner.idx], foe = game.fighters[1 - h.owner.idx];
@@ -4792,7 +4742,7 @@ const BURSTS = {
            hb({ owner: h.owner, shape: 'circle', x: ex, y: ey, r: 78, delay: 0.3, life: 0.1, dmg: 5, kb: 0.95, ang: 55, el: 'dendro', radial: true, persist: true, vis: 'boom',
                 onStart: m => { puff(m.x, m.y, '#b8f07a', 18, 300, 0.45, 4); puff(m.x, m.y, '#5ef2c8', 8, 220, 0.4, 3); game.shake = Math.max(game.shake, 5); SFX.play('heavy'); } });
          } });
-    puff(f.x - f.dir * 60, f.y - 128, '#b8f07a', 26, 280, 0.55, 5); ftext(f.x - f.dir * 60, f.y - 190, '아쥬!', '#d9e84a', 20, 1);
+    puff(f.x - f.dir * 60, f.y - 128, '#b8f07a', 26, 280, 0.55, 5); 
   } },
   mualani: { name: '상어 미사일', fn(f, foe) {
     const sx = f.x + f.dir * 20, sy = f.y - 60, a = foe.dead ? (f.dir > 0 ? 0 : Math.PI) : Math.atan2(foe.y - 34 - sy, foe.x - sx);
@@ -4831,7 +4781,7 @@ const BURSTS = {
     f.buff = { t: 7, mul: 1.3, el: 'electro', speed: 1.2, kb: 1.1, jackal: true };   // jackal: drawn transformed, attacks become claw swipes with both hands
     puff(f.x, f.y - 40, '#c077ff', 30, 360, 0.7, 5); spark(f.x, f.y - 40, '#e6c9ff', 90);
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 120, life: 0.14, dmg: 7, kb: 1.2, ang: 50, el: 'electro', persist: true, vis: 'boom' });
-    bolt(f.x, -40, f.x, f.y - 30, EL.electro.color); ftext(f.x, f.y - 100, '승냥이의 의식', '#d0a8ff', 18, 1.2);
+    bolt(f.x, -40, f.x, f.y - 30, EL.electro.color); 
   } },
   aether: { name: '돌풍의 검', fn(f) {   // a whirlwind that travels forward, dragging the opponent along
     hb({ owner: f, proj: true, pierce: true, shape: 'circle', r: 90, x: f.x + f.dir * 60, y: f.y - 70, vx: f.dir * 250, vy: 0, life: 1.8, rehit: 0.25, dmg: 2.6, kb: 0.3, ang: 85, el: 'anemo', pull: 240, persist: true, vis: 'tornado',
@@ -5002,7 +4952,6 @@ const BURSTS = {
          onStart: h => { puff(h.x, h.y, '#fff6d0', 30, 420, 0.7, 5); dust(h.x, h.y + 36, 10, 240); game.shake = Math.max(game.shake, 12); game.flash = Math.max(game.flash, 0.25); SFX.play('heavy'); } });
     hb({ owner: f, shape: 'circle', x, y, r: 135, delay: 0.75, life: 0.45, el: 'geo', harmless: true, persist: true, track: foe, trackY: true, vis: 'moonfall' });
     f.shield = Math.max(f.shield, 10); f.shieldT = 6; f.shieldEl = 'geo';
-    ftext(f.x, f.y - 96, '달빛 방어막', '#f5e6a8', 17, 1);
   } },
   yelan: { name: '심경 영롱 주사위', fn(f) {   // a die hovers by whoever is on the field for 6 seconds and throws three darts of water at the opponent every 0.9 s
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 130, life: 0.14, dmg: 5, kb: 1.0, ang: 50, el: 'hydro', persist: true, vis: 'boom' });
@@ -5023,14 +4972,12 @@ const BURSTS = {
            }
            SFX.play('swing');
          } });
-    ftext(f.x, f.y - 100, '영롱 주사위', '#9fd4ff', 17, 1);
   } },
   xiao: { name: '정요 야차 가면', fn(f) {   // the mask for 8 seconds: anemo on every hit, higher jumps, and a plunge when he attacks in the air. It costs him 5%
-    f.pct += 5; ftext(f.x, f.y - 116, '+5% 업장', '#7fe0cc', 15, 1);
+    f.pct += 5; 
     f.buff = { t: 8, mul: 1.25, el: 'anemo', jump: 1.2, yaksha: true };
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 34, r: 120, life: 0.14, dmg: 7, kb: 1.2, ang: 50, el: 'anemo', persist: true, vis: 'boom' });
     puff(f.x, f.y - 40, '#1f6a5a', 24, 320, 0.7, 5); puff(f.x, f.y - 40, '#b6fff0', 16, 260, 0.5, 4);
-    ftext(f.x, f.y - 98, '야차 가면', '#7fe0cc', 18, 1.2);
   } },
   ayaka: { name: '카미사토류 · 상멸', fn(f) {   // a storm of snow and blades drifts slowly forward for 3 seconds, cutting and drawing in whoever it passes, then bursts into bloom
     const dir = f.dir;
@@ -5061,19 +5008,18 @@ const BURSTS = {
            hb({ owner: h.owner, shape: 'circle', x: h.x, y: h.y, r: 130, life: 0.12, dmg: 6, kb: 1.25, ang: 55, el: 'pyro', radial: true, persist: true, vis: 'boom' });
            puff(h.x, h.y, '#ffe08a', 24, 380, 0.8, 4, 80); puff(h.x, h.y, '#ff5a2a', 14, 300, 0.6, 5); game.shake = Math.max(game.shake, 9); SFX.play('heavy');
          } });
-    if (!foe.dead) { foe.blazeUntil = game.time + 6.1; foe.blazeNext = 0; ftext(foe.x, foe.y - 110, '불꽃 표식', '#ffb04d', 16, 1); fireworkShow(f, foe); }
+    if (!foe.dead) { foe.blazeUntil = game.time + 6.1; foe.blazeNext = 0; fireworkShow(f, foe); }
   } },
   kokomi: { name: '해인의 화신', fn(f) {   // a wave around her, a heal, and 8 seconds of hydro on every basic attack; her jellyfish is renewed
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 170, life: 0.14, dmg: 7, kb: 1.3, ang: 50, el: 'hydro', radial: true, persist: true, vis: 'boom' });
     f.buff = { t: 8, mul: 1.25, el: 'hydro', nereid: true }; healSide(f, 5, '#9fe6f4');
     const jf = game.hits.find(h => h.owner === f && h.vis === 'kurage' && !h.dead); if (jf) jf.life = jf.age - jf.delay + 6;
-    ftext(f.x, f.y - 110, '해인의 화신', '#bfefff', 18, 1.1);
   } },
   itto: { name: '오니의 강림', fn(f) {   // eight seconds as an oni: geo on every swing, harder, longer and heavier
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 34, r: 140, life: 0.14, dmg: 6, kb: 1.2, ang: 55, el: 'geo', radial: true, persist: true, vis: 'boom' });
     f.buff = { t: 8, mul: 1.35, el: 'geo', reach: 1.15, kb: 1.15, speed: 1.15, oni: true };
     f.stack = Math.min(ITTO_MAX, f.stack + 2);
-    ftext(f.x, f.y - 112, '오니 강림', '#f5d77a', 18, 1.2); puff(f.x, f.y - 40, '#f5d77a', 26, 320, 0.7, 5, -100);
+    puff(f.x, f.y - 40, '#f5d77a', 26, 320, 0.7, 5, -100);
   } },
   dehya: { name: '사자의 이빨', fn(f) {   // a flurry of blazing punches, then a kick that sends them away
     f.act.t = f.act.dur = 1.15;
@@ -5106,7 +5052,6 @@ const BURSTS = {
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 150, delay: 0.08, life: 0.12, dmg: 7, kb: 1.2, ang: 60, el: 'electro', radial: true, persist: true, vis: 'boom', color: '#ff7ac8',
          onStart: h => { for (let i = 0; i < 8; i++) { const a = i * 0.785; bolt(h.x, h.y, h.x + Math.cos(a) * 160, h.y + Math.sin(a) * 110, i % 2 ? '#ff7ac8' : '#7ffcff'); } game.shake = Math.max(game.shake, 10); SFX.play('heavy'); } });
     f.buff = { t: 6, mul: 1.2, el: 'electro', speed: 1.15, rush: true, masked: true, grabs: 0 };
-    ftext(f.x, f.y - 112, '가면 착용!', '#ff7ac8', 20, 1.1);
   } },
   ineffa: { name: '최상위 지령 · 회오리 박멸자', fn(f) {   // a great discharge of lightning around her; her drone is sent out again
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 180, delay: 0.1, life: 0.14, dmg: 11, kb: 1.6, ang: 52, el: 'electro', radial: true, persist: true, vis: 'boom',
@@ -5122,7 +5067,6 @@ const BURSTS = {
     for (const h of game.hits) if (h.owner === f && h.vis === 'palehymn') h.dead = true;
     hb({ owner: f, follow: true, ox: 0, oy: 50, w: 0, h: 0, life: LAUMA_HYMN_T, harmless: true, persist: true, vis: 'palehymn',
          onTick: h => { const o = h.owner; if (game.fighters[o.idx] !== o || o.dead || !(o.paleHymn > 0) || game.time > o.paleHymnUntil) { o.paleHymn = 0; h.life = 0; } } });
-    ftext(f.x, f.y - 120, '창백한 찬가 ×' + f.paleHymn, '#e8fff4', 18, 1.2);
   } },
   jean: { name: '민들레 바람', fn(f) {   // a blast of wind round her, then for 5 s a field of dandelions that heals whoever of hers stands in it
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 175, life: 0.14, dmg: 12, kb: 1.45, ang: 55, el: 'anemo', radial: true, persist: true, vis: 'none' });
@@ -5150,7 +5094,6 @@ const BURSTS = {
     hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 190, life: 0.14, dmg: orb ? 13 : 10, kb: orb ? 1.6 : 1.35, ang: 55, el: 'hydro', radial: true, persist: true, vis: 'boom', color: '#3fa9ff',
          onStart: () => { game.shake = Math.max(game.shake, 11); SFX.play('heavy'); } });
     game.waves.push({ x: f.x, y: f.y - 40, r: 30, R: 260, life: 0.5, max: 0.5, color: '#3fa9ff' });
-    if (orb) ftext(f.x, f.y - 120, '노래가 물결을 키웁니다', '#bfeaff', 14, 0.9);
   } },
   vesna: { name: '차리차를 위하여!', fn(f, foe) {   // eight spirit blades rise behind her and fall on the opponent one by one
     hb({ owner: f, follow: true, ox: 0, oy: 40, w: 0, h: 0, life: 1.2, harmless: true, persist: true, vis: 'none',
@@ -5440,7 +5383,7 @@ function tickLightfall(f, dt) {   // Eula's Lightfall sword: grows with every hi
   if (f.lf.t > 0) return;
   const L = f.lf; f.lf = null;
   hb({ owner: f, shape: 'circle', x: L.x, y: L.y + 40, r: 150, life: 0.14, dmg: 8 + L.n * 1.5, kb: 1.5 + L.n * 0.03, ang: 50, radial: true, persist: true, vis: 'boom', color: '#dff2ff', burst: true, src: { kind: 'burst', rolled: new Set() } });
-  puff(L.x, L.y + 30, '#dff2ff', 36, 420, 0.8, 6); ftext(L.x, L.y - 70, L.n + '중첩', '#dff2ff', 22, 1.1);
+  puff(L.x, L.y + 30, '#dff2ff', 36, 420, 0.8, 6); 
   g.shake = Math.max(g.shake, 12); g.flash = 0.25; SFX.play('heavy');
 }
 
@@ -5687,7 +5630,7 @@ function stepFighter(f, foe, dt) {
   }
   // Guard: held with H. It blocks hits but the meter wears down, both over time and with every blocked hit.
   f.guarding = inp.guard && free && live && !f.act && f.guard > 0 && f.guardLock <= 0 && !f.inDome;
-  if (f.guarding && !f.wasGuarding) { if (g.time - f.guardOn > PARRY_REARM) f.parryAt = g.time; f.guardOn = g.time; }   // a fresh guard: the just-guard window
+  if (f.guarding && !f.wasGuarding) f.guardOn = g.time;
   f.wasGuarding = f.guarding;
   f.sealT = Math.max(0, (f.sealT || 0) - dt);
   if (inp.guard && f.inDome && live && f.sealT <= 0) { f.sealT = 0.8; ftext(f.x, f.y - 100, '가드 봉인', EL.dendro.color, 14, 0.6); }
@@ -6049,7 +5992,7 @@ function updatePickups(dt) {
     const f = g.fighters.find(f => !f.dead && (c.side < 0 || f.idx === c.side) && Math.abs(f.x - c.x) < 34 && Math.abs(f.y - 34 - c.y) < 60);
     if (f) {
       f.shield = Math.min(24, f.shield + 10); f.shieldT = 8; f.shieldEl = c.el;
-      if (f.def.id === 'navia') f.crystals = Math.min(6, f.crystals + 1);
+      if (f.def.id === 'navia') f.crystals = Math.min(3, f.crystals + 1);   // (3 at most: the skill counts up to three)
       ftext(c.x, c.y - 20, f.def.id === 'navia' ? '결정 ' + f.crystals : '방어막', '#f5d77a', 16, 0.8);
       puff(c.x, c.y, '#f5d77a', 10, 160, 0.4, 3); SFX.play('pick');
       g.pickups.splice(i, 1); continue;
@@ -12702,7 +12645,7 @@ const KIT = {   // short on purpose: one or two plain sentences per move (the de
   nilou: { cd: 6.0, skill: '물을 휘두르고 5초 동안 물 평타 +15%. 강공격이 부채꼴 물결이 됩니다.', burst: '주변 바닥에 물결을 두 번 크게 퍼뜨립니다.' },
   mavuika: { cd: 3.6, skill: '오토바이로 상대 쪽으로 달리며 지나간 땅에 불길을 남기고, 끝에 앞바퀴를 들어 뛰어오릅니다.', burst: '불붙은 대검을 크게 한 바퀴 휘둘러 주변을 태웁니다.' },
   kinich: { cd: 6, skill: '갈고리로 8초 가호 상태: 평타가 회전 사격이 됩니다. 밤혼 20이면 관통포 발사.', burst: '충격파 뒤 용 아쥬가 10초 동안 따라다니며 2초마다 숨결을 쏩니다.' },
-  mualani: { cd: 5.0, skill: '3.5초 동안 파도를 타고 달립니다. 부딪힐 때마다 다음 평타가 세집니다.', burst: '큰 물 덩어리를 쏘아 크게 터뜨립니다.' },
+  mualani: { cd: 5.0, skill: '5초 동안 파도를 타고 달립니다. 부딪힐 때마다 다음 평타가 세집니다.', burst: '큰 물 덩어리를 쏘아 크게 터뜨립니다.' },
   citlali: { cd: 5.0, skill: '방어막을 얻고 2초 동안 서리 고리로 주변에 얼음을 묻힙니다.', burst: '상대에게 얼음 별을 떨어뜨리고 얼음 폭발이 세 번 이어집니다.' },
   skirk: { cd: 4.2, skill: '허공으로 사라져 앞쪽으로 순간이동하고, 지나간 자리의 균열이 잠시 뒤 터지며 벱니다(공중 가능).', burst: '허공에 균열을 열고 연속으로 벤 뒤 깨뜨려 날려 보냅니다.' },
   alhaitham: { cd: 5.0, skill: '돌진 후 빛조각을 만듭니다(최대 3). 평타가 맞으면 빛이 함께 꽂힙니다.', burst: '다이아몬드 여섯 개가 상대를 가두고 여러 번 벤 뒤 터집니다.' },
