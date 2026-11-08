@@ -164,6 +164,27 @@ button { font-family: inherit; }
 /* Detail panel: the player's own illustration at full size, with the name and element set large over it. */
 .sel-side .sel-detail { padding: 0; gap: 0; overflow: hidden; }
 .sel-left { position: relative; }
+.lu-reso { margin: 8px 0 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--c); text-align: center; }
+.lu-reso img { width: 18px; height: 18px; }
+/* the tournament: setup buttons, then the bracket (quarter-finals, semi-finals, final, champion) */
+.tour-setup { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.tour-setup .btn { display: flex; flex-direction: column; gap: 2px; padding: 14px 22px; font-size: 18px; }
+.tour-setup .btn small { font-size: 12px; opacity: .75; font-weight: 400; }
+.tour-bracket { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: min(100%, 980px); align-items: center; }
+.tour-col { position: relative; display: flex; flex-direction: column; justify-content: space-around; gap: 6px; height: 100%; padding-top: 22px; }
+.tour-col > b { position: absolute; top: 0; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--muted); }
+.tour-m { display: flex; flex-direction: column; gap: 3px; padding: 5px; border-radius: 10px; border: 1px solid var(--line); background: rgba(18, 25, 54, .85); }
+.tour-m.now { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.tour-e { display: flex; align-items: center; gap: 6px; min-height: 26px; padding: 2px 6px; border-radius: 7px; border-left: 3px solid var(--c, var(--line)); font-size: 13px; }
+.tour-e img { width: 22px; height: 22px; flex: none; }
+.tour-e.win { background: rgba(255, 210, 77, .14); font-weight: 700; }
+.tour-e.lose { opacity: .45; text-decoration: line-through; }
+.tour-e.me::after { content: '나'; margin-left: auto; font-size: 10px; padding: 0 5px; border-radius: 5px; background: var(--gold); color: #000; font-weight: 700; }
+.tour-e.tbd { color: var(--muted); }
+.tour-champ { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.tour-champ img { width: 100%; max-width: 150px; aspect-ratio: 1; object-fit: cover; object-position: top; border-radius: 12px; border: 2px solid var(--gold); }
+.tour-champ b { font-size: 18px; color: var(--gold); }
+@media (max-width: 640px) { .tour-bracket { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .trav-pick { position: absolute; inset: 8px; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px;
   background: rgba(9, 12, 27, .94); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(4px); }
 .trav-pick[hidden] { display: none; }
@@ -322,7 +343,7 @@ button { font-family: inherit; }
   background: repeating-linear-gradient(-58deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 46px), radial-gradient(ellipse at 50% 55%, rgba(6, 9, 22, 0), rgba(6, 9, 22, .82)); }
 #ovParty > *, #ovMode > * { position: relative; z-index: 1; }
 /* the mode scene, after the title's start button: five cards in the same style as the party-size ones */
-.pty-cards.mode-cards { grid-template-columns: repeat(5, minmax(0, 1fr)); width: min(100%, 1040px); gap: clamp(6px, 1.4cqw, 18px); }
+.pty-cards.mode-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1040px); gap: clamp(6px, 1.4cqw, 18px); }
 .mode-cards .pty-faces { height: clamp(36px, 8cqw, 86px); }
 .md-name { font-family: var(--f-display); font-weight: 400; font-size: clamp(15px, 2.9cqw, 32px); line-height: 1.1; color: #fff; text-shadow: 0 2px 0 rgba(6, 12, 30, .6), 0 0 20px var(--c); white-space: nowrap; }
 #ovMode #menuHint { min-height: 3em; max-width: 760px; }
@@ -694,6 +715,21 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
           <b class="md-name">훈련장</b><span class="pty-rule">자유 연습</span>
           <em class="pty-desc">반격하지 않는 상대로 기술과 연계를 연습합니다.</em>
         </button>
+        <button class="pty" type="button" data-mode="boss" style="--c: var(--electro)">
+          <kbd>6</kbd><span class="pty-faces" aria-hidden="true"><svg viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="60" cy="28" r="18"/><path d="M42 18L36 4L52 12M78 18L84 4L68 12"/><path d="M30 76Q30 50 60 50Q90 50 90 76"/><circle cx="20" cy="62" r="6"/><circle cx="100" cy="62" r="6"/></svg></span>
+          <b class="md-name">보스전</b><span class="pty-rule">1~3명 vs 거대 보스</span>
+          <em class="pty-desc">내 파티가 거대하고 단단한 보스 한 명에게 도전합니다.</em>
+        </button>
+        <button class="pty" type="button" data-mode="surv" style="--c: var(--dendro)">
+          <kbd>7</kbd><span class="pty-faces" aria-hidden="true"><svg viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="26" r="10"/><path d="M14 66Q14 44 30 44Q46 44 46 66"/><path d="M62 30H106M62 48H98M62 66H90"/></svg></span>
+          <b class="md-name">생존</b><span class="pty-rule">끝없이 나오는 적</span>
+          <em class="pty-desc">쓰러뜨리면 다음 적이 나옵니다. 몇 명까지 버티는지 겨룹니다.</em>
+        </button>
+        <button class="pty" type="button" data-mode="tour" style="--c: var(--cryo)">
+          <kbd>8</kbd><span class="pty-faces" aria-hidden="true"><svg viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12H28V28H48M8 44H28V28M8 52H28V68H48M8 76H28V68M48 28V48H72M48 68V48"/><path d="M78 38H100V46Q100 60 89 60Q78 60 78 46Z"/><path d="M89 60V70M80 72H98"/></svg></span>
+          <b class="md-name">토너먼트</b><span class="pty-rule">8명 대진표</span>
+          <em class="pty-desc">직접 참가해 우승을 노리거나, CPU 8명의 대결을 관전합니다.</em>
+        </button>
       </div>
       <div class="row"><button class="btn small ghost" id="btnModeBack" type="button">뒤로</button></div>
       <p class="hint" id="menuHint"></p>
@@ -866,6 +902,21 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
       <div class="win-arts" id="winArts"></div>
       <div class="win-word" aria-hidden="true">WIN</div>
       <p class="win-side" id="winSide"></p>
+    </div>
+
+    <div class="ov" id="ovTour" hidden>
+      <h2 id="tourTitle">토너먼트</h2>
+      <div class="tour-setup" id="tourSetup">
+        <button class="btn primary" id="btnTourJoin" type="button">참가하기 <small>캐릭터를 골라 직접 싸웁니다</small></button>
+        <button class="btn" id="btnTourWatch" type="button">관전하기 <small>CPU 8명의 대결을 봅니다</small></button>
+      </div>
+      <div class="tour-bracket" id="tourBracket" hidden></div>
+      <p class="hint" id="tourNote" aria-live="polite"></p>
+      <div class="row">
+        <button class="btn primary" id="btnTourNext" type="button">다음 경기</button>
+        <button class="btn" id="btnTourQuick" type="button">결과만 보기</button>
+        <button class="btn ghost" id="btnTourQuit" type="button">메인으로</button>
+      </div>
     </div>
 
     <div class="ov" id="ovResult" hidden>
@@ -1241,6 +1292,7 @@ const hash1 = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return 
 const OPT = { mus: 1, fx: 1, shake: true, flash: true };
 try { Object.assign(OPT, JSON.parse(localStorage.getItem('wd-opts') || '{}')); } catch (e) { /* storage unavailable */ }
 const saveOpt = () => { try { localStorage.setItem('wd-opts', JSON.stringify(OPT)); } catch (e) { /* storage unavailable */ } };
+let QUIET = false;   // a tournament match simulated without drawing: no sound
 const SFX = (() => {
   let ac = null, master = null, vol = 1;   // vol: the player's volume, 0..1
   function init() {
@@ -1270,14 +1322,14 @@ const SFX = (() => {
     s.connect(f); f.connect(g); g.connect(master); s.start(t);
   }
   const bank = {
-    swing: () => noise(0.07, 0.08, 2600),
+    swing: () => { if (!BGM.swing(false)) noise(0.07, 0.08, 2600); },
     hit: () => { noise(0.1, 0.22, 900); tone(180, 70, 0.1, 'square', 0.12); },
     heavy: () => { noise(0.18, 0.3, 500); tone(130, 40, 0.2, 'sawtooth', 0.2); },
     skill: () => tone(420, 900, 0.18, 'triangle', 0.16),
     burst: () => { tone(90, 400, 0.6, 'sawtooth', 0.22); tone(300, 1200, 0.5, 'triangle', 0.12, 0.1); },
     react: () => { tone(660, 660, 0.09, 'triangle', 0.16); tone(990, 990, 0.14, 'triangle', 0.16, 0.08); },
     ko: () => { noise(0.5, 0.35, 300); tone(240, 40, 0.6, 'sawtooth', 0.22); },
-    jump: () => tone(260, 520, 0.09, 'square', 0.07),
+    jump: () => { if (!BGM.jump()) tone(260, 520, 0.09, 'square', 0.07); },
     pick: () => tone(520, 780, 0.08, 'triangle', 0.14),
     go: () => { tone(440, 440, 0.12, 'square', 0.15); tone(880, 880, 0.25, 'square', 0.15, 0.12); },
     tick: () => tone(440, 440, 0.08, 'square', 0.1),
@@ -1295,7 +1347,7 @@ const SFX = (() => {
   };
   return {
     init,
-    play(n) { try { bank[n] && bank[n](); } catch (e) { /* audio unavailable */ } },
+    play(n) { if (QUIET) return; try { bank[n] && bank[n](); } catch (e) { /* audio unavailable */ } },
     setVolume(v) { vol = v; if (master) master.gain.value = 0.6 * v; },
   };
 })();
@@ -1334,7 +1386,7 @@ const BGM = (() => {
     const src = src0 + AUDIO_V; SRCS.add(src); load(src);
     const live = []; let els = null, k = 0;
     return (rate = 1) => {   // rate: played faster and higher (>1) or slower and lower (<1), so repeats don't sound identical
-      const v = Math.min(1, vol * OPT.fx * gain); if (v <= 0) return;
+      const v = Math.min(1, vol * OPT.fx * gain); if (v <= 0 || QUIET) return;
       recent.push(src0.slice(6)); if (recent.length > 40) recent.shift();
       const buf = AC ? BUF[src] : false;
       if (buf === null) return;   // still decoding (only in the first moments)
@@ -1367,6 +1419,12 @@ const BGM = (() => {
   const koA = pool('audio/ko-blast.mp3', 2), koB = pool('audio/ko-explode.mp3', 2);
   const zapS = pool('audio/electro-zap.mp3', 4); let zapAt = 0;
   const fireS = pool('audio/pyro-fire.mp3', 2); let fireAt = 0;   // one roar of flame, about 4 s
+  // From Pixabay (2026-11-08): blade swings (light and greatsword), a jump whoosh, a landing thud, and cues for the boss, survival and
+  // tournament modes (a roar, a gong, a crowd's cheer, a fanfare)
+  const swS = [1, 2, 3].map(i => pool('audio/px-swing' + i + '.mp3', 2, 0.5)), hswS = [1, 2].map(i => pool('audio/px-heavy' + i + '.mp3', 2, 0.6));
+  const jumpS = pool('audio/px-jump.mp3', 2, 0.3), landS = pool('audio/px-land.mp3', 2, 0.35);
+  const bossS = pool('audio/px-boss.mp3', 1, 0.8), waveS = pool('audio/px-wave.mp3', 1, 0.55), cheerS = pool('audio/px-cheer.mp3', 1, 0.55), fanS = pool('audio/px-fanfare.mp3', 1, 0.6);
+  let swAt = 0, swLast = -1, jumpAt = 0, landAt = 0;
   const want = () => (game && game.over && (state === 'fight' || state === 'paused' || state === 'info' || state === 'victory' || state === 'result')) ? 'none' : (state === 'fight' || state === 'paused' || state === 'info' || state === 'result' || state === 'victory' ? 'fight' : state === 'lineup' ? (lineupOut ? 'out' : 'lineup') : 'menu');   // 'out': the VS screen is closing, nothing new starts while its loop fades
   const level = () => (state === 'paused' || state === 'info' ? 0.4 : state === 'result' || state === 'victory' ? 0.6 : 1);   // quieter behind the pause, skill and result screens
   function unlock() {
@@ -1415,10 +1473,18 @@ const BGM = (() => {
     cast(el) { (castE[el] || castE.pyro)(jit(0.04)); },
     burstRise(el) { (riseE[el] || riseE.pyro)(); }, burstHit(el) { (burstE[el] || burstE.pyro)(); },
     react() { const n = performance.now(); if (n - reactAt < 120) return; reactAt = n; reactS(); chimeS(); },
-    fire() { const n = performance.now(); if (n - fireAt < 600) return; fireAt = n; fireS(); },   // a pyro hit landing: the flame restarts at most every 0.6 s, so a string of hits keeps it roaring   // an electro hit landing (not more than about 9 a second)   // a normal hit, and a charged attack or a hit that launches hard
-    shieldBreak() { if (vol * OPT.fx <= 0) return; crash.volume = vol * OPT.fx; crash.currentTime = 0; const p = crash.play(); if (p && p.catch) p.catch(() => {}); },   // a guard or a shield giving way
-    blackFlash() { if (vol * OPT.fx <= 0) return; flashS.volume = vol * OPT.fx; flashS.currentTime = 0; const p = flashS.play(); if (p && p.catch) p.catch(() => {}); },   // the moment a black flash lands
-    confirm() { if (vol * OPT.fx <= 0) return; ui.volume = 0.8 * vol * OPT.fx; ui.currentTime = 0; const p = ui.play(); if (p && p.catch) p.catch(() => {}); },   // the start button's click
+    fire() { const n = performance.now(); if (n - fireAt < 600) return; fireAt = n; fireS(); },
+    swing(heavy) {   // a blade cutting the air; true when a recorded one played
+      const n = performance.now(); if (n - swAt < 45 && !heavy) return true; swAt = n;
+      const vs = heavy ? hswS : swS; let i = (Math.random() * vs.length) | 0; if (i === swLast && vs.length > 1) i = (i + 1) % vs.length; swLast = i;
+      vs[i](jit(0.08)); return !!AC;
+    },
+    jump() { const n = performance.now(); if (n - jumpAt < 60) return !!AC; jumpAt = n; jumpS(jit(0.06) * 1.15); return !!AC; },
+    land(k) { const n = performance.now(); if (n - landAt < 120) return; landAt = n; landS(jit(0.05) * (1.15 - 0.3 * k)); },
+    bossIn() { bossS(); }, wave() { waveS(); }, cheer() { cheerS(); }, fanfare() { fanS(); },   // a pyro hit landing: the flame restarts at most every 0.6 s, so a string of hits keeps it roaring   // an electro hit landing (not more than about 9 a second)   // a normal hit, and a charged attack or a hit that launches hard
+    shieldBreak() { if (QUIET || vol * OPT.fx <= 0) return; crash.volume = vol * OPT.fx; crash.currentTime = 0; const p = crash.play(); if (p && p.catch) p.catch(() => {}); },   // a guard or a shield giving way
+    blackFlash() { if (QUIET || vol * OPT.fx <= 0) return; flashS.volume = vol * OPT.fx; flashS.currentTime = 0; const p = flashS.play(); if (p && p.catch) p.catch(() => {}); },   // the moment a black flash lands
+    confirm() { if (QUIET || vol * OPT.fx <= 0) return; ui.volume = 0.8 * vol * OPT.fx; ui.currentTime = 0; const p = ui.play(); if (p && p.catch) p.catch(() => {}); },   // the start button's click
     setHidden(h) { hidden = h; if (h) for (const k in T) { T[k].a.pause(); T[k].v = 0; } },   // nothing plays in a tab nobody is looking at
     info() { const o = { unlocked, vol, want: want(), ac: AC ? AC.state : 'none', decoded: Object.values(BUF).filter(Boolean).length, failed: Object.keys(BUF).filter(k => BUF[k] === false), recent: recent.slice() }; for (const k in T) { const a = T[k].a; o[k] = { paused: a.paused, vol: +a.volume.toFixed(2), t: +a.currentTime.toFixed(1), ready: a.readyState, err: a.error ? a.error.code : 0, dur: a.duration || 0 }; } return o; },
   };
@@ -1481,8 +1547,8 @@ addEventListener('keydown', e => {
     if (m) { chooseParty(+m[1]); return; }
     if (e.code === 'Escape' && !wiping) { transition(showModeSel); return; }
   }
-  if (state === 'mode' && !e.repeat) {   // 1-5 pick the mode, Esc goes back to the title
-    const m = /^(?:Digit|Numpad)([1-5])$/.exec(e.code);
+  if (state === 'mode' && !e.repeat) {   // 1-8 pick the mode, Esc goes back to the title
+    const m = /^(?:Digit|Numpad)([1-8])$/.exec(e.code);
     if (m) { chooseMode(MODE_ORDER[+m[1] - 1]); return; }
     if (e.code === 'Escape' && !wiping) { transition(goMenu); return; }
   }
@@ -1543,7 +1609,7 @@ addEventListener('blur', () => { held.clear(); if (state === 'fight' && !netOn()
 let state = 'menu';          // menu | party | select | map | lineup | fight | paused | info | victory | result | net (the online screens)
 let game = null;
 let mode = 'cpu', pickStep = 0, level = 1;   // mode: 'cpu' (1P against the computer), '2p' (two people on one keyboard) or 'net' (two devices)
-const sideName = side => side === 0 ? '1P' : mode === 'cpu' || mode === 'train' || mode === 'arcade' ? 'CPU' : '2P';
+const sideName = side => mode === 'tour' ? (TOUR.human && side === 0 ? '1P' : 'CPU') : side === 0 ? '1P' : mode === 'boss' ? '보스' : mode === 'surv' ? '적' : mode === 'cpu' || mode === 'train' || mode === 'arcade' ? 'CPU' : '2P';
 const sel = [[], []];   // character ids picked for each side's party
 let partySize = 1;
 const PARTY_STOCKS = [0, 3, 2, 1];   // lives per character for a party of 1, 2, 3
@@ -1570,7 +1636,7 @@ function startMatch(mapId) {
   if (mapId) setMap(MAP[mapId]); else setMap(curMap);   // also restores platforms a previous match moved
   // Each side fields one fighter at a time; teams hold every party member with its own damage and lives.
   const teams = sel.map((ids, i) => ids.map((id, slot) => {
-    const f = mkFighter(i, fieldDef(i, id), mode === 'net' ? 'net' : i === 0 ? 'p1' : mode === '2p' ? 'p2' : 'cpu');
+    const f = mkFighter(i, fieldDef(i, id), mode === 'net' ? 'net' : mode === 'tour' && !humanSide(i) ? 'cpu' : i === 0 ? 'p1' : mode === '2p' ? 'p2' : 'cpu');
     f.slot = slot; f.stocks = f.maxStocks = PARTY_STOCKS[ids.length];
     return f;
   }));
@@ -1582,6 +1648,14 @@ function startMatch(mapId) {
     hits: [], particles: [], texts: [], bolts: [], sparks: [], blasts: [], rifts: [], waves: [], marks: [], pickups: [], flares: [], runes: [], clash: [], slines: [], punch: 0, focus: { x: W / 2, y: H / 2 },
     hitstop: 0, shake: 0, flash: 0, dark: 0, bf: null, intro: 3.4, loadWait: 8, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
   };
+  for (const team of game.teams) {   // elemental resonance: two of a party sharing an element (see RESO)
+    const n = {}; for (const m of team) n[m.def.el] = (n[m.def.el] || 0) + 1;
+    const el = team.length > 1 ? Object.keys(n).find(k => n[k] >= 2) : null;
+    for (const m of team) m.reso = el || null;
+  }
+  if (mode === 'boss') makeBoss(game.teams[1][0]);
+  if (mode === 'surv') { const e = game.teams[1][0]; survArm(e, 1); game.surv = { wave: 1, kills: 0 }; }
+  if (mode === 'tour' && TOUR.sim) { game.intro = 0; game.loadWait = 0; }
   if (mode === 'arcade' && ARC.boss) for (const b of game.teams[1]) {
     b.def = { ...b.def, name: '보스 · ' + b.def.name, scale: b.def.scale * 1.5, weight: b.def.weight * 2, atk: b.def.atk * 1.3, jump: b.def.jump * 0.9, speed: b.def.speed * 0.9 };
   }
@@ -1798,6 +1872,7 @@ function boltTree(n, L) {   // jagged branches out from the middle, each with a 
 // (and a ring of dust at the feet) for a greatsword, a long needle of light for a thrust.
 function swingFx(f, h, cls, n) {
   const c = hbCenter(h), col = slashCol(h), S = f.def.scale;
+  BGM.swing(!!WEAPON[f.def.id].heavy && cls !== 'polearm');
   if (WEAPON[f.def.id].heavy || n >= 3) { game.shake = Math.max(game.shake, WEAPON[f.def.id].heavy ? 4 : 2.5); game.shakeA = f.dir > 0 ? 0 : Math.PI; }
   if (h.vis === 'thrust') { fx2({ k: 'spear', x: f.x + f.dir * 12 * S, y: c.y, dir: f.dir, L: h.w * 1.4 + 50, col, life: 0.22 }); return; }
   if (h.vis !== 'slash') return;
@@ -2715,6 +2790,8 @@ function reaction(o, t, aura, inc) {
   }
   if (r.name) {
     o.stat.react++;
+    if (o.reso === 'electro') o.energy = Math.min(100, o.energy + 6);   // resonance
+    if (o.reso === 'dendro') r.dmgAdd += 2;
     reactTitle(cx, t.y - 104, r.name, aura, inc); reactBurst(t, aura, inc, r.name);
     BGM.react();
   }
@@ -2921,6 +2998,8 @@ function applyHit(h, t) {
   const g = game, o = h.owner, c = hbCenter(h);
   const dirX = h.radial ? (Math.sign(t.x - c.x) || o.dir) : (h.proj ? (Math.sign(h.vx) || h.sdir) : h.sdir);
   let dmg = h.dmg * o.def.atk * (o.buff ? o.buff.mul : 1), kbMul = h.kb, broke = false;
+  if (o.reso || t.reso) dmg *= resoDmg(o, t);
+  if (t.reso === 'geo') kbMul *= 0.9;
   if (o.buff && o.buff.kb) kbMul *= o.buff.kb;
   if (t.guarding) {
     if (h.chip) return;   // a light extra hit (Yoimiya's little fireworks): stopped by a guard without wearing it down
@@ -3010,6 +3089,7 @@ function applyHit(h, t) {
     if (t.vy < -40) t.onGround = false;
     t.hitstun = clamp(0.1 + v / 2600, 0.12, 0.75);
   }
+  if (t.boss && !bf && !broke) t.hitstun *= dmg >= 9 ? 0.6 : 0.3;   // the boss barely flinches
   if (h.stun) { t.hitstun = Math.max(t.hitstun, h.stun); t.stone = h.stun; }
   if (h.suspend) { t.suspend = h.suspend; t.hitstun = Math.max(t.hitstun, h.suspend); t.vx = 0; t.vy = 0; t.onGround = false; }
   t.flash = 0.12;
@@ -3479,7 +3559,7 @@ function doAttack(f) {
     if (cls === 'sword' || cls === 'polearm' || blades) mh.onStart = h => { swingFx(f, h, blades ? 'sword' : cls, n); if (st) st(h); }; }
   if (f.def.id === 'arlecchino' && bel)   // her burning scythe: the ribbon is drawn on its own, so it stays up longer than the brief hit
     hb({ owner: f, follow: true, ox: s.ox * rm, oy: 34, w: s.w * rm, h: s.h, delay: s.delay * slow, life: 0.28, el: 'pyro', harmless: true, persist: true, vis: n === 3 ? 'bloodring' : 'bloodslash' });
-  SFX.play('swing');
+  { const cls = WEAPON[f.def.id].cls; if (!(cls === 'sword' || cls === 'polearm' || blades)) SFX.play('swing'); }   // (blades: swingFx plays the swing as it lands)
 }
 // Charged attack (hold the attack key). What it does depends on the weapon:
 //   claymore: one huge sweep · sword: a quick flurry · polearm: rapid thrusts (Hu Tao and Cyno charge forward with the spear)
@@ -4569,6 +4649,7 @@ function doSkill(f) {
   const prev = hbSrc; hbSrc = { kind: 'skill', rolled: new Set() };
   try { SKILLS[f.def.id](f); } finally { hbSrc = prev; }
   if (f.cd < CD_SHORT && f.def.id !== 'clorinde' && f.def.id !== 'yae') f.cd *= CD_SCALE;
+  if (f.reso === 'anemo') f.cd *= 0.9;   // resonance
   f.cdMax = f.cd; BGM.cast(f.def.el);
   rune(f, 1); flare(f.x, f.y - 40 * f.def.scale, 55, EL[f.def.el].color, { life: 0.25 });   // a circle of the element lights up under them
 }
@@ -5358,7 +5439,8 @@ function die(f) {
   g.shakeA = Math.atan2(ey - g.cam.y, ex - g.cam.x); g.slowHit = { real: 0, dur: 0.45, x: ex, y: ey, ko: true };   // the KO: a beat of slow motion as the beam fires
   BGM.ko();
   g.cracks = { x: ex, y: ey, t: 0.9, max: 0.9, col: EL[f.def.el].color, lines: crackLines() };   // the screen cracks where they went (looks only)
-  if (!g.teams[f.idx].some(m => m.stocks > 0)) {
+  if (g.surv && f.idx === 1) { g.surv.kills++; survReward(g); }   // survival: a foe down
+  if (!g.teams[f.idx].some(m => m.stocks > 0) && !(g.surv && f.idx === 1)) {
     g.over = true; g.endT = KO_TIME; g.hitstop = 0.3; if (g.slow) g.finale = true;   // the slow-motion finish: no KO banner, straight on to the victory scene
     g.winner = g.teams[o.idx].some(m => m.stocks > 0) ? o : null;
   }
@@ -5483,6 +5565,7 @@ function respawn(f) {
   let m = f;
   if (f.stocks <= 0) {   // this character is out: the next party member with lives left comes in, keeping its own damage
     m = nextMember(f);
+    if (!m && game.surv && f.idx === 1) m = survNext(game);   // survival: the next foe walks in
     if (!m) return;
     game.fighters[f.idx] = m;
     ftext(480, 80, m.def.name + ' 등장', EL[m.def.el].color, 24, 1.3);
@@ -5832,7 +5915,7 @@ function stepFighter(f, foe, dt) {
   const dashing = f.act && (f.act.kind === 'dash' || f.act.kind === 'adash');
   if (dashing) { f.vx = f.dir * 900; f.vy = 0; }
   else if (free && !(f.act && f.act.slow === 0)) {
-    const sp = d.speed * (f.buff && f.buff.speed || 1) * (f.act ? f.act.slow : 1) * (f.run ? (f.onGround ? 1.6 : 1.3) : 1);
+    const sp = d.speed * (f.reso === 'anemo' ? 1.1 : 1) * (f.buff && f.buff.speed || 1) * (f.act ? f.act.slow : 1) * (f.run ? (f.onGround ? 1.6 : 1.3) : 1);
     if (move) { f.vx = approach(f.vx, move * sp, (f.onGround ? (icy ? 1300 : 3600) : 2000) * dt); if (!f.act) f.dir = move; }
     else f.vx = approach(f.vx, 0, (f.onGround ? (f.act ? 900 : 2800) * (icy ? 0.1 : 1) : 260) * dt);
   } else if (f.onGround) f.vx = approach(f.vx, 0, (f.hitstun > 0 ? 800 : 3000) * (icy ? 0.15 : 1) * dt);
@@ -5872,6 +5955,7 @@ function stepFighter(f, foe, dt) {
           } else { f.bounced = true; f.vy = -f.vy * 0.42; f.vx *= 0.75; f.landT = 0.14; SFX.play('hit'); fx2({ k: 'gring', x: f.x, y: f.y, R: 70, col: '#ffffff', life: 0.4 }); clash(f.x, f.y - 10, '#ffffff', -Math.PI / 2, false); break; }   // a single bounce back up
         }
         if (!f.wasGround && f.vy > 700) { g.shake = Math.max(g.shake, Math.min(7, (f.vy - 700) / 60 + 2)); g.shakeA = Math.PI / 2; debris(f.x, p.y, 0.5, p); }
+        if (!f.wasGround && f.vy > 420 && !f.dead) BGM.land(Math.min(1, (f.vy - 420) / 900));
         if (!f.wasGround && f.vy > 260) { f.landT = 0.14; dust(f.x, p.y, 5 + Math.min(6, ((f.vy - 260) / 120) | 0), 140); fx2({ k: 'gring', x: f.x, y: p.y, R: (26 + Math.min(44, (f.vy - 260) / 14)) * f.def.scale, col: '#dfe6ff', life: 0.35 }); }
         f.y = p.y; f.vy = 0; f.onGround = true; f.plat = p; f.jumps = d.jumps; f.upUsed = false; break;
       }
@@ -10994,6 +11078,8 @@ function hudLayer(slot, key, x, y, w, h, draw) {
 }
 function drawHUD(t) {
   const g = game;
+  const ml = g.surv ? '생존 · ' + g.surv.wave + '번째 적 · 처치 ' + g.surv.kills : g.mode === 'boss' ? '보스전' : g.mode === 'tour' && TOUR.cur ? TOUR_ROUND[TOUR.cur.r] : null;
+  if (ml) { ctx.font = '700 13px ' + BODY; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; glowText(ml, W / 2, H - 22, 15, '#eef1ff', '#05070f', BODY, 'center'); }
   g.fighters.forEach((f, i) => {
     if (f.hudPct != null && f.pct > f.hudPct + 0.4) f.hudHitT = t;   // just took damage: the card shakes and the number flashes red
     f.hudPct = f.pct;
@@ -11072,6 +11158,12 @@ function drawHUD(t) {
       if (i === 0) {
         ctx.font = '700 10px ' + BODY; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = g.swapCd[0] > 0 ? '#9aa4cf' : '#ffd24d';
         ctx.fillText(g.swapCd[0] > 0 ? '교체 ' + g.swapCd[0].toFixed(1) + '초' : '[R] 교체', x + 2, py - 9);
+      }
+      if (f.reso) {   // the resonance badge: the element and the word, at the far end of that row
+        const rx = i === 0 ? sx0 + sw - 2 : sx0 + 2, al = i === 0 ? 'right' : 'left', txt = '원소 공명 · ' + RESO[f.reso].name;
+        ctx.font = '700 10px ' + BODY; ctx.textBaseline = 'middle'; ctx.textAlign = al; ctx.fillStyle = EL[f.reso].color;
+        ctx.fillText(txt, rx, py - 9);
+        const tw = ctx.measureText(txt).width; drawEl(f.reso, i === 0 ? rx - tw - 9 : rx + tw + 9, py - 9, 13);
       }
     }
     // elemental skill cooldown dial beside the card
@@ -12574,7 +12666,7 @@ function frameBody(ts) {
 }
 
 /* ------------------------------------------------------------------ menus */
-const ov = { menu: $('ovMenu'), mode: $('ovMode'), party: $('ovParty'), select: $('ovSelect'), pause: $('ovPause'), result: $('ovResult'), info: $('ovInfo'), map: $('ovMap'), lineup: $('ovLineup'), win: $('ovWin'), net: $('ovNet') };
+const ov = { menu: $('ovMenu'), mode: $('ovMode'), party: $('ovParty'), select: $('ovSelect'), pause: $('ovPause'), result: $('ovResult'), info: $('ovInfo'), map: $('ovMap'), lineup: $('ovLineup'), win: $('ovWin'), net: $('ovNet'), tour: $('ovTour') };
 function showOv(name) {
   for (const k in ov) ov[k].hidden = k !== name;
   $('btnInfo').hidden = !(name === null && game && game.mode !== 'net');
@@ -12633,7 +12725,8 @@ function renderPicks() {
     const grp = document.createElement('div');
     grp.className = 'pick-group ' + cls + (side === pickStep ? ' turn' : '');
     grp.innerHTML = '<b>' + label + '</b>';
-    for (let i = 0; i < partySize; i++) {
+    if (side === 1 && (mode === 'surv' || mode === 'tour')) return;   // no picks for the other side in these modes
+    for (let i = 0; i < sideSize(side); i++) {
       const id = sel[side][i], tk = document.createElement('span');
       tk.className = 'pick-tok' + (id ? '' : ' empty');
       if (mode === 'net' && side !== NET.side) tk.innerHTML = '<span>?</span><i>' + (NET.oppPick && NET.oppPick.ids.length > i ? '선택함' : '고르는 중') + '</i>';   // the opponent's picks stay hidden
@@ -12718,10 +12811,10 @@ function clearDetail() {
 function showSelect() {
   state = 'select'; game = null; closeTravPick();
   const side = pickStep, team = sel[side], names = ids => ids.map(id => CHAR[id].name).join(', ');
-  $('selTitle').innerHTML = (mode === 'net' ? '내 캐릭터 선택 · ' + sideName(side) : side === 0 ? '1P 캐릭터 선택' : mode === '2p' ? '2P 캐릭터 선택' : (mode === 'train' ? '훈련 상대 선택' : '상대(컴퓨터) 선택')) +
-    '<small>' + Math.min(team.length + 1, partySize) + ' / ' + partySize + '명</small>';
+  $('selTitle').innerHTML = (mode === 'net' ? '내 캐릭터 선택 · ' + sideName(side) : side === 0 ? '1P 캐릭터 선택' : mode === '2p' ? '2P 캐릭터 선택' : (mode === 'train' ? '훈련 상대 선택' : mode === 'boss' ? '보스 선택' : '상대(컴퓨터) 선택')) +
+    '<small>' + Math.min(team.length + 1, sideSize(side)) + ' / ' + sideSize(side) + '명</small>';
   renderPicks();
-  $('diffRow').hidden = side !== 1 || mode !== 'cpu';   // no computer to set a difficulty for in 2P mode
+  $('diffRow').hidden = side !== 1 || (mode !== 'cpu' && mode !== 'boss');   // no computer to set a difficulty for in 2P mode
   clearDetail();
   document.querySelectorAll('#roster .card').forEach(el => {
     const taken = team.includes(el.dataset.id);
@@ -12747,13 +12840,207 @@ function pick(id, el) {
   SFX.init(); BGM.confirm();
   team.push(id); loadAnim(id);   // start fetching their frames now, so they are in by the fight
   new Image().src = 'img/art/' + id + '.webp';   // warm the full illustration for the line-up screen
-  if (team.length < partySize) { if (mode === 'net') netPickSync(false); showSelect(); }
+  if (team.length < sideSize(pickStep)) { if (mode === 'net') netPickSync(false); showSelect(); }
   else if (mode === 'net') netPicked();
   else if (mode === 'arcade') arcadeStart();
+  else if (mode === 'surv') survStart();
+  else if (mode === 'tour') tourBegin(sel[0][0]);
   else if (pickStep === 0) { pickStep = 1; showSelect(); }
   else transition(showMap);
 }
 function resetPicks() { sel[0].length = 0; sel[1].length = 0; pickStep = 0; }
+/* ------------------------------------------------------------------ elemental resonance and the extra modes (2026-11-08)
+   Resonance: two members of a party sharing an element give the whole party that element's bonus (startMatch sets m.reso). */
+const RESO = {
+  pyro:    { name: '열정의 불꽃', txt: '주는 피해 +15%' },
+  hydro:   { name: '치유의 물', txt: '받는 피해 -12%' },
+  electro: { name: '격렬한 번개', txt: '원소 반응을 일으킬 때마다 필살기 게이지 +6' },
+  cryo:    { name: '얼어붙은 얼음', txt: '얼음이 묻었거나 얼어붙은 적에게 주는 피해 +20%' },
+  anemo:   { name: '자유의 바람', txt: '이동 속도 +10%, 스킬 재사용 대기 -10%' },
+  geo:     { name: '견고한 바위', txt: '방어막이 있을 때 주는 피해 +15%, 받는 넉백 -10%' },
+  dendro:  { name: '무성한 풀', txt: '원소 반응 피해 +2' },
+};
+function resoDmg(o, t) {
+  let k = 1;
+  if (o.reso === 'pyro') k *= 1.15;
+  if (o.reso === 'cryo' && (t.frozen > 0 || (t.aura && t.aura.el === 'cryo'))) k *= 1.2;
+  if (o.reso === 'geo' && o.shield > 0) k *= 1.15;
+  if (t.reso === 'hydro') k *= 0.88;
+  return k;
+}
+function resoLine(els) {   // the line under a party on the line-up screen
+  if (els.length < 2) return '';
+  const n = {}; for (const e of els) n[e] = (n[e] || 0) + 1;
+  const el = Object.keys(n).find(k => n[k] >= 2);
+  return el ? '<p class="lu-reso" style="--c:' + EL[el].color + '">' + elIcon(el) + '원소 공명 · <b>' + RESO[el].name + '</b> — ' + RESO[el].txt + '</p>' : '';
+}
+let modePrevLevel = null;   // the difficulty picked before survival or the tournament changed it
+function modeEnd() { SURV.on = false; TOUR.on = false; if (modePrevLevel != null) { level = modePrevLevel; modePrevLevel = null; } }
+
+// The boss: the picked character made far bigger, heavier and stronger, with 3 lives, and it barely flinches at small hits.
+function makeBoss(b) {
+  b.def = { ...b.def, name: '보스 · ' + b.def.name, scale: b.def.scale * 1.6, weight: b.def.weight * 2.4, atk: b.def.atk * 1.35, jump: b.def.jump * 0.9, speed: b.def.speed * 0.92 };
+  b.boss = true; b.stocks = b.maxStocks = 3;
+  if (b.ai) b.ai.level = Math.max(1, b.ai.level);
+}
+function bossResult(g) {
+  const won = !!g.winner && g.winner.idx === 0, r = loadRec();
+  $('resTitle').textContent = won ? '보스 격파!' : g.winner ? '보스에게 패배…' : '무승부';
+  if (won) { r.bossWins = (r.bossWins || 0) + 1; saveRec(r); BGM.fanfare(); }
+  $('resNet').hidden = false; $('resNet').textContent = '보스 격파 기록: ' + (loadRec().bossWins || 0) + '회';
+}
+
+// Survival: one foe at a time with 1 life, each a little stronger; every KO heals the party a little. Ends when the party is out.
+const SURV = { on: false, used: [] };
+function survPickFoe() {
+  const pool = CHARS.map(c => c.id).filter(id => !sel[0].includes(id) && !SURV.used.slice(-12).includes(id));
+  const id = pool[(Math.random() * pool.length) | 0]; SURV.used.push(id);
+  if (isTrav(id)) TRAV_EL[1][id] = travRandEl();
+  loadAnim(id); return id;
+}
+function survStart() {
+  if (modePrevLevel == null) modePrevLevel = level; SURV.on = true;
+  SURV.used = []; level = 0;
+  sel[1] = [survPickFoe()]; SURV.next = survPickFoe();
+  const maps = MAPS.filter(m => m.id !== 'void');
+  transition(() => showLineup(maps[(Math.random() * maps.length) | 0].id));
+}
+function survArm(e, wave) {   // the foe of this wave: 1 life, and stronger the further in
+  e.stocks = e.maxStocks = 1;
+  const k = 1 + Math.min(0.8, (wave - 1) * 0.06);
+  e.def = { ...e.def, atk: e.def.atk * k, weight: e.def.weight * (1 + Math.min(0.4, (wave - 1) * 0.03)) };
+  if (e.ai) e.ai.level = wave <= 2 ? 0 : wave <= 5 ? 1 : 2;
+}
+function survReward(g) {   // a KO: the party's damage goes down a little
+  for (const m of g.teams[0]) if (m.stocks > 0) m.pct = Math.max(0, m.pct - 15);
+  SFX.play('react');
+}
+function survNext(g) {
+  const id = SURV.next || survPickFoe(); SURV.next = survPickFoe();
+  const m = mkFighter(1, fieldDef(1, id), 'cpu');
+  g.surv.wave++; survArm(m, g.surv.wave);
+  g.teams[1] = [m]; g.fighters[1] = m;
+  BGM.wave();
+  return m;
+}
+function survResult(g) {
+  const k = g.surv ? g.surv.kills : 0, r = loadRec(), best = Math.max(r.surv || 0, k);
+  if (k > (r.surv || 0)) { r.surv = k; saveRec(r); if (k > 0) BGM.fanfare(); }
+  $('resTitle').textContent = '생존 기록 · ' + k + '명 처치';
+  $('btnAgain').textContent = '다시 도전';
+  $('resNet').hidden = false; $('resNet').textContent = '최고 기록: ' + best + '명' + (k >= best && k > 0 ? ' · 새 기록!' : '');
+}
+
+// The tournament: 8 entrants, quarter-finals, semi-finals, final. A person's matches are played; the computer's can be watched or
+// simulated at once (the same game run without drawing, in a few steps so the page stays responsive).
+const TOUR = { on: false, human: null, ents: [], rounds: [], cur: null, sim: false };
+const TOUR_ROUND = ['8강', '4강', '결승'];
+function showTourSetup() {
+  state = 'tour'; game = null; TOUR.on = false;
+  $('tourTitle').textContent = '토너먼트';
+  $('tourSetup').hidden = false; $('tourBracket').hidden = true;
+  $('tourNote').textContent = '참가하면 캐릭터를 고르고, 관전하면 CPU 8명이 겨룹니다.';
+  $('btnTourNext').hidden = true; $('btnTourQuick').hidden = true;
+  showOv('tour'); $('btnTourJoin').focus({ preventScroll: true });
+}
+function tourBegin(human) {
+  if (modePrevLevel == null) modePrevLevel = level;
+  const pool = CHARS.map(c => c.id).filter(id => id !== human);
+  for (let i = pool.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const ents = (human ? [human] : []).concat(pool.slice(0, human ? 7 : 8));
+  for (let i = ents.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [ents[i], ents[j]] = [ents[j], ents[i]]; }
+  TOUR.el = {}; for (const id of ents) if (isTrav(id)) TOUR.el[id] = id === human ? TRAV_EL[0][id] : travRandEl();
+  Object.assign(TOUR, { on: true, recorded: false, human, ents, rounds: [[0, 1, 2, 3].map(i => ({ a: ents[i * 2], b: ents[i * 2 + 1], w: null })), [{}, {}].map(() => ({ a: null, b: null, w: null })), [{ a: null, b: null, w: null }]], cur: null });
+  transition(showTour);
+}
+function tourNextMatch() {
+  for (let r = 0; r < 3; r++) for (let i = 0; i < TOUR.rounds[r].length; i++) { const m = TOUR.rounds[r][i]; if (!m.w && m.a && m.b) return { r, i, m }; }
+  return null;
+}
+function tourSetWinner(r, i, w) {
+  TOUR.rounds[r][i].w = w;
+  if (r < 2) { const n = TOUR.rounds[r + 1][i >> 1]; if (i % 2) n.b = w; else n.a = w; }
+}
+const tourChamp = () => TOUR.rounds[2][0].w;
+function tourEntry(id, m) {
+  if (!id) return '<div class="tour-e tbd">?</div>';
+  const c = CHAR[id], el = TOUR.el[id] || c.el, cls = (m.w ? (m.w === id ? ' win' : ' lose') : '') + (id === TOUR.human ? ' me' : '');
+  return '<div class="tour-e' + cls + '" style="--c:' + EL[el].color + '">' + elIcon(el) + '<span>' + c.name + '</span></div>';
+}
+function showTour() {
+  state = 'tour'; game = null; TOUR.sim = false;
+  $('tourSetup').hidden = true; $('tourBracket').hidden = false;
+  const nx = tourNextMatch(), champ = tourChamp(), out = TOUR.human && TOUR.rounds.some(rd => rd.some(m => m.w && (m.a === TOUR.human || m.b === TOUR.human) && m.w !== TOUR.human));
+  $('tourTitle').textContent = champ ? '토너먼트 종료' : '토너먼트 · ' + TOUR_ROUND[nx ? nx.r : 0];
+  $('tourBracket').innerHTML = TOUR.rounds.map((rd, r) => '<div class="tour-col"><b>' + TOUR_ROUND[r] + '</b>' + rd.map((m, i) =>
+    '<div class="tour-m' + (nx && nx.r === r && nx.i === i ? ' now' : '') + '">' + tourEntry(m.a, m) + tourEntry(m.b, m) + '</div>').join('') + '</div>').join('') +
+    '<div class="tour-col tour-champ"><b>우승</b>' + (champ ? '<img alt="" src="img/full/' + champ + '.webp"><b>' + CHAR[champ].name + '</b>' : '<div class="tour-e tbd">?</div>') + '</div>';
+  const mine = nx && TOUR.human && (nx.m.a === TOUR.human || nx.m.b === TOUR.human);
+  $('btnTourNext').hidden = !nx; $('btnTourQuick').hidden = !nx || mine;
+  $('btnTourNext').textContent = mine ? '내 경기 시작' : '관전하기';
+  $('tourNote').textContent = champ ? (champ === TOUR.human ? '우승을 축하합니다!' : CHAR[champ].name + ' 우승!' + (TOUR.human ? ' (' + CHAR[TOUR.human].name + (out ? ' 탈락' : '') + ')' : ''))
+    : mine ? '다음은 내 경기입니다.' : (out ? '탈락했습니다. 남은 경기를 관전하거나 결과만 볼 수 있습니다.' : '다음 경기를 직접 보거나 결과만 볼 수 있습니다.');
+  if (champ && !TOUR.recorded) { TOUR.recorded = true; if (champ === TOUR.human) { const rr = loadRec(); rr.tourWins = (rr.tourWins || 0) + 1; saveRec(rr); } BGM.fanfare(); }
+  showOv('tour');
+  (nx ? $('btnTourNext') : $('btnTourQuit')).focus({ preventScroll: true });
+}
+function tourPrep(nx) {   // the pair on the two sides (a person always on side 0), with the Traveler's element
+  let a = nx.m.a, b = nx.m.b;
+  if (b === TOUR.human) [a, b] = [b, a];
+  sel[0] = [a]; sel[1] = [b];
+  if (isTrav(a)) TRAV_EL[0][a] = TOUR.el[a]; if (isTrav(b)) TRAV_EL[1][b] = TOUR.el[b];
+  level = nx.r === 2 ? 2 : 1; TOUR.cur = { r: nx.r, i: nx.i };
+  for (const id of sel.flat()) loadAnim(id);
+}
+function tourPlay() {
+  const nx = tourNextMatch(); if (!nx || wiping) return;
+  tourPrep(nx); SFX.play('go');
+  const maps = MAPS.filter(m => m.id !== 'void');
+  transition(() => showLineup(maps[(Math.random() * maps.length) | 0].id));
+}
+function tourWinnerOf(g) {   // a draw goes to the side with more lives, then less damage
+  if (g.winner) return sel[g.winner.idx][0];
+  const s = g.teams.map(t => t.reduce((n, m) => n + m.stocks, 0)), p = g.fighters.map(f => f.pct);
+  return sel[s[0] !== s[1] ? (s[0] > s[1] ? 0 : 1) : p[0] <= p[1] ? 0 : 1][0];
+}
+function tourQuick() {   // the computer's match, simulated without drawing
+  const nx = tourNextMatch(); if (!nx || wiping || TOUR.sim) return;
+  if (TOUR.human && (nx.m.a === TOUR.human || nx.m.b === TOUR.human)) return;
+  tourPrep(nx); TOUR.sim = true; QUIET = true;
+  $('tourNote').textContent = CHAR[sel[0][0]].name + ' vs ' + CHAR[sel[1][0]].name + ' 경기 중…';
+  $('btnTourQuick').disabled = true; $('btnTourNext').disabled = true;
+  const maps = MAPS.filter(m => m.id !== 'void');
+  const back = () => { QUIET = false; TOUR.sim = false; $('btnTourQuick').disabled = false; $('btnTourNext').disabled = false; };
+  setTimeout(() => {
+    try {
+      startMatch(maps[(Math.random() * maps.length) | 0].id);
+      showOv('tour'); state = 'tour';   // (no drawing: the bracket stays on screen)
+      let n = 0;
+      const run = () => {
+        try {
+          for (let k = 0; k < 900 && !game.over && n < 14000; k++, n++) step(FIXED);
+          if (!game.over && n < 14000) { setTimeout(run, 0); return; }
+          const w = tourWinnerOf(game); game = null; tourSetWinner(TOUR.cur.r, TOUR.cur.i, w); back(); showTour();
+        } catch (e) { back(); reportErr(e); showTour(); }
+      };
+      run();
+    } catch (e) { back(); reportErr(e); showTour(); }
+  }, 30);
+}
+function tourResult(g) {
+  const w = tourWinnerOf(g); tourSetWinner(TOUR.cur.r, TOUR.cur.i, w); BGM.cheer();
+  const mine = TOUR.human && sel.flat().includes(TOUR.human);
+  $('resTitle').textContent = TOUR_ROUND[TOUR.cur.r] + ' · ' + CHAR[w].name + ' 승리' + (mine ? (w === TOUR.human ? '!' : '…') : '');
+  $('btnAgain').textContent = '대진표로';
+  $('resNet').hidden = false; $('resNet').textContent = '토너먼트 우승 기록: ' + (loadRec().tourWins || 0) + '회';
+}
+$('btnTourJoin').addEventListener('click', () => { if (wiping) return; SFX.init(); BGM.confirm(); resetPicks(); transition(showSelect); });
+$('btnTourWatch').addEventListener('click', () => { if (wiping) return; SFX.init(); BGM.confirm(); resetPicks(); tourBegin(null); });
+$('btnTourNext').addEventListener('click', tourPlay);
+$('btnTourQuick').addEventListener('click', tourQuick);
+$('btnTourQuit').addEventListener('click', () => { if (!wiping && !TOUR.sim) transition(goMenu); });
+
+const sideSize = side => mode === 'boss' && side === 1 ? 1 : partySize;   // the boss fights alone
 function openTravPick(id) {   // the element chooser shown over the roster when the Traveler is picked
   const box = $('travPick'), cur = TRAV_EL[pickStep][id], def = CHAR[id];
   box.querySelector('.tp-title').textContent = def.name + ' · 원소 선택';
@@ -12953,6 +13240,7 @@ function renderKits() {
       '<dt>원소 스킬' + key(kl[1]) + ' · ' + d.skill + '<span class="cd">재사용 ' + k.cd + '초 · ' + cd + '</span></dt><dd class="move"><canvas class="pose" data-id="' + d.id + '" data-move="skill" aria-hidden="true"></canvas><span>' + k.skill + '</span></dd>' +
       '<dt>필살기' + key(kl[2]) + ' · ' + d.burst + '<span class="cd">게이지 ' + Math.floor(f.energy) + '%</span></dt><dd class="move"><canvas class="pose" data-id="' + d.id + '" data-move="burst" aria-hidden="true"></canvas><span>' + k.burst + '</span></dd>' +
       '<dt>현재 상태</dt><dd>피해 ' + Math.floor(f.pct) + '% · 목숨 ' + f.stocks + ' · ' + fighterStatus(f) + '</dd>' +
+      (f.reso ? '<dt>원소 공명 · ' + RESO[f.reso].name + '</dt><dd>' + RESO[f.reso].txt + '</dd>' : '') +
       (game.teams[f.idx].length > 1 ? '<dt>대기 중인 파티' + key(kl[4]) + '</dt><dd>' + game.teams[f.idx].filter(m => m !== f).map(m =>
         m.def.name + ' (' + EL[m.def.el].name + ') ' + (m.stocks > 0 ? '피해 ' + Math.floor(m.pct) + '% · 스킬 ' + (m.cd > 0 ? m.cd.toFixed(1) + '초' : '가능') + ' · 필살 ' + Math.floor(m.energy) + '%' : 'KO')).join('<br>') + '</dd>' : '') +
       '</dl></article>';
@@ -13029,13 +13317,13 @@ let lineupTimer = 0, lineupMap = null, lineupOut = false, lineupBoom = 0;
 function showLineup(mapId) {
   state = 'lineup'; game = null; lineupMap = mapId; lineupOut = false;
   $('luMap').textContent = MAP[mapId].name + ' · ' + MAP[mapId].sub;
-  [['luP1', '1P', 0], ['luCpu', mode === 'arcade' ? (ARC.boss ? '최종 보스' : 'STAGE ' + ARC.stage + ' / ' + ARC_STAGES) : sideName(1), 1]].forEach(([id, label, side]) => {
+  [['luP1', sideName(0), 0], ['luCpu', mode === 'arcade' ? (ARC.boss ? '최종 보스' : 'STAGE ' + ARC.stage + ' / ' + ARC_STAGES) : mode === 'tour' ? TOUR_ROUND[TOUR.cur ? TOUR.cur.r : 0] : mode === 'surv' ? '1번째 적' : sideName(1), 1]].forEach(([id, label, side]) => {
     const ids = sel[side], box = $(id);
     box.innerHTML = '<b>' + label + '</b><div class="lu-cards' + (ids.length > 1 ? ' many' : '') + '">' + ids.map(cid => {
-      const c = CHAR[cid];
+      const c = fieldDef(side, cid);   // (the Traveler: the element picked)
       return '<div class="lu-card" data-id="' + cid + '" style="--c:' + EL[c.el].color + '"><img alt="" decoding="sync" src="img/art/' + cid + '.webp">' +
         '<div class="lu-name"><span>' + elIcon(c.el) + EL[c.el].name + '</span><b>' + c.name + '</b></div></div>';
-    }).join('') + '</div>';
+    }).join('') + '</div>' + resoLine(ids.map(cid => fieldDef(side, cid).el));
     box.querySelectorAll('img').forEach(im => im.addEventListener('error', () => {   // no illustration: the small portrait instead
       const cv2 = document.createElement('canvas'); im.replaceWith(cv2); drawPortrait(cv2, CHAR[cv2.parentElement.dataset.id]);
     }));
@@ -13046,7 +13334,7 @@ function showLineup(mapId) {
   $('btnLuSkip').focus({ preventScroll: true });
   clearTimeout(lineupTimer);
   lineupTimer = setTimeout(endLineup, LINEUP_MS);
-  clearTimeout(lineupBoom); lineupBoom = setTimeout(() => { if (state === 'lineup') { SFX.play('heavy'); SFX.play('ko'); } }, 1000);   // the boom of the reveal
+  clearTimeout(lineupBoom); lineupBoom = setTimeout(() => { if (state === 'lineup') { SFX.play('heavy'); SFX.play('ko'); if (mode === 'boss') BGM.bossIn(); } }, 1000);   // the boom of the reveal (and the boss's roar)
 }
 function endLineup() {
   clearTimeout(lineupTimer);
@@ -13060,7 +13348,7 @@ function showMap() {
   $('mapRule').textContent = '맵 위에 마우스를 올리면 그 맵의 특징이 나옵니다.';
   showOv('map');
 }
-function goMenu() { arcadeEnd(); const tut = game && game.tut; netLeave(); state = 'menu'; game = null; if (tut) { setMode(tut.prev); TRAIN.burst = true; } showOv('menu'); }
+function goMenu() { arcadeEnd(); modeEnd(); const tut = game && game.tut; netLeave(); state = 'menu'; game = null; if (tut) { setMode(tut.prev); TRAIN.burst = true; } showOv('menu'); }
 // Party-size scene: each choice shows a line icon of that many people.
 function showParty() {
   state = 'party'; game = null;
@@ -13112,7 +13400,7 @@ function endVictory() {
 const MOVE_KO = { atk: '평타', heavy: '강공격', skill: '스킬', burst: '필살기' };
 function loadRec() { try { return JSON.parse(localStorage.getItem('wd-rec') || '{}'); } catch (e) { return {}; } }
 function saveRec(r) { try { localStorage.setItem('wd-rec', JSON.stringify(r)); } catch (e) { /* storage unavailable */ } }
-const humanSide = side => mode === 'net' ? side === NET.side : mode === '2p' ? true : mode === 'train' ? false : side === 0;
+const humanSide = side => mode === 'net' ? side === NET.side : mode === '2p' ? true : mode === 'train' ? false : mode === 'tour' ? side === 0 && !!TOUR.human : side === 0;
 function recordMatch(g) {
   if (g.recorded) return; g.recorded = true;
   const r = loadRec(); r.chars = r.chars || {};
@@ -13153,8 +13441,12 @@ function showResult() {
     if (won && last) { r.arcadeClears = (r.arcadeClears || 0) + 1; saveRec(r); }
     $('resNet').hidden = false; $('resNet').textContent = '아케이드 최고 기록: ' + (loadRec().arcade || 0) + ' / ' + ARC_STAGES + ' 스테이지' + (loadRec().arcadeClears ? ' · 클리어 ' + loadRec().arcadeClears + '회' : '');
   }
+  if (mode === 'surv') survResult(g);
+  if (mode === 'boss') bossResult(g);
+  if (mode === 'tour') tourResult(g);
+  $('btnReselect').hidden = mode === 'tour';
   showOv('result');
-  if (mode === 'net' && NET.room) netShowResult(); else if (mode !== 'arcade') $('resNet').hidden = true;
+  if (mode === 'net' && NET.room) netShowResult(); else if (mode !== 'arcade' && mode !== 'surv' && mode !== 'boss' && mode !== 'tour') $('resNet').hidden = true;
 }
 
 // Mode scene: the key hint follows the card under the pointer or the keyboard focus (m), else the current mode
@@ -13168,6 +13460,12 @@ function renderModeHint() {
     ? '같은 게임을 연 두 사람이 각자 기기에서 싸웁니다. 한 명이 방을 만들고, 다른 한 명이 방 코드로 들어옵니다.<br>조작은 CPU 대전과 같습니다: 이동 ' + kb('A') + kb('D') + ' 점프 ' + kb('W') + ' 공격 ' + kb('J') + ' 스킬 ' + kb('K') + ' 필살기 ' + kb('L') + ' 가드 ' + kb('H') + ' 교체 ' + kb('R')
     : mode === 'arcade'
     ? '파티를 고른 뒤 CPU 다섯 명과 차례로 싸우고, 마지막에 거대한 <b>보스</b>와 싸웁니다. 뒤로 갈수록 상대가 강해지고, 한 번 지면 처음부터입니다.'
+    : mode === 'boss'
+    ? '1~3명 파티를 고른 뒤 상대할 <b>보스</b>를 고릅니다. 보스는 크고 무겁고 강하며, 작은 공격에는 거의 움찔하지 않습니다. 보스의 목숨은 3개입니다.'
+    : mode === 'surv'
+    ? '파티를 고르면 적이 한 명씩 끝없이 나옵니다. 적은 목숨 1개이고, 뒤로 갈수록 강해집니다. 적을 쓰러뜨릴 때마다 내 파티의 피해가 조금 회복됩니다. 몇 명까지 쓰러뜨리는지 기록에 남습니다.'
+    : mode === 'tour'
+    ? '8명이 1:1 대진표로 겨룹니다. 직접 캐릭터를 골라 참가하거나, CPU 8명의 대결을 관전할 수 있습니다. CPU끼리의 경기는 직접 보거나 결과만 볼 수 있습니다.'
     : mode === 'train'
     ? '혼자 캐릭터를 연습합니다. 상대는 공격하지 않고 목숨도 줄지 않습니다. 쿨타임 없음과 필살기 무한이 처음부터 켜져 있습니다.<br>싸우는 중에 ' + kb('T') + ' 상대 행동 바꾸기 · ' + kb('Y') + ' 상대 피해 정하기 · ' + kb('Backspace') + ' 처음 위치로 · 조작은 CPU 대전과 같습니다'
     : mode === '2p'
@@ -13180,7 +13478,7 @@ function setMode(m) {
   renderMenuHint();
 }
 // The title only has the start button (and the tutorial); the mode is chosen on the next scene.
-const MODE_ORDER = ['cpu', '2p', 'net', 'arcade', 'train'];
+const MODE_ORDER = ['cpu', '2p', 'net', 'arcade', 'train', 'boss', 'surv', 'tour'];
 function showModeSel() {
   state = 'mode'; game = null; showOv('mode'); renderMenuHint();
   const cur = document.querySelector('#modeCards .pty[data-mode="' + mode + '"]');
@@ -13188,7 +13486,9 @@ function showModeSel() {
 }
 function chooseMode(m) {
   if (state !== 'mode' || wiping || !MODE_ORDER.includes(m)) return;
-  SFX.init(); BGM.confirm(); setMode(m); resetPicks(); transition(m === 'net' ? netOpen : showParty);
+  SFX.init(); BGM.confirm(); setMode(m); resetPicks();
+  if (m === 'tour') { partySize = 1; transition(showTourSetup); return; }   // the tournament is one against one
+  transition(m === 'net' ? netOpen : showParty);
 }
 $('btnCpu').addEventListener('click', () => { SFX.init(); BGM.confirm(); transition(showModeSel); });
 $('modeCards').addEventListener('click', e => { const b = e.target.closest('.pty'); if (b) chooseMode(b.dataset.mode); });
@@ -13205,13 +13505,13 @@ $('btnBack').addEventListener('click', () => {   // undo the last pick, stepping
   if (mode === 'net') { if (sel[pickStep].length) { sel[pickStep].pop(); netPickSync(false); showSelect(); } return; }   // online: only my own picks
   if (sel[pickStep].length) sel[pickStep].pop();
   else if (pickStep === 1) { pickStep = 0; sel[0].pop(); }
-  else { transition(showParty); return; }
+  else { transition(mode === 'tour' ? showTourSetup : showParty); return; }
   showSelect();
 });
 $('travPickNo').addEventListener('click', () => { closeTravPick(); clearDetail(); });
 $('btnRand').addEventListener('click', () => {   // fill the rest of this side's party at random
   const side = pickStep;
-  while (state === 'select' && pickStep === side && sel[side].length < partySize) {
+  while (state === 'select' && pickStep === side && sel[side].length < sideSize(side)) {
     const left = CHARS.filter(c => !sel[side].includes(c.id));
     const id = left[(Math.random() * left.length) | 0].id; pick(id, isTrav(id) ? travRandEl() : undefined);
   }
@@ -13227,6 +13527,8 @@ $('btnQuit').addEventListener('click', goMenu);
 $('btnAgain').addEventListener('click', () => {
   if (mode === 'net') { netWant('again'); return; }
   if (mode === 'arcade') { SFX.play('go'); if (ARC.lastWon && ARC.stage < ARC_STAGES) arcadeNext(); else arcadeStart(); return; }
+  if (mode === 'tour') { transition(showTour); return; }
+  if (mode === 'surv') { SFX.play('go'); survStart(); return; }
   SFX.play('go'); startMatch();
 });
 $('btnReselect').addEventListener('click', () => { if (mode === 'net') { netWant('pick'); return; } resetPicks(); showSelect(); });
