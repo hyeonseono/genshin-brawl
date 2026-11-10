@@ -342,11 +342,60 @@ button { font-family: inherit; }
 #ovParty::after, #ovMode::after { content: ""; position: absolute; inset: 0; z-index: 0;
   background: repeating-linear-gradient(-58deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 46px), radial-gradient(ellipse at 50% 55%, rgba(6, 9, 22, 0), rgba(6, 9, 22, .82)); }
 #ovParty > *, #ovMode > * { position: relative; z-index: 1; }
-/* the mode scene, after the title's start button: five cards in the same style as the party-size ones */
-.pty-cards.mode-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1040px); gap: clamp(6px, 1.4cqw, 18px); }
+/* the mode scene (2026-11-10): five cards (대난투 large) and a rail of small buttons, with a caption. 대난투 and 비경 도전 open a pop-up
+   with their modes as cards (the old mode cards). */
+#ovMode > .mm { position: absolute; inset: 0; z-index: 1; }
+/* Dark cards with a thin gold frame and their element's colour as a glow (the look of Genshin's own menus): 대난투 large on the left with
+   the title picture, the other four in a 2 x 2 grid beside it, and a slim rail of small buttons on the right. */
+.mm-p { position: absolute; margin: 0; padding: 0 0 0 7%; cursor: pointer; color: #fff; font: inherit; display: flex; flex-direction: column; align-items: flex-start;
+  justify-content: flex-end; gap: .15em; text-align: left; overflow: hidden; border-radius: clamp(8px, 1.2cqw, 14px);
+  border: clamp(1px, .18cqw, 2px) solid rgba(236, 204, 132, .55); padding-bottom: 7%;
+  background: radial-gradient(ellipse at 85% 15%, color-mix(in srgb, var(--c) 34%, transparent), transparent 62%), linear-gradient(165deg, #18204a, #0a0e22 70%);
+  box-shadow: inset 0 0 0 clamp(2px, .35cqw, 4px) rgba(8, 10, 26, .6), 0 .5cqw 1.6cqw rgba(0, 0, 0, .45);
+  transition: transform .18s, border-color .18s, box-shadow .18s; animation: mm-in .5s cubic-bezier(.2, .9, .3, 1.1) both; }
+.mm-p::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: clamp(2px, .35cqw, 4px); background: linear-gradient(90deg, transparent, var(--c), transparent); opacity: .85; }
+.mm-p::after { content: "✦"; position: absolute; right: 5%; top: 6%; color: rgba(236, 204, 132, .7); font-size: clamp(10px, 1.6cqw, 18px); }
+.mm-p:hover, .mm-p:focus-visible, .mm-p.on { transform: translateY(-.35cqw); border-color: #f2d48a; outline: none; z-index: 2;
+  box-shadow: inset 0 0 0 clamp(2px, .35cqw, 4px) rgba(8, 10, 26, .6), 0 0 0 1px rgba(242, 212, 138, .5), 0 0 2.4cqw color-mix(in srgb, var(--c) 55%, transparent); }
+.mm-p > * { position: relative; }
+.mm-p b { font-family: var(--f-display); font-weight: 400; font-size: clamp(16px, 3.3cqw, 38px); line-height: 1.05; letter-spacing: .02em; text-shadow: 0 2px 0 rgba(0, 0, 0, .5), 0 0 1.6cqw color-mix(in srgb, var(--c) 60%, transparent); }
+.mm-p small { font-size: clamp(8.5px, 1.2cqw, 13px); color: #cfd6f2; font-weight: 600; letter-spacing: .02em; }
+.mm-p .mm-ic { color: var(--c); filter: drop-shadow(0 0 .8cqw color-mix(in srgb, var(--c) 70%, transparent)); margin-bottom: .2em; }
+.mm-p .mm-ic svg { width: clamp(26px, 5cqw, 58px); height: auto; display: block; }
+.mm-p kbd { position: absolute; right: 5%; bottom: 7%; font-size: clamp(9px, 1.15cqw, 13px); opacity: .75; }
+#mmBrawl { --c: #ff8a4c; left: 1.5%; top: 4%; width: 46%; height: 52%; padding-bottom: 5%; --dx: -6cqw;
+  background: radial-gradient(ellipse at 20% 100%, rgba(255, 110, 50, .45), transparent 60%), radial-gradient(ellipse at 85% 10%, rgba(255, 170, 90, .25), transparent 55%), linear-gradient(165deg, #3a1a2a, #120c22 75%); }
+#mmBrawl b { font-size: clamp(28px, 6.4cqw, 72px); }
+#mmBrawl small { font-size: clamp(10px, 1.5cqw, 16px); }
+#mmBrawl .mm-ic svg { width: clamp(34px, 6.4cqw, 74px); }
+#mmTour { --c: #86e7ff; left: 49.5%; top: 4%; width: 39.5%; height: 29%; padding-left: 15%; padding-bottom: 3%; --dy: -5cqw; animation-delay: .05s; }
+#mmTrain { --c: #f5c04d; left: 61.5%; top: 35%; width: 27.5%; height: 21%; padding-left: 5%; padding-bottom: 2.5%; --dx: 6cqw; animation-delay: .1s; }
+#mmDomain { --c: #7ed957; left: 1.5%; top: 58%; width: 41%; height: 30%; padding-bottom: 3%; --dx: -6cqw; animation-delay: .08s; }
+#mmNet { --c: #c48aff; left: 44.5%; top: 58%; width: 44.5%; height: 30%; padding-left: 17%; padding-bottom: 3%; --dy: 5cqw; animation-delay: .13s; }
+#mmTour .mm-ic svg, #mmTrain .mm-ic svg, #mmDomain .mm-ic svg, #mmNet .mm-ic svg { width: clamp(22px, 3.8cqw, 44px); }
+.mm-hub { position: absolute; left: 47.5%; top: 46%; height: 46%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; z-index: 3; pointer-events: none;
+  padding: clamp(3px, .5cqw, 6px); background: conic-gradient(from 20deg, #f6dc95, #b9883c, #f6dc95, #9c6f2e, #f6dc95);
+  box-shadow: 0 0 0 clamp(2px, .35cqw, 4px) #0a0d20, 0 0 0 clamp(3px, .55cqw, 6px) rgba(236, 204, 132, .5), 0 .6cqw 2.2cqw rgba(0, 0, 0, .6), 0 0 3cqw rgba(140, 200, 255, .25);
+  animation: mm-hub .6s cubic-bezier(.2, .9, .3, 1.15) both; }
+.mm-hub i { display: block; width: 100%; height: 100%; border-radius: 50%; background: url(img/menu-hub.webp) center / cover no-repeat, #0c1430; box-shadow: inset 0 0 1.2cqw rgba(0, 0, 0, .45); }
+@keyframes mm-hub { from { opacity: 0; transform: translate(-50%, -50%) scale(.7); } }
+@keyframes mm-in { from { opacity: 0; transform: translate(var(--dx, 0), var(--dy, 0)); } }
+.mm-side { position: absolute; right: 1.2%; top: 4%; height: 84%; width: 8%; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6%;
+  background: linear-gradient(180deg, #121836, #0a0d20); border: clamp(1px, .18cqw, 2px) solid rgba(236, 204, 132, .45); border-radius: 999px; }
+.mm-side button { background: none; border: 0; color: #d6dbf0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .25em; padding: .4em .2em; border-radius: 10px;
+  font: 600 clamp(8px, 1.05cqw, 12px) var(--f-body); }
+.mm-side button svg { width: clamp(18px, 3.2cqw, 36px); height: auto; }
+.mm-side button:hover, .mm-side button:focus-visible { color: #f2d48a; background: rgba(242, 212, 138, .1); outline: none; }
+#ovMode > .mm-cap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; margin: 0; padding: .5em 1em .7em; min-height: 0; max-width: none; color: #fff;
+  font-size: clamp(10px, 1.45cqw, 15px); line-height: 1.45; text-shadow: 0 1px 3px #000; background: linear-gradient(transparent, rgba(4, 6, 14, .7) 40%); }
+#ovMode > .mm-sub { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(8px, 1.6cqw, 18px);
+  padding: 2cqw 2cqw 7cqw; background: rgba(4, 6, 14, .84); backdrop-filter: blur(3px); }
+#ovMode > .mm-sub[hidden] { display: none; }
+.mm-sub .pty-cards.mode-cards { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); width: min(100%, calc(var(--n, 3) * 280px)); }
+/* the mode cards (in the pop-up), in the same style as the party-size ones */
+.pty-cards.mode-cards { gap: clamp(6px, 1.4cqw, 18px); }
 .mode-cards .pty-faces { height: clamp(36px, 8cqw, 86px); }
 .md-name { font-family: var(--f-display); font-weight: 400; font-size: clamp(15px, 2.9cqw, 32px); line-height: 1.1; color: #fff; text-shadow: 0 2px 0 rgba(6, 12, 30, .6), 0 0 20px var(--c); white-space: nowrap; }
-#ovMode #menuHint { min-height: 3em; max-width: 760px; }
 #ovMode:not([hidden]) .pty { animation: pty-in .45s cubic-bezier(.2, .9, .3, 1.2) both; }
 #ovMode:not([hidden]) .pty:nth-child(2) { animation-delay: .06s; }
 #ovMode:not([hidden]) .pty:nth-child(3) { animation-delay: .12s; }
@@ -688,8 +737,22 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
     </div>
 
     <div class="ov" id="ovMode" hidden>
-      <h2>모드 선택 <small>어떻게 싸울지 고릅니다</small></h2>
-      <div class="pty-cards mode-cards" id="modeCards">
+      <div class="mm" id="modeMenu">
+        <button class="mm-p" type="button" data-g="brawl" id="mmBrawl"><span class="mm-ic"><svg viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 68L70 16M60 12h14v14M31 55l9 9M25 61l-8 8"/><path d="M82 68L30 16M40 12H26v14M69 55l-9 9M75 61l8 8"/></svg></span><b>대난투</b><small>CPU 대전 · 2인 대전</small><kbd>1</kbd></button>
+        <button class="mm-p" type="button" data-g="domain" id="mmDomain"><span class="mm-ic"><svg viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 72V36q0-26 28-26t28 26v36M12 72h76M36 72V42q0-14 14-14t14 14v30"/><path d="M50 36l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="currentColor" stroke-width="2"/></svg></span><b>비경 도전</b><small>아케이드 · 보스전 · 생존</small><kbd>2</kbd></button>
+        <button class="mm-p" type="button" data-g="tour" id="mmTour"><span class="mm-ic"><svg viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M34 10h32v18q0 18-16 20q-16-2-16-20z"/><path d="M34 16H21q0 15 15 17M66 16h13q0 15-15 17M50 48v10M37 70h26M41 58h18v12H41z"/></svg></span><b>토너먼트</b><small>8명 대진표</small><kbd>3</kbd></button>
+        <button class="mm-p" type="button" data-g="train" id="mmTrain"><span class="mm-ic"><svg viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="40" r="28"/><circle cx="50" cy="40" r="16"/><circle cx="50" cy="40" r="4" fill="currentColor"/></svg></span><b>훈련장</b><small>츄츄족과 자유 연습</small><kbd>4</kbd></button>
+        <button class="mm-p" type="button" data-g="net" id="mmNet"><span class="mm-ic"><svg viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="40" r="30"/><ellipse cx="50" cy="40" rx="12" ry="30"/><path d="M21 30h58M21 50h58"/></svg></span><b>온라인</b><small>방 코드 · 랜덤 매칭</small><kbd>5</kbd></button>
+        <div class="mm-hub" aria-hidden="true"><i></i></div>
+        <nav class="mm-side" aria-label="메뉴">
+          <button type="button" id="btnModeBack"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 23L24 8l17 15v18H7z"/><path d="M19 41V29h10v12"/></svg><span>처음으로</span></button>
+          <button type="button" id="mmTut"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="17"/><path d="M18 19q0-7 6-7t6 7q0 5-6 6v4"/><path d="M24 35v.5"/></svg><span>튜토리얼</span></button>
+          <button type="button" id="mmSet"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="7"/><path d="M24 5v6M24 37v6M5 24h6M37 24h6M10.6 10.6l4.2 4.2M33.2 33.2l4.2 4.2M10.6 37.4l4.2-4.2M33.2 14.8l4.2-4.2"/></svg><span>설정</span></button>
+        </nav>
+      </div>
+      <div class="mm-sub" id="modeSub" hidden>
+        <h2 id="modeSubTitle">대난투</h2>
+        <div class="pty-cards mode-cards" id="modeCards">
         <button class="pty" type="button" data-mode="cpu" style="--c: var(--pyro)">
           <kbd>1</kbd><span class="pty-faces" aria-hidden="true"><svg viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><rect x="34" y="24" width="52" height="42" rx="9"/><circle cx="49" cy="42" r="4"/><circle cx="71" cy="42" r="4"/><path d="M50 55H70M60 24V13"/><circle cx="60" cy="9" r="3"/><path d="M34 42H27M86 42H93"/></svg></span>
           <b class="md-name">CPU 대전</b><span class="pty-rule">컴퓨터와 1:1</span>
@@ -731,8 +794,9 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
           <em class="pty-desc">직접 참가해 우승을 노리거나, CPU 8명의 대결을 관전합니다.</em>
         </button>
       </div>
-      <div class="row"><button class="btn small ghost" id="btnModeBack" type="button">뒤로</button></div>
-      <p class="hint" id="menuHint"></p>
+        <div class="row"><button class="btn small ghost" id="btnSubBack" type="button">뒤로 <kbd>Esc</kbd></button></div>
+      </div>
+      <p class="mm-cap" id="menuHint"></p>
     </div>
 
     <div class="ov" id="ovParty" hidden>
@@ -806,6 +870,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
         <button type="button" data-t="pct">상대 피해 <span id="tbPct">0%</span> <kbd>Y</kbd></button>
         <button type="button" data-t="cd" aria-pressed="true">쿨타임 없음</button>
         <button type="button" data-t="burst" aria-pressed="true">필살기 무한</button>
+        <button type="button" data-t="push" aria-pressed="false">상대 밀쳐짐 <kbd>U</kbd></button>
         <button type="button" data-t="reset">초기화 <kbd>Backspace</kbd></button>
       </div>
       <p class="tb-stat" id="tbStat">상대를 때리면 콤보 피해가 여기에 나옵니다.</p>
@@ -1068,8 +1133,8 @@ const CHARS = [
     speed: 285, jump: 735, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 230,
     skill: '서리꽃 화살', burst: '얼음비', desc: '활 원거리형. 멀리 날아가 터지는 서리꽃 화살과 넓은 얼음비가 강점입니다.' },
   { id: 'venti', name: '벤티', title: '바람의 음유시인', el: 'anemo', color: '#3fbf9a', body: '#eafff2', dark: '#2c8f78', hair: '#3b6b6f', eye: '#3fbf9a', skin: '#ffdcc2',
-    speed: 330, jump: 720, weight: 0.8, atk: 0.84, jumps: 3, grav: 0.88, scale: 1, reach: 1, aiRange: 120,
-    skill: '상승 기류', burst: '바람신의 시', desc: '활 기동형. 3단 점프와 상승 기류로 날아다니고 필살기로 적을 끌어모읍니다.' },
+    speed: 330, jump: 720, weight: 0.8, atk: 0.98, jumps: 3, grav: 0.88, scale: 1, reach: 1, aiRange: 120,   // 2026-11-10: atk 0.98 (was 0.84)
+    skill: '상승 기류', burst: '바람신의 시', desc: '활 기동형. 상승 기류 지대를 세워 날아오르고, 필살기로 거대한 바람의 눈을 만들어 적을 빨아들입니다.' },
   { id: 'zhongli', name: '종려', title: '암왕제군', el: 'geo', color: '#e0a63a', body: '#4a3623', dark: '#2a1e12', hair: '#4a2f1a', eye: '#e8a63a', skin: '#f2cfac',
     speed: 255, jump: 710, weight: 1.3, atk: 1.02, jumps: 2, grav: 1.08, scale: 1.08, reach: 1.3, aiRange: 76,
     skill: '지핵', burst: '천성', desc: '장병기 중량형. 바위 기둥과 방어막으로 버티다 운석으로 석화시킵니다.' },
@@ -1253,10 +1318,16 @@ const CHARS = [
     skill: '대응책: 루미의 함성!', burst: '메모: 극한 생존 가이드', desc: '활 지원형. 동료 루미를 불러 결정을 쏘게 하고, 스킬을 다시 누를 때마다 루미가 커지며 내려찍으며, 필살기로 루미의 일격과 함께 회복합니다.' },
 ];
 const CHAR = Object.fromEntries(CHARS.map(c => [c.id, c]));
+// The training ground's opponent (2026-11-10): a hilichurl with a wooden club. Not in CHARS, so it is never in the roster, random picks or a
+// tournament; the training ground fields it by itself (see pick). Drawn as pixel frames made by code (img/sprite/hilichurl-anim.webp).
+CHAR.hilichurl = { id: 'hilichurl', name: '츄츄족', title: '훈련 상대', el: 'geo', color: '#b98a5a', body: '#c08a5a', dark: '#4a3424', hair: '#4a3424', eye: '#1e1612', skin: '#c68e5e',
+  speed: 260, jump: 660, weight: 1.0, atk: 0.85, jumps: 2, grav: 1, scale: 0.92, reach: 1, aiRange: 64,
+  skill: '츄츄 돌진', burst: '츄츄 대난동', desc: '훈련장 상대. 몽둥이를 휘두르는 츄츄족입니다.' };
 
 let PLATS = [{ x0: -300, x1: 1260, y: 400, solid: true }];   // replaced by setMap
 const BLAST = { l: -1140, r: W + 1140, t: -640, b: H + 250 };   // set per map by setMap (the arena's size decides how far out a KO is)
 const BLAST0 = { ...BLAST };
+const SKY_EXTRA = 300;
 let SPAWN_X = 480;   // the middle of the main ground (setMap)   // the arena is far wider than one screen; the camera zooms to fit
 // Neutral owner for stage hazards: their hits strike both sides and credit no one.
 const STAGE = { idx: -1, def: { id: 'stage', atk: 1, scale: 1, el: 'geo' }, dir: 1, x: 0, y: 0, energy: 0, buff: null, lf: null, shield: 0, stat: { dealt: 0, react: 0, kos: 0 } };
@@ -1376,7 +1447,11 @@ const SFX = (() => {
 // Browsers only let a page start sound after the player has clicked, tapped or pressed a key, so the music starts on the first such input.
 const BGM = (() => {
   const mk = (src, vol) => { const a = new Audio(); a.loop = true; a.preload = 'none'; a.src = src; a.volume = 0; return { a, vol, v: 0, stale: false }; };
-  const T = { menu: mk('audio/main-theme.mp3', 0.5), lineup: mk('audio/lineup-loop.wav', 1), fight: mk('audio/battle-dvalin.mp3', 0.42) };
+  const T = { menu: mk('audio/main-theme.mp3', 0.5), lineup: mk('audio/lineup-loop.wav', 1), fight: mk('audio/battle-dvalin.mp3', 0.42),
+             fightInazuma: mk('audio/battle-inazuma.mp3', 0.42),   // the Inazuma map's own battle music (the Raiden Shogun weekly boss theme, phases 1-2; from the user)
+             fightLiyue: mk('audio/battle-liyue.mp3', 0.42), fightFontaine: mk('audio/battle-fontaine.mp3', 0.42),   // the regions' battle themes (from the user)
+             fightSumeru: mk('audio/battle-sumeru.mp3', 0.42), fightNatlan: mk('audio/battle-natlan.mp3', 0.42) };
+  const FIGHT_BY_MAP = { inazuma: 'fightInazuma', liyue: 'fightLiyue', fontaine: 'fightFontaine', sumeru: 'fightSumeru', natlan: 'fightNatlan' };   // maps with a battle theme of their own (the rest use 'fight')
   T.lineup.a.preload = 'auto';   // the VS screen only lasts 3 seconds: have it ready
   let unlocked = false, vol = 1, hidden = false, tried = false;   // vol: the player's volume, 0..1
   const ui = new Audio(); ui.preload = 'auto'; ui.src = 'audio/ui-confirm.mp3'; ui.volume = 0.8;
@@ -1443,7 +1518,8 @@ const BGM = (() => {
   const jumpS = pool('audio/px-jump.mp3', 2, 0.3), landS = pool('audio/px-land.mp3', 2, 0.35);
   const bossS = pool('audio/px-boss.mp3', 1, 0.8), waveS = pool('audio/px-wave.mp3', 1, 0.55), cheerS = pool('audio/px-cheer.mp3', 1, 0.55), fanS = pool('audio/px-fanfare.mp3', 1, 0.6);
   let swAt = 0, swLast = -1, jumpAt = 0, landAt = 0;
-  const want = () => (game && game.over && (state === 'fight' || state === 'paused' || state === 'info' || state === 'victory' || state === 'result')) ? 'none' : (state === 'fight' || state === 'paused' || state === 'info' || state === 'result' || state === 'victory' ? 'fight' : state === 'lineup' ? (lineupOut ? 'out' : 'lineup') : 'menu');   // 'out': the VS screen is closing, nothing new starts while its loop fades
+  const want = () => { const w = want0(); return w === 'fight' && game && game.map && FIGHT_BY_MAP[game.map.id] || w; };
+  const want0 = () => (game && game.over && (state === 'fight' || state === 'paused' || state === 'info' || state === 'victory' || state === 'result')) ? 'none' : (state === 'fight' || state === 'paused' || state === 'info' || state === 'result' || state === 'victory' ? 'fight' : state === 'lineup' ? (lineupOut ? 'out' : 'lineup') : 'menu');   // 'out': the VS screen is closing, nothing new starts while its loop fades
   const level = () => (state === 'paused' || state === 'info' ? 0.4 : state === 'result' || state === 'victory' ? 0.6 : 1);   // quieter behind the pause, skill and result screens
   function unlock() {
     acInit(); SFX.init();   // the effects' audio, recorded and built-in (on phones it must be started inside a click or tap)
@@ -1565,10 +1641,15 @@ addEventListener('keydown', e => {
     if (m) { chooseParty(+m[1]); return; }
     if (e.code === 'Escape' && !wiping) { transition(showModeSel); return; }
   }
-  if (state === 'mode' && !e.repeat) {   // 1-8 pick the mode, Esc goes back to the title
-    const m = /^(?:Digit|Numpad)([1-8])$/.exec(e.code);
-    if (m) { chooseMode(MODE_ORDER[+m[1] - 1]); return; }
-    if (e.code === 'Escape' && !wiping) { transition(goMenu); return; }
+  if (state === 'mode' && !e.repeat) {   // 1-5 pick a panel (in a pop-up: 1-3 pick its mode), Esc closes the pop-up or goes back to the title
+    const m = /^(?:Digit|Numpad)([1-5])$/.exec(e.code);
+    if (modeSub) {
+      if (m && MODE_GROUPS[modeSub][+m[1] - 1]) { chooseMode(MODE_GROUPS[modeSub][+m[1] - 1]); return; }
+      if (e.code === 'Escape') { closeModeSub(); return; }
+    } else {
+      if (m) { choosePanel(MM_ORDER[+m[1] - 1]); return; }
+      if (e.code === 'Escape' && !wiping) { transition(goMenu); return; }
+    }
   }
   if (state === 'fight' && game && game.mode === 'train' && !game.tut && !e.repeat && TRAIN_KEYS[e.code]) { e.preventDefault(); trainDo(TRAIN_KEYS[e.code]); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') {
@@ -1701,7 +1782,7 @@ function ftext(x, y, text, color, size = 20, life = 0.9) {
     if (!o) break;
     y = o.y - (o.size + size) * 0.62;
   }
-  game.texts.push({ x, y, text, color, size, life, max: life, vy: -60 });
+  game.texts.push({ x, y, text, color, size, life, max: life, vy: -50, vx: (NATIVE_RND() - 0.5) * 24, rot0: (NATIVE_RND() - 0.5) * 0.24 });
 }
 function spark(x, y, color, size) {
   if (game && !fxPass) game.sparks.push({ x, y, color, size, rot: Math.random() * 3, life: 0.18 });
@@ -1945,14 +2026,17 @@ function reactTitle(x, y, name, a, b) {
 function drawReactTitles() {
   const L = game.rtitles; if (!L || !L.length) return;
   for (const r of L) {
-    const k = 1 - r.life / r.max, pop = 1 + 0.4 * (1 - easeOut(Math.min(1, k * 5))), fade = k > 0.7 ? (1 - k) / 0.3 : 1;
+    const k = 1 - r.life / r.max, age = r.max - r.life, fade = k > 0.7 ? (1 - k) / 0.3 : 1;
+    let el = Math.exp(-age * 8) * Math.cos(age * 24); if (el < 0) el *= 0.5;
+    const pop = 1 + 0.7 * el, ex = k > 0.75 ? (k - 0.75) / 0.25 : 0, tilt = -0.14 * Math.exp(-age * 6) * Math.cos(age * 20), jit = Math.sin(age * 80) * 4 * Math.exp(-age * 10);
     const c1 = EL[r.a] ? EL[r.a].color : '#ffffff', c2 = EL[r.b] ? EL[r.b].color : '#ffffff', txt = r.name + '!', sz = 30;
-    ctx.save(); ctx.translate(r.x, r.y - 22 * easeOut(k)); ctx.scale(pop, pop); ctx.globalAlpha = fade;
+    ctx.save(); ctx.translate(r.x + jit, r.y - 22 * easeOut(k) - 10 * ex); ctx.rotate(tilt); ctx.scale(pop * (1 + 0.45 * ex), pop * (1 - 0.6 * ex)); ctx.globalAlpha = fade;
     ctx.font = sz + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const w = ctx.measureText(txt).width, rev = easeOut(Math.min(1, k * 8));
     ctx.save(); ctx.beginPath(); ctx.moveTo(-w / 2 - 30, -sz); ctx.lineTo(-w / 2 - 30 + (w + 60) * rev + 14, -sz); ctx.lineTo(-w / 2 - 30 + (w + 60) * rev - 14, sz); ctx.lineTo(-w / 2 - 30, sz); ctx.closePath(); ctx.clip();   // cut in from the left on a slant
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.55 * fade; ctx.drawImage(glowSpr(c1), -w * 0.75, -sz * 1.1, w * 0.9, sz * 2.2); ctx.drawImage(glowSpr(c2), -w * 0.15, -sz * 1.1, w * 0.9, sz * 2.2); ctx.restore();
-    const gr = ctx.createLinearGradient(-w / 2, 0, w / 2, 0); gr.addColorStop(0, mixHex(c1, '#ffffff', 0.25)); gr.addColorStop(1, mixHex(c2, '#ffffff', 0.25));
+    const wh = FANCY_COL[r.name] ? 0.55 : 0.25;   // lunar and stellar names: paler, more white
+    const gr = ctx.createLinearGradient(-w / 2, 0, w / 2, 0); gr.addColorStop(0, mixHex(c1, '#ffffff', wh)); gr.addColorStop(1, mixHex(c2, '#ffffff', wh));
     ctx.lineJoin = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#06070f'; ctx.strokeText(txt, 0, 0); ctx.fillStyle = gr; ctx.fillText(txt, 0, 0);
     if (k > 0.1 && k < 0.5) {   // the shine
       const u = (k - 0.1) / 0.4, sx = -w / 2 - 20 + (w + 40) * u;
@@ -2011,12 +2095,11 @@ function drawDomain(t) {
   ctx.save(); ctx.rotate(d.rot + k * 0.5);
   for (let i = 0; i < 16; i++) { ctx.rotate(Math.PI / 8); ctx.globalAlpha = 0.35 * a * (i % 2 ? 0.6 : 1); ctx.drawImage(glowSpr(col), 0, -6, R * 2.6, 12); }
   ctx.restore();
-  ctx.save(); ctx.rotate(-(d.rot + k * 1.4)); ctx.strokeStyle = col;
-  for (const [lw, al] of [[16, 0.1], [8, 0.18], [3, 0.36]]) { ctx.globalAlpha = al * a; ctx.lineWidth = lw; ctx.beginPath(); ctx.arc(0, 0, R * 1.05, 0, 7); ctx.stroke(); }   // a soft, glowing rim, not a hard line
-  ctx.globalAlpha = 0.4 * a; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, R * 0.92, 0, 7); ctx.stroke();
-  ctx.globalAlpha = 0.55 * a; ctx.beginPath();
-  for (let i = 0; i < 24; i++) { const b = i * Math.PI / 12, r2 = R * (i % 3 ? 0.98 : 1.06); ctx.moveTo(Math.cos(b) * R * 0.92, Math.sin(b) * R * 0.92); ctx.lineTo(Math.cos(b) * r2, Math.sin(b) * r2); }
-  ctx.stroke(); ctx.restore();
+  { // the rim: a wide band of light that fades out on both sides, so the field has no hard edge (2026-11-10, was three drawn circles and ticks)
+    const rim = ctx.createRadialGradient(0, 0, R * 0.55, 0, 0, R * 1.45);
+    rim.addColorStop(0, hexA(col, 0)); rim.addColorStop(0.45, hexA(col, 0.12)); rim.addColorStop(0.62, hexA(col, 0.2)); rim.addColorStop(0.8, hexA(col, 0.08)); rim.addColorStop(1, hexA(col, 0));
+    ctx.globalAlpha = a; ctx.fillStyle = rim; ctx.beginPath(); ctx.arc(0, 0, R * 1.45, 0, 7); ctx.fill();
+  }
   const im = EL_IMG[d.el];
   if (im && im.complete && im.naturalWidth) { ctx.save(); ctx.rotate(d.rot * 0.2 + k * 0.6); ctx.globalAlpha = 0.55 * a; const es = R * 1.5; ctx.drawImage(im, -es / 2, -es / 2, es, es); ctx.restore(); }
   glow(0, 0, R * 0.9, col, 0.4 * a);
@@ -2346,7 +2429,7 @@ function drawBarriers(t) {   // the arena's barriers show faintly beside anyone 
       for (let j = -3; j <= 3; j++) glow(wx, cy + j * 40 + Math.sin(t * 2 + j) * 6, 26, '#9fd4ff', a * 0.35 * (1 - Math.abs(j) / 4));
     }
     const dc = f.y - CEIL_Y;
-    if (dc < 340) {
+    if (false && dc < 340) {   // (no ceiling barrier any more)
       const a = (1 - Math.max(0, dc) / 340) * 0.7, gr = ctx.createLinearGradient(f.x - 260, 0, f.x + 260, 0);
       gr.addColorStop(0, 'rgba(170,215,255,0)'); gr.addColorStop(0.5, 'rgba(205,232,255,' + 0.6 * a + ')'); gr.addColorStop(1, 'rgba(170,215,255,0)');
       ctx.globalAlpha = 1; ctx.fillStyle = gr; ctx.fillRect(f.x - 260, CEIL_Y - 1.5, 520, 3);
@@ -2645,6 +2728,10 @@ function dot(f, amount, color) {
 let hbSrc = null;     // the charged attack, skill or burst now creating hitboxes: { kind, rolled }, shared by every hitbox of that move
 let inBurst = false;   // true while a burst (or a callback of one of its hitboxes) is creating hitboxes
 const HOVER_H = 70;   // how far Wanderer's skill lifts him
+// (2026-11-10) His flight runs on its own stamina instead of a timer: hovering and basic attacks spend it at WFLY.hover a second (about 8 s),
+// a held dash at WFLY.dash a second (5 s), and each charged attack takes WFLY.heavy at once (three of them empty it). Empty: he lands.
+// A jump while flying lifts the height he floats at by WFLY.rise, for two thirds of a charged attack's stamina.
+const WFLY = { max: 100, hover: 12.5, dash: 20, heavy: 34, hold: 0.22, rise: 110, riseCost: 34 * 2 / 3 };   // hold: 0.22 s (0.1 was too close to a tap)
 function hb(o) {
   const h = Object.assign({
     owner: null, shape: 'rect', x: 0, y: 0, ox: 0, oy: 34, w: 50, h: 40, r: 0, vx: 0, vy: 0,
@@ -2774,6 +2861,7 @@ function moonParty(o, kind) {
 }
 // Stellar reactions (Snezhnaya): with one of these in the attacker's party, Superconduct and Cryo Swirl turn into their stellar forms.
 // The Cryo Traveler counts too. Vodyanitsa in the party makes the star vortex wander after the foe.
+const FANCY_COL = { '달감전': '#9d7bff', '달개화': '#58d66a', '달결정': '#e8b93a', '별 초전도': '#7f9cff', '별 확산': '#2fcfb4' };   // lunar / stellar reactions: their damage numbers use fancyNum, coloured by the striking element (these are only fallbacks)
 const STAR = { conduct: ['sandrone', 'odette'], swirl: ['odette', 'vesna'] };
 function starParty(o, kind) {
   const team = (game.teams && o.idx >= 0 && game.teams[o.idx]) || [o];
@@ -2808,12 +2896,13 @@ function reaction(o, t, aura, inc) {
       case 'dendro+hydro':
         if (moonParty(o, 'bloom')) {   // Lunar-Bloom: no seed to wait for, moonlit petals burst at once
           r.name = '달개화'; r.color = '#9ff0c8'; r.dmgAdd = 2; reactFx(o, t, 'bloom', null, 0.4); puff(cx, cy, '#e8fff4', 14, 240, 0.5, 4);
-          hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 85, delay: 0.22, life: 0.1, dmg: 6, kb: 1.0, ang: 55, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#bff5dc' });
+          hb({ owner: o, fancy: EL.dendro.color, shape: 'circle', x: t.x, y: cy, r: 85, delay: 0.22, life: 0.1, dmg: 6, kb: 1.0, ang: 55, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#bff5dc' });
           break;
         }
         r.name = '개화'; r.color = EL.dendro.color; r.dmgAdd = 1; reactFx(o, t, 'bloom', null, 0.9);
         // the seed waits 0.9 s: hit by pyro it bursts big (Burgeon), hit by electro it shoots at the foe (Hyperbloom) - see coreHit
-        hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 90, delay: 0.9, life: 0.1, dmg: 7, kb: 1.2, ang: 50, radial: true, persist: true, core: true, vis: 'boom', color: EL.dendro.color });
+        if (game.hits.filter(x => x.core && !x.dead && x.owner.idx === o.idx).length < 3)
+          hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 90, delay: 0.9, life: 0.1, dmg: 7, kb: 1.2, ang: 50, radial: true, persist: true, core: true, vis: 'boom', color: EL.dendro.color });
         break;
       case 'dendro+pyro': r.name = '연소'; r.color = '#ff8a3d'; r.dmgAdd = 2; t.burn = 3; t.burnTick = 0.3; reactFx(o, t, 'burning', null, 0.9); puff(cx, cy, '#ff8a3d', 12, 200, 0.6, 4, -150); break;
       case 'dendro+electro': r.name = '촉진'; r.color = '#b9e05a'; r.dmgAdd = 2; t.quicken = 6; reactFx(o, t, 'quicken', null, 0.8); puff(cx, cy, '#d8f08a', 12, 220, 0.5, 3); break;
@@ -2827,7 +2916,7 @@ function reaction(o, t, aura, inc) {
       if (old) { old.delay = old.age + 0.04; old.dmg += 2; }
       else {
         const wander = (game.teams && game.teams[o.idx] || []).some(m => m.def.id === 'vodyanitsa');
-        hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 120, delay: 1.2, life: 0.12, dmg: 7, kb: 1.25, ang: 55, radial: true, persist: true, starVortex: true, vis: 'starvortex', track: wander ? t : null, trackY: wander,
+        hb({ owner: o, fancy: EL.cryo.color, shape: 'circle', x: t.x, y: cy, r: 120, delay: 1.2, life: 0.12, dmg: 7, kb: 1.25, ang: 55, radial: true, persist: true, starVortex: true, vis: 'starvortex', track: wander ? t : null, trackY: wander,
              onStart: h => { const c = hbCenter(h); puff(c.x, c.y, '#dff4ff', 18, 300, 0.6, 4); game.shake = Math.max(game.shake, 6); } });
       }
     }
@@ -2843,7 +2932,7 @@ function reaction(o, t, aura, inc) {
       r.name = '달결정'; r.color = '#f0e6b0'; r.dmgAdd = 1;
       if (game.time - (t.lastCrystal ?? -9) > 0.6) {
         t.lastCrystal = game.time; reactFx(o, t, 'crystallize', null, 0.6);
-        for (let i = 0; i < 3; i++) hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 48, delay: 0.35 + i * 0.3, life: 0.08, dmg: 2.5, kb: 0.35, ang: 80, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#f5e6a8',
+        for (let i = 0; i < 3; i++) hb({ owner: o, fancy: EL.geo.color, shape: 'circle', x: t.x, y: cy, r: 48, delay: 0.35 + i * 0.3, life: 0.08, dmg: 2.5, kb: 0.35, ang: 80, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#f5e6a8',
           onStart: h => { const c = hbCenter(h); bolt(c.x + rnd(-30, 30), c.y - 220, c.x, c.y, '#f5e6a8'); puff(c.x, c.y, '#fff6d0', 6, 160, 0.35, 3); } });
       }
       puff(cx, cy, '#cfe8ff', 8, 160, 0.4, 3);
@@ -2865,7 +2954,7 @@ function reaction(o, t, aura, inc) {
           r.name = '달감전'; r.color = '#b49cff'; r.dmgAdd = 3;
           if (game.time - (t.lastMoonCloud ?? -9) > 1.2) {
             t.lastMoonCloud = game.time;
-            for (let i = 0; i < 3; i++) hb({ owner: o, x: t.x, y: t.y - 200, w: 70, h: 440, delay: 0.5 + i * 0.5, life: 0.08, dmg: 2.5, kb: 0.35, ang: 80, persist: true, track: t, vis: 'thunder',
+            for (let i = 0; i < 3; i++) hb({ owner: o, fancy: EL.electro.color, x: t.x, y: t.y - 200, w: 70, h: 440, delay: 0.5 + i * 0.5, life: 0.08, dmg: 2.5, kb: 0.35, ang: 80, persist: true, track: t, vis: 'thunder',
               onStart: () => { game.shake = Math.max(game.shake, 4); } });
           }
         }
@@ -2952,7 +3041,7 @@ function wallBounce(f, inp, px, py) {   // flung into a barrier this frame: boun
   let side = 0, ceil = false;
   if (px >= WALL_X[0] && f.x < WALL_X[0] && f.vx < 0) side = -1;
   else if (px <= WALL_X[1] && f.x > WALL_X[1] && f.vx > 0) side = 1;
-  else if (py >= CEIL_Y && f.y < CEIL_Y && f.vy < 0) ceil = true;
+  // (2026-11-10: the ceiling no longer bounces anyone back: upward blows carry on to the top KO line)
   if (!side && !ceil) return;
   const sp = ceil ? -f.vy : Math.abs(f.vx), gr = GRAV * f.def.grav * g.env.grav;
   const reach = ceil ? sp * sp / (2 * gr) : sp * ts + sp * sp / 4000;   // how much further the blow would have carried them
@@ -3136,14 +3225,22 @@ function applyHit(h, t) {
     puff(t.x, t.y - 34, '#d8f6ff', 20, 300, 0.6, 5);
     ftext(t.x, t.y - 96, '쇄빙!', EL.cryo.color, 24, 1.0);
   }
+  let fancy = h.fancy || null;   // lunar and stellar damage: its number is drawn in the reaction's colour with a white glowing core (fancyNum)
   if (h.el && !h.noAura) {   // noAura: an element's damage that neither sticks nor reacts (what Kazuha's whirlwind took in)
     const au = t.aura;
-    if (au && au.t > 0 && au.el !== h.el) {
+    if (au && au.t > 0 && au.el !== h.el && au.lock > g.time) {
+      // the aura reacted a moment ago: this hit passes over it (no reaction, no new element) until the lock ends
+    } else if (au && au.t > 0 && au.el !== h.el) {
       const r = reaction(o, t, au.el, h.el);
       if (r) {
         flare(t.x, t.y - 34, 120, r.color, { col2: EL[au.el] ? EL[au.el].color : null, rays: 12, streak: true, life: 0.5 });   // a reaction: both elements' light at once
-        if (r.keep) { au.t -= 0.8; if (au.t <= 0) t.aura = null; } else t.aura = null;
+        // Crystallize wears the aura a little. Vaporize and melt use it up. Every other reaction only wears it down (Frozen more),
+        // so the element stays on for the next reaction, with a short lock so one aura does not react on every frame.
+        if (r.keep) { au.t -= 0.8; if (au.t <= 0) t.aura = null; }
+        else if (r.name === '증발' || r.name === '융해') t.aura = null;
+        else { au.t -= r.name === '빙결' ? 3 : 2; au.lock = g.time + 0.45; if (au.t <= 0) t.aura = null; }
         dmg = dmg * r.dmgMul + r.dmgAdd; kbMul *= r.kbMul;
+        if (FANCY_COL[r.name]) fancy = EL[h.el] ? EL[h.el].color : FANCY_COL[r.name];   // in the colour of the element that struck (electro on cryo: violet, cryo on electro: sky blue)
       }
       else if (AURA_EL.has(h.el)) t.aura = { el: h.el, t: 6 };
     } else if (AURA_EL.has(h.el)) {
@@ -3190,7 +3287,7 @@ function applyHit(h, t) {
   t.energy = Math.min(100, t.energy + dmg * 1.0);
   if (h.freeze) { t.frozen = h.freeze; t.aura = { el: 'cryo', t: 6 }; kbMul *= 0.12; }
 
-  const v = (h.noLaunch || (h.noKb && !broke && !bf) ? 0 : 1) * (250 + t.pct * 5.2) * kbMul / t.def.weight * (t.vuln > 0 ? 1.3 : 1);
+  const v = (h.noLaunch || (h.noKb && !broke && !bf) || trainFixed(t) ? 0 : 1) * (250 + t.pct * 5.2) * kbMul / t.def.weight * (t.vuln > 0 ? 1.3 : 1);
   const a = (bf ? clamp(h.ang, 28, 55) : h.ang) * Math.PI / 180;
   if ((!h.noKb || broke || bf) && !h.noLaunch) {   // hits flagged noKb deal damage without moving or interrupting the target
     t.vx = Math.cos(a) * v * dirX; t.vy = -Math.sin(a) * v;
@@ -3229,8 +3326,14 @@ function applyHit(h, t) {
   if (h.vis === 'eye') bolt(c.x, c.y, t.x, t.y - 34, h.color);
   spark(lerp(t.x, c.x, 0.3), t.y - 36, h.color, 26 + Math.min(40, dmg * 2.2 + v / 60));
   g.punch = Math.max(g.punch, Math.min(1, dmg / 12 + v / 2200)); g.focus = { x: t.x, y: t.y - 34 };
-  ftext(t.x + rnd(-8, 8), t.y - 76, String(Math.round(dmg * 10) / 10), h.el ? EL[h.el].color : '#fff', 15 + Math.min(16, dmg * 1.2), 0.75);   // elemental damage is shown in its element's colour
-  if (g.texts.length) g.texts[g.texts.length - 1].dmg = dmg;   // marked as a damage number: it pops in, and a big one shakes (see drawParticles)
+  if (fancy) ftext(t.x + rnd(-8, 8), t.y - 76, String(Math.round(dmg * 10) / 10), fancy, 20 + Math.min(18, dmg * 1.4), 0.85);   // lunar / stellar: where any number goes, just a little bigger
+  else ftext(t.x + rnd(-8, 8), t.y - 76, String(Math.round(dmg * 10) / 10), h.el ? EL[h.el].color : '#fff', 15 + Math.min(16, dmg * 1.2), 0.75);   // elemental damage is shown in its element's colour
+  const tx = g.texts.length ? g.texts[g.texts.length - 1] : null;
+  if (tx && tx.dmg == null && tx.text === String(Math.round(dmg * 10) / 10)) {   // marked as a damage number (see drawParticles), and thrown
+    tx.dmg = dmg; if (fancy) tx.fancy = fancy;
+    tx.vx = dirX * (12 + NATIVE_RND() * 22); tx.vy = -(150 + Math.min(80, dmg * 6)); tx.grav = 600;   // a small hop (20-45 px), not a flight
+    tx.rot0 = dirX * (0.15 + NATIVE_RND() * 0.1);
+  }
   const hk = h.src && h.src.kind;
   const hc = (!hk || hk === 'heavy') && hitClass(o);
   if (hc) { BGM.whit(hc, hk === 'heavy'); if (hk === 'heavy' || v > 700) BGM.dmg(); }   // basic and charged attacks: the weapon's own hit
@@ -3283,7 +3386,7 @@ const WEAPON = {
   albedo: { cls: 'sword', len: 42 }, yae: { cls: 'catalyst', len: 14 }, tighnari: { cls: 'bow', len: 22 },
   neuvillette: { cls: 'catalyst', len: 14 }, lyney: { cls: 'bow', len: 22 }, navia: { cls: 'sword', len: 56, heavy: true },
   wriothesley: { cls: 'catalyst', len: 10 }, clorinde: { cls: 'sword', len: 44 },
-  wanderer: { cls: 'catalyst', len: 14 }, nilou: { cls: 'sword', len: 42 }, mavuika: { cls: 'sword', len: 54, heavy: true },
+  wanderer: { cls: 'catalyst', len: 14 }, nilou: { cls: 'sword', len: 42 }, hilichurl: { cls: 'sword', len: 46, heavy: true }, mavuika: { cls: 'sword', len: 54, heavy: true },
   kinich: { cls: 'sword', len: 54, heavy: true }, mualani: { cls: 'catalyst', len: 14 }, citlali: { cls: 'catalyst', len: 14 },
   skirk: { cls: 'sword', len: 46 }, alhaitham: { cls: 'sword', len: 44 }, cyno: { cls: 'polearm', len: 74 }, aether: { cls: 'sword', len: 44 }, lumine: { cls: 'sword', len: 44 },
   columbina: { cls: 'catalyst', len: 14 }, sandrone: { cls: 'sword', len: 56, heavy: true }, arlecchino: { cls: 'polearm', len: 80 }, sigewinne: { cls: 'bow', len: 20 },
@@ -3350,6 +3453,7 @@ const SKILL_SWING = {
   clorinde: { w: [-1.6, -2, -0.2, -3], s: [1.2, 10, 0.35, 14] },
   wanderer: { w: [-1.2, 0, -0.1, 0], s: [-1.6, 6, 0, 0] },
   nilou: { w: [-1.4, -2, -0.15, -3], s: [1.2, 8, 0.3, 10] },
+  hilichurl: { w: [-2.1, -4, -0.3, -6], s: [1.4, 10, 0.4, 14] },
   mavuika: { w: [-2.1, -4, -0.3, -6], s: [1.4, 10, 0.4, 14] },
   kinich: { w: [-0.6, -4, -0.1, 0], s: [0.0, 12, 0.2, 4] },
   mualani: { w: [-0.4, -6, -0.1, 0], s: [0.2, 12, 0.25, 8] },
@@ -3443,6 +3547,7 @@ const FINISH_FX = {
   clorinde(f, x, y) { bolt(x - 40, y - 30, x + 40, y + 20, EL.electro.color); spark(x, y, '#9a6ad8', 60); },
   wanderer(f, x, y) { puff(x, y, '#bff3ff', 20, 280, 0.5, 3, -80); spark(x, y, '#4fc7d8', 55); },
   nilou(f, x, y) { puff(x, y, '#9fd4ff', 18, 240, 0.5, 4, 300); spark(x, y, '#4ab0e0', 55); },
+  hilichurl(f, x, y) { dust(x, y + 20, 10, 220); puff(x, y, '#c8a070', 14, 220, 0.5, 4); spark(x, y, '#f5b83d', 50); },
   mavuika(f, x, y) { puff(x, y, '#ffb04d', 22, 300, 0.6, 5, -250); spark(x, y, '#ff7a2a', 70); game.shake = Math.max(game.shake, 6); },
   kinich(f, x, y) { puff(x, y, '#b8f07a', 18, 260, 0.6, 4, -60); spark(x, y, '#8fd94a', 65); game.shake = Math.max(game.shake, 5); },
   mualani(f, x, y) { puff(x, y, '#9fe6f4', 20, 260, 0.5, 4, 300); spark(x, y, '#3fc0d8', 60); },
@@ -3720,6 +3825,14 @@ function chargedAttack(f) {
     f.aim = clamp(Math.atan2(ty - oy, Math.abs(tx - ox) || 1), -1.2, 1.2);
     hb({ owner: f, proj: true, anchor: true, shape: 'circle', r: 18, ox: 24 * S, oy: 32 * S, vx: Math.cos(f.aim) * 1150 * f.dir, vy: Math.sin(f.aim) * 1150,
          delay: 0.4, life: 0.7, dmg: 10, kb: 1.2, ang: 30, el, vis: 'arrow', trail: true, color: col, onStart: h => FINISH_FX[id](f, h.x, h.y) });
+  } else if (id === 'wanderer' && f.buff && f.buff.fly) {   // flying: a quick column of wind that tracks the opponent until it strikes (costs flight stamina)
+    if (!foe.dead && Math.abs(foe.x - f.x) > 4) f.dir = sgn(foe.x - f.x);
+    act('atk', 0.42, 0.1);
+    if (f.buff.st != null) f.buff.st = Math.max(0, f.buff.st - WFLY.heavy);
+    const tx = foe.dead ? f.x + f.dir * 160 : foe.x, ty = foe.dead ? f.y : foe.y;
+    hb({ owner: f, x: tx, y: ty - 105, w: 140, h: 270, delay: 0.16, life: 0.22, dmg: 9, kb: 1.3, ang: 84, el, vis: 'surge', track: foe.dead ? null : foe, trackY: false,
+         onStart: h => { FINISH_FX[id](f, h.x, h.y + 90); game.shake = Math.max(game.shake, 5); SFX.play('heavy'); } });
+    puff(f.x + f.dir * 20, f.y - 40, col, 12, 200, 0.35, 3);
   } else if (isRanged(id) && cls !== 'sword') {   // catalyst: a rising column at the opponent's position
     if (!foe.dead && Math.abs(foe.x - f.x) > 4) f.dir = sgn(foe.x - f.x);
     act('atk', 0.7, 0.1);
@@ -4091,6 +4204,12 @@ function travDef(base, el) {   // the Traveler as fielded: the picked element wi
 const fieldDef = (side, id) => isTrav(id) ? travDef(CHAR[id], TRAV_EL[side][id]) : CHAR[id];
 
 const SKILLS = {
+  hilichurl(f) {   // a hop forward and a club slam on landing
+    startAct(f, 'skill', 0.45, { slow: 0.1 }); f.cd = 4;
+    if (f.onGround) { f.vx = f.dir * 420; f.vy = -420; }
+    hb({ owner: f, follow: true, ox: 40, oy: 20, w: 92, h: 72, delay: 0.3, life: 0.12, dmg: 6, kb: 1.1, ang: 45, el: 'geo', vis: 'slash',
+         onStart: h => dust(h.owner.x + h.sdir * 40, h.owner.y, 8, 220) });
+  },
   diluc(f) {
     startAct(f, 'skill', 0.38, { slow: 0.1 }); f.cd = 1.1;
     if (f.onGround) f.vx = f.dir * 380;
@@ -4128,10 +4247,26 @@ const SKILLS = {
            puff(h.x, h.y, EL.cryo.color, 12, 200, 0.5, 4);
          } });
   },
-  venti(f) {
-    startAct(f, 'skill', 0.3, { slow: 1 }); f.cd = 1.6;
-    f.vy = -877; f.onGround = false;   // twice the height of the old -620
-    hb({ owner: f, follow: true, ox: 18, oy: 40, w: 100, h: 100, delay: 0, life: 0.28, dmg: 4, kb: 1.5, ang: 88, el: 'anemo', vis: 'updraft' });
+  venti(f) {   // (2026-11-10) a wind field where he stands, for 5 s: a column of rising air like the Mondstadt map's. Anyone of his side in the air
+    // inside it is carried up (and gets a jump back), so it still saves him off the stage; the opponent caught in it is lifted off the ground,
+    // drawn to the middle and hit lightly every half second. A gust at its foot as it rises.
+    startAct(f, 'skill', 0.3, { slow: 0.3 }); f.cd = 10;   // 2026-11-10: 10 s (was 6)
+    for (const h of game.hits) if (h.owner === f && h.vis === 'windfield') h.dead = true;
+    const gp = groundBelow({ x: f.x, y: f.y - 10 }), bot = gp && gp.y - f.y < 260 ? gp.y : f.y + 80, top = bot - 380;
+    hb({ owner: f, x: f.x, y: (top + bot) / 2, w: 120, h: bot - top, delay: 0.05, life: 5, rehit: 0.5, dmg: 1.4, kb: 0.15, ang: 90, el: 'anemo', persist: true, vis: 'windfield',
+         onTick: (h, dt) => {
+           for (const p of game.fighters) {
+             if (p.dead || Math.abs(p.x - h.x) > h.w / 2 || p.y < top - 30 || p.y > bot + 12) continue;
+             if (p.idx === h.owner.idx) { if (!p.onGround) { p.vy = approach(p.vy, -660, 3600 * dt); p.jumps = Math.max(p.jumps, 1); } }
+             else {
+               if (p.onGround) { p.onGround = false; p.y -= 2; }
+               p.vy = approach(p.vy, -430, 2600 * dt); p.x += clamp(h.x - p.x, -1, 1) * Math.min(Math.abs(h.x - p.x), 90 * dt);
+             }
+           }
+           if (Math.random() < 0.5) puff(h.x + rnd(-50, 50), bot - 4, '#c8fff0', 1, 60, 0.6, 3, -260);
+         } });
+    hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 36, r: 85, delay: 0.05, life: 0.12, dmg: 4.5, kb: 1.25, ang: 88, el: 'anemo', vis: 'updraft' });
+    puff(f.x, bot - 6, '#e8fff4', 18, 260, 0.6, 4, -200);
   },
   zhongli(f) {
     startAct(f, 'skill', 0.5, { slow: 0 }); f.cd = 2.0;
@@ -4287,7 +4422,7 @@ const SKILLS = {
   },
   wanderer(f) {   // (HOVER_H px above where it was used) no action lock: he can attack or use his burst right away while hovering
     f.cd = 6;
-    f.buff = { t: 3, mul: 1.2, fly: true, speed: 1.6, hy: f.y - HOVER_H }; f.onGround = false;   // hy: the fixed height he floats at
+    f.buff = { t: 99, mul: 1.2, fly: true, speed: 1.6, hy: f.y - HOVER_H, st: WFLY.max }; f.onGround = false;   // hy: the fixed height he floats at · st: his flight stamina (it ends the flight, not t)
     hb({ owner: f, shape: 'circle', follow: true, radial: true, ox: 0, oy: 30, r: 90, life: 0.15, dmg: 4, kb: 0.9, ang: 60, el: 'anemo', vis: 'updraft' });
   },
   nilou(f) {   // she sets off spinning: one turn of water round her as the dance begins, then 5 s of dancing
@@ -4866,9 +5001,45 @@ const BURSTS = {
     hb({ owner: f, x: clamp(f.x + f.dir * 190, -520, 1480), y: 210, w: 400, h: 520, delay: 0.1, life: 2.2, dmg: 3.2, kb: 0.3, ang: 80, el: 'cryo', rehit: 0.35, persist: true, vis: 'hail' });
   } },
   venti: { name: '바람신의 시', fn(f) {
-    hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 145, delay: 0, life: 1.0, dmg: 2.5, kb: 0.35, ang: 85, el: 'anemo', radial: true, persist: true, rehit: 0.2, pull: 330, vis: 'tornado' });
-    hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 175, delay: 1.0, life: 0.14, dmg: 10, kb: 1.8, ang: 50, el: 'anemo', radial: true, persist: true, vis: 'none' });
-    hb({ owner: f, shape: 'circle', follow: true, ox: 120, oy: 60, r: 175, delay: 1.0, life: 0.55, harmless: true, persist: true, vis: 'windburst' });
+    // (2026-11-10) The Stormeye: an arrow that opens into a great eye of wind. It flies ahead and slows to a stop, then for 3 s pulls the
+    // opponent in from far off and holds them in its middle, hitting every 0.2 s. Pyro, hydro, electro or cryo on them when they are drawn
+    // in is taken into the eye: it turns that colour and every hit also deals that element. At the end it bursts.
+    const eye = hb({ owner: f, shape: 'circle', x: f.x + f.dir * 70, y: f.y - 78, r: 125, vx: f.dir * 520, delay: 0.05, life: 2.0, dmg: 2.4, kb: 0.2, ang: 88, el: 'anemo',   // life 2 s (was 3, 2026-11-10)
+         radial: true, persist: true, rehit: 0.2, vis: 'stormeye',
+         onStart: h => { game.shake = Math.max(game.shake, 9); flare(h.x, h.y, 160, '#9ff2d0', { rays: 14, streak: true, life: 0.5 }); puff(h.x, h.y, '#e8fff4', 30, 380, 0.7, 4); },
+         onTick: (h, dt) => {
+           h.vx *= Math.pow(0.08, dt);   // slows to a stop within about a second
+           const foe = game.fighters[1 - h.owner.idx]; if (!foe || foe.dead) return;
+           const fy = foe.y - 30 * foe.def.scale, dx = h.x - foe.x, dy = h.y - fy, d = Math.hypot(dx, dy);
+           if (d < 340) {   // the pull: strong near the eye, and it keeps them floating in the middle
+             const st = 300 + 1100 * (1 - d / 340);
+             foe.x += Math.sign(dx) * Math.min(Math.abs(dx), st * dt);
+             foe.vy = approach(foe.vy, clamp(dy * 5, -700, 500), 3200 * dt); foe.vx *= Math.pow(0.05, dt);
+             if (foe.onGround && dy < -10) { foe.onGround = false; foe.y -= 2; }
+           }
+           if (!h.absorb && d < 170 && foe.aura && foe.aura.t > 0 && ['pyro', 'hydro', 'electro', 'cryo'].includes(foe.aura.el)) {
+             h.absorb = foe.aura.el; h.color = EL[h.absorb].color;
+             ftext(h.x, h.y - 150, '원소 전환 · ' + EL[h.absorb].name, EL[h.absorb].color, 20, 1.1);
+             flare(h.x, h.y, 140, EL[h.absorb].color, { rays: 10, life: 0.4 }); puff(h.x, h.y, EL[h.absorb].color, 24, 320, 0.6, 4);
+           }
+           if (Math.random() < 0.7) {   // wind and feathers sucked in from all round
+             const a = NATIVE_RND() * 6.283, R0 = 220 + NATIVE_RND() * 120;
+             game.particles.push({ x: h.x + Math.cos(a) * R0, y: h.y + Math.sin(a) * R0 * 0.7, vx: -Math.cos(a) * 420, vy: -Math.sin(a) * 300, life: 0.5, max: 0.5, size: 2 + NATIVE_RND() * 2.5, color: h.absorb ? EL[h.absorb].color : '#c8fff0', grav: 0 });
+           }
+         },
+         onHit: (h, t) => {
+           if (h.absorb) hb({ owner: h.owner, shape: 'circle', x: t.x, y: t.y - 34, r: 40, delay: 0.02, life: 0.06, dmg: 1.3, kb: 0.1, ang: 88, el: h.absorb, persist: true, vis: 'none' });
+         },
+         onEnd: h => {
+           const o = h.owner;
+           hb({ owner: o, shape: 'circle', x: h.x, y: h.y, r: 200, delay: 0, life: 0.12, dmg: 12, kb: 1.9, ang: 55, el: h.absorb || 'anemo', radial: true, persist: true, vis: 'none' });
+           hb({ owner: o, shape: 'circle', x: h.x, y: h.y, r: 200, delay: 0, life: 0.6, harmless: true, persist: true, vis: 'windburst' });
+           game.shake = Math.max(game.shake, 16); game.flash = Math.max(game.flash, 0.18);
+           flare(h.x, h.y, 260, h.absorb ? EL[h.absorb].color : '#9ff2d0', { rays: 18, streak: true, life: 0.6 });
+           game.waves.push({ x: h.x, y: h.y, r: 30, R: 340, life: 0.5, max: 0.5, color: h.absorb ? EL[h.absorb].color : '#9ff2d0' }, { x: h.x, y: h.y, r: 10, R: 220, life: 0.35, max: 0.35, color: '#ffffff' });
+           puff(h.x, h.y, '#e8fff4', 40, 520, 0.8, 5); SFX.play('heavy');
+         } });
+    if (eye) eye.sdir = f.dir;
   } },
   zhongli: { name: '천성', fn(f, foe) {
     hb({ owner: f, x: foe.x, y: 210, w: 150, h: 520, delay: 0.9, life: 0.12, dmg: 14, kb: 0.25, ang: 80, el: 'geo', persist: true, track: foe, stun: 1.0, vis: 'meteor',
@@ -5055,6 +5226,10 @@ const BURSTS = {
     hb({ owner: f, shape: 'circle', x, y, r: 110, life: 1.0, rehit: 0.1, dmg: 1.7, kb: 0.15, ang: 80, el: 'anemo', radial: true, persist: true, pull: 260, vis: 'gale' });
     hb({ owner: f, shape: 'circle', x, y, r: 130, delay: 1.02, life: 0.12, dmg: 5, kb: 1.7, ang: 50, el: 'anemo', radial: true, persist: true, vis: 'boom',
          onStart: () => { game.shake = Math.max(game.shake, 9); SFX.play('heavy'); } });
+  } },
+  hilichurl: { name: '츄츄 대난동', fn(f) {   // two stamps of the club round it, the second one harder
+    groundBurst(f, 300, 'geo', { dmg: 6, kb: 0.6, ang: 60 });
+    groundBurst(f, 320, 'geo', { dmg: 9, kb: 1.5, ang: 50, delay: 0.7, onStart: () => { game.shake = Math.max(game.shake, 8); SFX.play('heavy'); } });
   } },
   nilou: { name: '물의 윤무', fn(f) {
     groundBurst(f, 380, 'hydro', { dmg: 10, kb: 0.8, ang: 60 });
@@ -5501,6 +5676,12 @@ function burstRelease(b) {   // the held beat is over: it goes off
 const COYOTE = 0.1, HOP_T = 0.07, HOP_CUT = 0.55, DODGE_INV = 0.25;
 function doJump(f) {
   const d = f.def;
+  if (f.buff && f.buff.fly && f.buff.st != null) {   // the Wanderer flying: a jump takes him higher (costs flight stamina)
+    if (f.buff.st <= 1) return;
+    f.buff.hy = Math.max(BLAST.t + 260, f.buff.hy - WFLY.rise); f.buff.st = Math.max(0, f.buff.st - WFLY.riseCost); f.jumpT = 0.12;
+    puff(f.x, f.y, '#e8fff4', 10, 200, 0.45, 3, 160); fx2({ k: 'airring', x: f.x, y: f.y + 2, R: 34 * d.scale, col: EL[d.el].color, life: 0.4 }); SFX.play('jump');
+    return;
+  }
   if (f.onGround || f.coyote > 0) {
     f.vy = -d.jump * (f.buff && f.buff.jump || 1); f.onGround = false; f.jumps = d.jumps - 1; f.coyote = 0;
     if (f.ctrl !== 'cpu') f.hopT = HOP_T;
@@ -5524,6 +5705,10 @@ const PHX_RISE = W / 4;   // Diluc's firebird starts to climb after this far
 const KO_TIME = 3.0;   // how long the closing KO banner plays before the result screen
 function die(f) {
   const g = game, o = g.fighters[1 - f.idx];
+  if (trainFixed(f)) {   // the training dummy never dies: it is simply put back on its spot
+    f.x = g.trainAx ?? (PLATS[0].x0 + PLATS[0].x1) / 2 + 130; f.y = PLATS[0].y; f.vx = f.vy = 0; f.hitstun = 0; f.act = null; f.hang = null;
+    puff(f.x, f.y - 40, '#ffe27a', 12, 200, 0.4, 3); return;
+  }
   f.dead = true; if (g.mode !== 'train') f.stocks--; f.respawn = 1.3;   // the training ground: lives never run out
   f.hang = null; f.blazeUntil = 0; f.aura = null; f.shield = 0; f.act = null; f.frozen = 0; f.suspend = 0; f.stone = 0; f.shock = 0; f.vuln = 0; f.hitstun = 0; f.drop = 0; f.burn = 0; f.quicken = 0; f.seed = 0; f.paleHymn = 0; f.buff = null; f.lf = null; f.stack = 0; f.crystals = 0; f.mir = null; f.quickHeavy = 0;
   o.stat.kos++;
@@ -5555,10 +5740,11 @@ function die(f) {
 }
 // The training ground ('train' mode): 1P against a dummy that only stands, jumps or guards (or fights back like the computer),
 // lives never run out, skills and the burst can be made free, and the damage of each combo is shown.
-const TRAIN = { act: 'stand', pct: 0, cd: true, burst: true, cur: null, last: null, best: 0, total: 0, seen: 0, cb: null };
+const TRAIN = { act: 'stand', pct: 0, cd: true, burst: true, push: false, cur: null, last: null, best: 0, total: 0, seen: 0, cb: null };   // push: the dummy can be knocked back (and so knocked out)
+const trainFixed = f => !!game && game.mode === 'train' && f.idx === 1 && !TRAIN.push;   // the dummy as it is by default: it takes damage, but no knockback, and never dies
 const TRAIN_ACTS = [['stand', '가만히'], ['jump', '점프 반복'], ['guard', '가드'], ['cpu', '반격(컴퓨터)']];
 const TRAIN_PCTS = [0, 50, 100, 150];
-const TRAIN_KEYS = { KeyT: 'act', KeyY: 'pct', Backspace: 'reset' };
+const TRAIN_KEYS = { KeyT: 'act', KeyY: 'pct', KeyU: 'push', Backspace: 'reset' };
 function dummyInput(f, dt) {
   if (TRAIN.act === 'guard') return { ...NEUTRAL, guard: true };
   if (TRAIN.act === 'jump') {   // a jump about once a second, from the ground only
@@ -5569,6 +5755,8 @@ function dummyInput(f, dt) {
 }
 function trainTick(g) {
   const me = g.fighters[0], du = g.fighters[1];
+  if (g.trainAx == null) g.trainAx = du.x;
+  if (trainFixed(du) && TRAIN.act !== 'cpu' && !du.dead) { du.x = g.trainAx; du.vx = 0; }   // held on its spot (pulls and nudges included)
   if (g.tut) tutTick(g, me, du);
   if (TRAIN.cd) { me.cd = Math.min(me.cd, 0); g.swapCd[0] = 0; if (me.yaeN != null) me.yaeN = YAE_CHARGES; }
   if (TRAIN.burst) me.energy = 100;
@@ -5601,7 +5789,7 @@ const TUT_STEPS = [
 ];
 function startTutorial() {
   const prev = mode; setMode('train'); TRAIN.act = 'stand'; TRAIN.pct = 0; TRAIN.cd = true; TRAIN.burst = false;
-  sel[0] = ['diluc']; sel[1] = ['nilou']; partySize = 1;
+  sel[0] = ['diluc']; sel[1] = ['hilichurl']; partySize = 1;
   startMatch('void'); game.tut = { prev, i: 0, s: {}, okT: 0 };
   showOv(null); tutUI();
 }
@@ -5627,7 +5815,7 @@ function trainStat() {
 function trainUI() {
   $('tbAct').textContent = TRAIN_ACTS.find(a => a[0] === TRAIN.act)[1];
   $('tbPct').textContent = TRAIN.pct + '%';
-  for (const b of document.querySelectorAll('#trainBar [data-t="cd"], #trainBar [data-t="burst"]')) b.setAttribute('aria-pressed', String(TRAIN[b.dataset.t]));
+  for (const b of document.querySelectorAll('#trainBar [data-t="cd"], #trainBar [data-t="burst"], #trainBar [data-t="push"]')) b.setAttribute('aria-pressed', String(TRAIN[b.dataset.t]));
   trainStat();
 }
 function trainReset() {   // both back to their starting places, everything on them cleared, the dummy at its set damage
@@ -5640,6 +5828,7 @@ function trainReset() {   // both back to their starting places, everything on t
     f.combo = 0; f.comboT = 0; f.rot = 0; f.trail = []; f.inv = 0; f.tumble = false;
     if (i === 1) f.pct = TRAIN.pct;
   });
+  g.trainAx = gx + 130;
   g.combo = null; TRAIN.cur = TRAIN.cb = null; TRAIN.seen = TRAIN.pct;
   puff(gx, PLATS[0].y - 40, '#ffe27a', 16, 240, 0.4, 3);
 }
@@ -5647,7 +5836,7 @@ function trainDo(what) {
   if (!game || game.mode !== 'train') return;
   if (what === 'act') { const i = TRAIN_ACTS.findIndex(a => a[0] === TRAIN.act); TRAIN.act = TRAIN_ACTS[(i + 1) % TRAIN_ACTS.length][0]; game.fighters[1].guarding = false; }
   else if (what === 'pct') { TRAIN.pct = TRAIN_PCTS[(TRAIN_PCTS.indexOf(TRAIN.pct) + 1) % TRAIN_PCTS.length]; const d = game.fighters[1]; if (!d.dead) { d.pct = TRAIN.pct; TRAIN.seen = d.pct; } }
-  else if (what === 'cd' || what === 'burst') TRAIN[what] = !TRAIN[what];
+  else if (what === 'cd' || what === 'burst' || what === 'push') TRAIN[what] = !TRAIN[what];
   else if (what === 'reset') trainReset();
   SFX.play('tick'); trainUI();
 }
@@ -5793,8 +5982,9 @@ function aiInput(f, foe, dt) {
           if (d.id === 'mona') ok = adx < 700;
           else if (d.id === 'ganyu') ok = aligned && adx > 120 && adx < 480;
           else if (d.id === 'diluc') ok = aligned && adx > 50 && adx < 170;
+          else if (d.id === 'hilichurl') ok = aligned && adx < 200;
           else if (d.id === 'raiden') ok = adx < 170 && Math.abs(dy) < 140;
-          else if (d.id === 'venti') ok = adx < 110 && dy < -30;
+          else if (d.id === 'venti') ok = adx < 140;
           else if (d.id === 'zhongli') ok = Math.abs(dy) < 80 && adx < 150;
           else if (d.id === 'hutao') ok = adx < 140 && !f.buff;
           else if (d.id === 'kazuha') ok = adx < 120;
@@ -5895,6 +6085,11 @@ function stepFighter(f, foe, dt) {
     f.burn -= dt; f.burnTick -= dt;
     if (f.burnTick <= 0) { f.burnTick = 0.5; dot(f, 1.5, '#ff8a3d'); }
   }
+  if (f.buff && f.buff.fly && f.buff.st != null) {   // the Wanderer's flight stamina
+    const dash = !!f.run || !!(f.act && f.act.kind === 'adash');
+    f.buff.st -= (dash ? WFLY.dash : WFLY.hover) * dt;
+    if (f.buff.st <= 0) { f.buff.st = 0; f.buff.t = 0; ftext(f.x, f.y - 104, '기력 소진', '#9ff2d0', 16, 0.8); puff(f.x, f.y - 30, '#c8fff0', 14, 200, 0.5, 3, 200); }
+  }
   if (f.buff) { f.buff.t -= dt; if (f.buff.t <= 0) endBuff(f); }
   tickLightfall(f, dt);
 
@@ -5907,7 +6102,7 @@ function stepFighter(f, foe, dt) {
   if (inp.burst) f.buf.burst = 0.24;
   if (inp.jump) f.buf.jump = 0.15;
   // Charged attack: keep the attack key down for HOLD_T. One per press.
-  if (inp.atkHold) { f.hold += dt; if (f.hold >= (f.quickHeavy > 0 ? NEFER_HOLD : HOLD_T * (f.buff && f.buff.fly ? 0.7 : 1)) && !f.held) { f.held = true; f.buf.heavy = 0.3; } }   // Wanderer hovering: 30% sooner; Nefer after her skill: almost a tap
+  if (inp.atkHold) { f.hold += dt; if (f.hold >= (f.quickHeavy > 0 ? NEFER_HOLD : f.buff && f.buff.fly ? WFLY.hold : HOLD_T) && !f.held) { f.held = true; f.buf.heavy = 0.3; } }   // Wanderer hovering: 30% sooner; Nefer after her skill: almost a tap
   else { f.hold = 0; f.held = false; }
   if (inp.heavy) f.buf.heavy = 0.3;
   f.upHeld = !!inp.upHold; f.downHeld = !!inp.down;   // read by doAttack: up + attack is an uppercut, down + attack high in the air is a plunge
@@ -5995,7 +6190,7 @@ function stepFighter(f, foe, dt) {
       else if (f.buf.skill > 0 && f.cd <= 0) { f.buf.skill = 0; doSkill(f); }
       else if (f.buf.heavy > 0) { f.buf.heavy = 0; f.buf.atk = 0; faceHeld(f, inp); heldAttack(f); }
       else if (f.buf.atk > 0) { f.buf.atk = 0; faceHeld(f, inp); doAttack(f); }
-      else if (f.buf.jump > 0 && (f.onGround || f.coyote > 0 || f.jumps > 0)) { f.buf.jump = 0; if (g.time - f.hitAt < 0.6) chaseJump(f, foe); else doJump(f); }
+      else if (f.buf.jump > 0 && (f.onGround || f.coyote > 0 || f.jumps > 0)) { f.buf.jump = 0; if (g.time - f.hitAt < 0.6 && !(f.buff && f.buff.fly)) chaseJump(f, foe); else doJump(f); }
     }
   }
   if (inp.down && free && f.onGround && f.plat && !f.plat.solid && !f.act) { f.drop = 0.22; f.y += 2; f.onGround = false; }
@@ -6005,7 +6200,10 @@ function stepFighter(f, foe, dt) {
   f.tapT = Math.max(0, (f.tapT || 0) - dt);
   if (mv !== (f.lastMv || 0)) {
     if (mv) {
-      if (f.tapDir === mv && f.tapT > 0 && !f.onGround && !f.hang && free && live && !f.guarding && !f.airDashed && (!f.act || canCancel || f.act.kind === 'adash')) { if (f.act && f.act.kind !== 'adash') cancelAct(f); if (!f.act) airDash(f, mv); f.tapT = 0; }   // air dash
+      if (f.tapDir === mv && f.tapT > 0 && f.buff && f.buff.fly && free && live && !f.guarding) {   // the Wanderer flying: a held dash that spends his stamina fast
+        f.run = mv; f.dir = mv; f.vx = mv * d.speed * 1.6 * 1.7; f.tapT = 0;
+        fx2({ k: 'dash', x: f.x, y: f.y - 30, dir: mv, s: d.scale, col: EL[d.el].color, life: 0.32 }); puff(f.x - mv * 14, f.y - 30, '#e8fff4', 6, 160, 0.3, 3); SFX.play('jump');
+      } else if (f.tapDir === mv && f.tapT > 0 && !f.onGround && !f.hang && free && live && !f.guarding && !f.airDashed && (!f.act || canCancel || f.act.kind === 'adash')) { if (f.act && f.act.kind !== 'adash') cancelAct(f); if (!f.act) airDash(f, mv); f.tapT = 0; }   // air dash
       else if (f.tapDir === mv && f.tapT > 0 && f.onGround && free && live && (!f.act || canCancel) && !f.guarding) {
         if (f.act) cancelAct(f);
         f.run = mv; f.dir = mv; f.vx = mv * d.speed * 1.6;
@@ -6023,7 +6221,7 @@ function stepFighter(f, foe, dt) {
   const dashing = f.act && (f.act.kind === 'dash' || f.act.kind === 'adash');
   if (dashing) { f.vx = f.dir * 900; f.vy = 0; }
   else if (free && !(f.act && f.act.slow === 0)) {
-    const sp = d.speed * (f.reso === 'anemo' ? 1.1 : 1) * (f.buff && f.buff.speed || 1) * (f.act ? f.act.slow : 1) * (f.run ? (f.onGround ? 1.6 : 1.3) : 1);
+    const sp = d.speed * (f.reso === 'anemo' ? 1.1 : 1) * (f.buff && f.buff.speed || 1) * (f.act ? f.act.slow : 1) * (f.run ? (f.onGround ? 1.6 : f.buff && f.buff.fly ? 1.7 : 1.3) : 1);
     if (move) { f.vx = approach(f.vx, move * sp, (f.onGround ? (icy ? 1300 : 3600) : 2000) * dt); if (!f.act) f.dir = move; }
     else f.vx = approach(f.vx, 0, (f.onGround ? (f.act ? 900 : 2800) * (icy ? 0.1 : 1) : 260) * dt);
   } else if (f.onGround) f.vx = approach(f.vx, 0, (f.hitstun > 0 ? 800 : 3000) * (icy ? 0.15 : 1) * dt);
@@ -6449,7 +6647,10 @@ function updateEffects(dt) {
     if (p.k === 'leaf') p.vx += Math.sin(p.life * 9 + p.ph) * 260 * dt;   // leaves rock side to side as they fall
   }
   for (let i = g.texts.length - 1; i >= 0; i--) {
-    const t = g.texts[i]; t.life -= dt; t.y += t.vy * dt; t.vy *= Math.pow(0.2, dt);
+    const t = g.texts[i]; t.life -= dt;
+    if (t.grav) { t.vy = Math.min(35, t.vy + t.grav * dt); t.vx *= Math.pow(0.05, dt); }   // a number hops up a little, then hangs there, settling slowly
+    else { t.vy *= Math.pow(0.2, dt); t.vx = (t.vx || 0) * Math.pow(0.1, dt); }
+    t.x += (t.vx || 0) * dt; t.y += t.vy * dt;
     if (t.life <= 0) g.texts.splice(i, 1);
   }
   for (let i = g.bolts.length - 1; i >= 0; i--) { g.bolts[i].life -= dt; if (g.bolts[i].life <= 0) g.bolts.splice(i, 1); }
@@ -6543,6 +6744,23 @@ function rr(x, y, w, h, r) {
   ctx.beginPath(); ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+// A lunar or stellar damage number: big and slanted, a glow and a rim in the reaction's colour, the body that colour at the edges
+// running to white through the middle, and a soft white bloom over it.
+function fancySetup(size) {   // the font and slant of a lunar / stellar number (also used for its white landing flash)
+  ctx.font = 'italic 700 ' + size + 'px "Noto Sans KR",system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  ctx.transform(0.88, 0, -0.18, 1, 0, 0);
+}
+function fancyNum(text, size, col) {
+  ctx.save(); fancySetup(size);
+  const light = mixHex(col, '#ffffff', 0.75), deep = mixHex(col, '#06121c', 0.55);
+  ctx.shadowColor = col; ctx.shadowBlur = size * 0.45; ctx.lineWidth = size * 0.13; ctx.strokeStyle = deep; ctx.strokeText(text, 0, 0);   // glow and outline
+  ctx.shadowBlur = 0;
+  const gr = ctx.createLinearGradient(0, -size * 0.42, 0, size * 0.42);
+  gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.32, light); gr.addColorStop(0.72, col); gr.addColorStop(1, mixHex(col, '#000000', 0.18));
+  ctx.fillStyle = gr; ctx.fillText(text, 0, 0);
+  ctx.lineWidth = Math.max(1, size * 0.025); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.strokeText(text, 0, 0);   // a thin bright rim just inside the outline
+  ctx.restore();
 }
 function glowText(text, x, y, size, fill, stroke = '#0a0d1c', font = DISPLAY, align = 'center') {
   ctx.font = size + 'px ' + font; ctx.textAlign = align; ctx.textBaseline = 'middle';
@@ -6704,6 +6922,7 @@ function setMap(m) {
   for (const [ux, uw] of m.updrafts || []) { x0 = Math.min(x0, ux - uw); x1 = Math.max(x1, ux + uw); }
   if (m.bounds) Object.assign(BLAST, m.bounds);
   else { BLAST.l = Math.min(BLAST0.l, x0 - 720); BLAST.r = Math.max(BLAST0.r, x1 + 720); BLAST.t = Math.min(BLAST0.t, y0 - 560); BLAST.b = Math.max(BLAST0.b, Math.min(y1, 700) + 390); }
+  BLAST.t -= SKY_EXTRA;   // (2026-11-10) more sky: the top KO line SKY_EXTRA higher on every map
   WALL_X[0] = BLAST.l + 380; WALL_X[1] = BLAST.r - 380; CEIL_Y = BLAST.t + 230;
   SPAWN_X = (PLATS[0].x0 + PLATS[0].x1) / 2;
   paintBackdrop(bgc.getContext('2d'), m);
@@ -7965,12 +8184,14 @@ function spriteSilhouette(id, col) {
 // Heights by body type (2026-10-24): every drawn set was first sized to Nilou's standing height (a medium woman), then scaled by its
 // Genshin body type: tall man x1.13, medium man x1.04, tall woman x1.07, medium woman x1, small child x0.84. Only the picture: the
 // fighters' hit areas (def.scale) are as they were. BODY_TYPE records it.
-const BODY_TYPE = {'diluc': 'TM', 'itto': 'TM', 'lauma': 'TF', 'zhongli': 'TM', 'neuvillette': 'TM', 'wriothesley': 'TM', 'alhaitham': 'TM', 'tartaglia': 'TM', 'tartagliablades': 'TM', 'flins': 'TM', 'xiao': 'MM', 'cyno': 'MM', 'cynojackal': 'MM', 'kinich': 'MM', 'wanderer': 'MM', 'lyney': 'MM', 'tighnari': 'MM', 'albedo': 'MM', 'xingqiu': 'MM', 'kazuha': 'MM', 'venti': 'MM', 'durin': 'MM', 'yelan': 'TF', 'nefer': 'TF', 'arlecchino': 'TF', 'skirk': 'TF', 'mualani': 'TF', 'mavuika': 'TF', 'clorinde': 'TF', 'navia': 'TF', 'yae': 'TF', 'eula': 'TF', 'raiden': 'TF', 'citlali': 'MF', 'furina': 'MF', 'hutao': 'MF', 'ganyu': 'MF', 'keqing': 'MF', 'nilou': 'MF', 'mona': 'MF', 'columbina': 'MF', 'sandrone': 'MF', 'yoimiya': 'MF', 'ayaka': 'MF', 'chiori': 'MF', 'ineffa': 'MF', 'dehya': 'TF', 'mizuki': 'MF', 'varesa': 'TF', 'escoffier': 'TF', 'qiqi': 'S', 'klee': 'S', 'nahida': 'S', 'sigewinne': 'S', 'ayato': 'TM', 'varka': 'TM', 'shenhe': 'TF', 'zibai': 'TF', 'xilonen': 'TF'};
+const BODY_TYPE = {'diluc': 'TM', 'itto': 'TM', 'lauma': 'TF', 'zhongli': 'TM', 'neuvillette': 'TM', 'wriothesley': 'TM', 'alhaitham': 'TM', 'tartaglia': 'TM', 'tartagliablades': 'TM', 'flins': 'TM', 'xiao': 'MM', 'cyno': 'MM', 'cynojackal': 'MM', 'wandererfly': 'MM', 'kinich': 'MM', 'wanderer': 'MM', 'lyney': 'MM', 'tighnari': 'MM', 'albedo': 'MM', 'xingqiu': 'MM', 'kazuha': 'MM', 'venti': 'MM', 'durin': 'MM', 'yelan': 'TF', 'nefer': 'TF', 'arlecchino': 'TF', 'skirk': 'TF', 'mualani': 'TF', 'mavuika': 'TF', 'clorinde': 'TF', 'navia': 'TF', 'yae': 'TF', 'eula': 'TF', 'raiden': 'TF', 'citlali': 'MF', 'furina': 'MF', 'hutao': 'MF', 'ganyu': 'MF', 'keqing': 'MF', 'nilou': 'MF', 'mona': 'MF', 'columbina': 'MF', 'sandrone': 'MF', 'yoimiya': 'MF', 'ayaka': 'MF', 'chiori': 'MF', 'ineffa': 'MF', 'dehya': 'TF', 'mizuki': 'MF', 'varesa': 'TF', 'escoffier': 'TF', 'qiqi': 'S', 'klee': 'S', 'nahida': 'S', 'sigewinne': 'S', 'ayato': 'TM', 'varka': 'TM', 'shenhe': 'TF', 'zibai': 'TF', 'xilonen': 'TF'};
 const SPRITE_ANIM = {
+  wandererfly: {k: 0.43271, walk: 1.0, src: "img/sprite/wandererfly-anim.webp", f: {"idle1": [632, 2, 138, 205, 88.0, 203.0], "idle2": [894, 2, 134, 203, 85.5, 201.0], "blink": [1030, 2, 126, 202, 79.0, 200.0], "guard": [772, 2, 120, 205, 75.0, 203.0], "hurt": [1492, 2, 175, 191, 58.0, 189.0], "run1": [882, 229, 206, 151, 135.0, 149.0], "run2": [492, 229, 195, 162, 130.0, 160.0], "run3": [1090, 229, 206, 143, 131.0, 141.0], "run4": [689, 229, 191, 161, 121.0, 159.0], "upper": [328, 2, 139, 212, 96.0, 210.0], "windup": [1334, 2, 156, 198, 100.0, 196.0], "atk1": [1669, 2, 186, 190, 109.0, 188.0], "atk2": [2, 229, 148, 188, 94.0, 186.0], "atk3": [152, 229, 197, 186, 93.0, 184.0], "heavy": [1158, 2, 174, 201, 90.0, 199.0], "jump": [351, 229, 139, 171, 86.0, 169.0], "fall": [1857, 2, 178, 190, 97.0, 188.0], "hang": [2, 2, 124, 225, 64.0, 223.0], "skill": [469, 2, 161, 207, 78.0, 205.0], "burst": [128, 2, 198, 219, 100.0, 217.0]}},   // the Wanderer hovering (his skill): no hat (2026-11-10)
+  hilichurl: {k: 0.29126, walk: 1.0, src: "img/sprite/hilichurl-anim.webp", f: {"idle1": [1158, 2, 144, 216, 64.0, 206.0], "idle2": [334, 232, 148, 212, 64.0, 202.0], "blink": [1304, 2, 144, 216, 64.0, 206.0], "run1": [136, 2, 164, 220, 48.0, 210.0], "run2": [1450, 2, 148, 216, 48.0, 206.0], "run3": [302, 2, 132, 220, 48.0, 210.0], "run4": [1600, 2, 148, 216, 48.0, 206.0], "jump": [436, 2, 128, 220, 72.0, 222.0], "fall": [566, 2, 132, 220, 60.0, 210.0], "hang": [2, 2, 132, 228, 72.0, 218.0], "upper": [700, 2, 128, 220, 80.0, 210.0], "windup": [1750, 2, 140, 216, 100.0, 206.0], "atk1": [2, 232, 192, 216, 52.0, 206.0], "atk2": [638, 232, 180, 208, 48.0, 198.0], "atk3": [820, 232, 152, 206, 48.0, 190.0], "heavy": [974, 232, 156, 198, 48.0, 182.0], "skill": [830, 2, 196, 220, 52.0, 218.0], "burst": [1028, 2, 128, 220, 84.0, 210.0], "guard": [196, 232, 136, 216, 72.0, 206.0], "hurt": [484, 232, 152, 212, 108.0, 202.0]}},
   aether: { k: 0.37915, walk: 1.4, src: 'img/sprite/aether-anim.webp', f: { skill: [2, 2, 170, 216, 92.0, 216.0], hang: [174, 2, 108, 215, 53.0, 215.0], idle1: [284, 2, 158, 211, 84.0, 210.0], idle2: [444, 2, 157, 210, 81.0, 210.0], blink: [603, 2, 152, 210, 80.0, 209.0], upper: [757, 2, 149, 209, 88.0, 209.0], fall: [908, 2, 156, 206, 87.0, 205.0], guard: [1066, 2, 147, 205, 83.0, 205.0], hurt: [1215, 2, 166, 204, 59.0, 204.0], burst: [1383, 2, 235, 204, 104.0, 204.0], run1: [1620, 2, 185, 184, 135.0, 184.0], run3: [1807, 2, 172, 178, 120.0, 178.0], atk1: [2, 220, 214, 178, 99.0, 178.0], jump: [218, 220, 133, 177, 87.0, 176.0], atk2: [353, 220, 203, 175, 97.5, 174.0], run4: [558, 220, 173, 174, 114.0, 174.0], windup: [733, 220, 180, 170, 91.0, 170.0], atk3: [915, 220, 255, 168, 115.0, 167.0], heavy: [1172, 220, 227, 166, 124.0, 166.0], run2: [1401, 220, 187, 146, 126.0, 146.0] } },   // the two-sheet set: wide walk, run, charged attack
   lumine: { k: 0.35945, walk: 1.4, src: 'img/sprite/lumine-anim.webp', f: { hang: [2, 2, 110, 242, 54.0, 242.0], upper: [114, 2, 150, 230, 87.0, 230.0], idle1: [266, 2, 191, 217, 96.0, 217.0], skill: [459, 2, 179, 215, 100.0, 215.0], idle2: [640, 2, 174, 214, 83.0, 214.0], blink: [816, 2, 178, 212, 87.0, 212.0], guard: [996, 2, 152, 208, 92.5, 208.0], hurt: [1150, 2, 181, 202, 59.0, 202.0], fall: [1333, 2, 208, 199, 109.0, 199.0], run1: [1543, 2, 197, 190, 150.0, 190.0], windup: [1742, 2, 177, 182, 107.0, 182.0], run4: [2, 246, 200, 181, 153.0, 181.0], run3: [204, 246, 181, 179, 134.0, 179.0], jump: [387, 246, 172, 177, 115.0, 177.0], atk1: [561, 246, 240, 176, 124.0, 176.0], atk2: [803, 246, 229, 176, 107.0, 176.0], burst: [1034, 246, 187, 166, 120.0, 166.0], heavy: [1223, 246, 240, 165, 128.0, 165.0], atk3: [1465, 246, 265, 164, 129.0, 164.0], run2: [1732, 246, 196, 147, 148.0, 147.0] } },   // the two-sheet set: wide walk, run, charged attack
   vodyanitsa: { k: 0.36364, walk: 1.4, src: 'img/sprite/vodyanitsa-anim.webp', f: { hang: [2, 2, 148, 254, 80.0, 254.0], upper: [152, 2, 182, 243, 125.0, 243.0], burst: [336, 2, 206, 241, 109.0, 241.0], skill: [544, 2, 211, 237, 150.0, 237.0], heavy: [757, 2, 174, 229, 100.0, 229.0], idle2: [933, 2, 186, 224, 119.0, 224.0], idle1: [1121, 2, 180, 220, 111.0, 220.0], blink: [1303, 2, 182, 220, 113.0, 220.0], guard: [1487, 2, 196, 213, 125.0, 213.0], fall: [1685, 2, 218, 200, 135.0, 200.0], hurt: [2, 258, 198, 190, 122.0, 190.0], atk2: [202, 258, 220, 183, 143.0, 183.0], atk3: [424, 258, 223, 183, 150.0, 183.0], atk1: [649, 258, 239, 182, 137.0, 182.0], windup: [890, 258, 220, 179, 113.0, 179.0], jump: [1112, 258, 186, 179, 130.0, 179.0], run3: [1300, 258, 208, 170, 144.5, 170.0], run4: [1510, 258, 191, 170, 146.0, 170.0], run1: [1703, 258, 228, 169, 107.0, 169.0], run2: [2, 450, 220, 143, 158.0, 143.0] } },   // the two-sheet set: wide walk, run, charged attack
-  linnea: { k: 0.35981, walk: 1.4, src: 'img/sprite/linnea-anim.webp', f: { burst: [2, 2, 192, 258, 108.0, 258.0], hang: [196, 2, 117, 236, 60.0, 236.0], upper: [315, 2, 158, 226, 91.0, 226.0], skill: [475, 2, 173, 225, 94.0, 225.0], idle2: [650, 2, 147, 219, 77.0, 219.0], idle1: [799, 2, 148, 214, 80.0, 214.0], blink: [949, 2, 147, 212, 80.0, 212.0], guard: [1098, 2, 163, 209, 97.0, 209.0], hurt: [1263, 2, 175, 197, 85.0, 197.0], fall: [1440, 2, 163, 195, 83.0, 195.0], windup: [1605, 2, 187, 194, 76.0, 194.0], atk2: [1794, 2, 187, 194, 92.0, 194.0], atk1: [2, 262, 184, 183, 91.0, 183.0], atk3: [188, 262, 195, 181, 93.0, 181.0], run3: [385, 262, 191, 177, 116.0, 177.0], jump: [578, 262, 164, 177, 103.0, 177.0], run1: [744, 262, 181, 174, 131.0, 174.0], run4: [927, 262, 174, 166, 132.0, 166.0], heavy: [1103, 262, 216, 162, 110.0, 162.0], run2: [1321, 262, 189, 147, 127.0, 147.0] } },   // the two-sheet set: wide walk, run, charged attack
+  linnea: { k: 0.35981, walk: 1.4, src: 'img/sprite/linnea-anim.webp?v=2', f: { burst: [2, 2, 192, 258, 108.0, 258.0], hang: [196, 2, 117, 236, 60.0, 236.0], upper: [315, 2, 158, 226, 91.0, 226.0], skill: [475, 2, 173, 225, 94.0, 225.0], idle2: [650, 2, 147, 219, 77.0, 219.0], idle1: [799, 2, 148, 214, 80.0, 214.0], blink: [949, 2, 147, 212, 80.0, 212.0], guard: [1098, 2, 163, 209, 97.0, 209.0], hurt: [1263, 2, 175, 197, 85.0, 197.0], fall: [1440, 2, 163, 195, 83.0, 195.0], windup: [1605, 2, 187, 194, 76.0, 194.0], atk2: [1794, 2, 187, 194, 92.0, 194.0], atk1: [2, 262, 184, 183, 91.0, 183.0], atk3: [188, 262, 195, 181, 93.0, 181.0], run3: [385, 262, 191, 177, 116.0, 177.0], jump: [578, 262, 164, 177, 103.0, 177.0], run1: [744, 262, 181, 174, 131.0, 174.0], run4: [927, 262, 174, 166, 132.0, 166.0], heavy: [1103, 262, 216, 162, 110.0, 162.0], run2: [1321, 262, 189, 147, 127.0, 147.0] } },   // the two-sheet set: wide walk, run, charged attack
   vesna: { k: 0.34649, walk: 1.4, src: 'img/sprite/vesna-anim.webp', f: { burst: [2, 2, 180, 261, 92.0, 261.0], hang: [184, 2, 142, 240, 72.0, 240.0], upper: [328, 2, 205, 232, 88.0, 232.0], idle1: [535, 2, 189, 228, 94.0, 228.0], idle2: [726, 2, 206, 228, 95.0, 228.0], blink: [934, 2, 205, 228, 95.0, 228.0], guard: [1141, 2, 180, 226, 89.0, 226.0], fall: [1323, 2, 213, 222, 109.0, 222.0], skill: [1538, 2, 272, 208, 120.0, 208.0], windup: [1812, 2, 197, 207, 101.0, 207.0], heavy: [2, 265, 232, 202, 97.0, 202.0], jump: [236, 265, 163, 202, 105.0, 202.0], atk1: [401, 265, 280, 195, 121.0, 195.0], atk2: [683, 265, 262, 194, 108.0, 194.0], hurt: [947, 265, 227, 193, 101.0, 193.0], run3: [1176, 265, 201, 186, 133.0, 186.0], run1: [1379, 265, 214, 182, 133.0, 182.0], run4: [1595, 265, 192, 178, 125.0, 178.0], atk3: [2, 469, 304, 178, 130.0, 178.0], run2: [308, 469, 227, 167, 131.0, 167.0] } },   // the two-sheet set: wide walk, run, charged attack
   odette: { k: 0.33191, walk: 1.4, src: 'img/sprite/odette-anim.webp', f: { skill: [2, 2, 218, 250, 92.0, 250.0], hang: [222, 2, 151, 244, 83.0, 244.0], upper: [375, 2, 183, 240, 125.0, 240.0], idle1: [560, 2, 194, 235, 95.0, 235.0], idle2: [756, 2, 194, 233, 96.0, 233.0], blink: [952, 2, 190, 233, 92.0, 233.0], burst: [1144, 2, 227, 231, 135.0, 231.0], fall: [1373, 2, 196, 217, 104.0, 217.0], guard: [1571, 2, 161, 214, 90.0, 214.0], windup: [1734, 2, 169, 203, 111.0, 203.0], jump: [2, 254, 147, 199, 98.0, 199.0], heavy: [151, 254, 257, 198, 135.0, 198.0], run3: [410, 254, 190, 196, 140.0, 196.0], atk1: [602, 254, 241, 195, 131.0, 195.0], atk2: [845, 254, 240, 195, 117.0, 195.0], run1: [1087, 254, 212, 193, 144.0, 193.0], atk3: [1301, 254, 287, 180, 122.5, 180.0], hurt: [1590, 254, 187, 179, 88.0, 179.0], run4: [1779, 254, 183, 179, 143.0, 179.0], run2: [2, 455, 203, 169, 155.0, 169.0] } },   // the two-sheet set: wide walk, run, charged attack
   kokomi: { k: 0.36449, walk: 1.4, src: 'img/sprite/kokomi-anim.webp', f: { upper: [2, 2, 196, 244, 100.0, 244.0], hang: [200, 2, 159, 238, 77.0, 238.0], burst: [361, 2, 186, 227, 102.0, 227.0], idle1: [549, 2, 193, 214, 99.0, 214.0], idle2: [744, 2, 184, 214, 92.0, 214.0], blink: [930, 2, 184, 214, 94.0, 214.0], guard: [1116, 2, 187, 209, 98.0, 209.0], fall: [1305, 2, 206, 209, 111.0, 209.0], skill: [1513, 2, 234, 206, 126.0, 206.0], heavy: [1749, 2, 181, 200, 105.5, 200.0], jump: [2, 248, 185, 193, 100.0, 193.0], hurt: [189, 248, 191, 192, 59.0, 192.0], windup: [382, 248, 183, 188, 105.0, 188.0], atk2: [567, 248, 210, 186, 104.0, 186.0], run3: [779, 248, 231, 185, 152.0, 185.0], run1: [1012, 248, 223, 183, 142.0, 183.0], atk1: [1237, 248, 231, 181, 114.0, 181.0], run4: [1470, 248, 218, 173, 132.0, 173.0], atk3: [1690, 248, 212, 173, 129.0, 173.0], run2: [2, 443, 225, 149, 145.0, 149.0] } },   // the two-sheet set: wide walk, run, charged attack
@@ -8038,7 +8259,7 @@ const SPRITE_ANIM = {
 };
 // The drawn frames are fetched only for the characters that are picked (with the extra sets some of them use), not all at start-up.
 const SPRITE_ANIM_IMG = {}, ANIM_LOADING = {};
-const ANIM_EXTRA = { cyno: ['cynojackal'], tartaglia: ['tartagliablades'], sandrone: ['florinia'] };   // the jackal, the twin blades, her machine
+const ANIM_EXTRA = { cyno: ['cynojackal'], tartaglia: ['tartagliablades'], sandrone: ['florinia'], wanderer: ['wandererfly'] };   // the jackal, the twin blades, her machine, the Wanderer flying
 // A failed or stalled fetch (a slow or patchy connection, often on phones) is tried again, up to 4 times, so a fighter doesn't stay
 // the drawn stand-in for the whole match. The frames are asked for ahead of the many small pictures of the select screen.
 const ANIM_TRIES = {};
@@ -8101,6 +8322,11 @@ function animFrame(f, o, moving, air, ph, t, id = f.def.id) {   // id: the atlas
     }
   }
   if (f.guarding) return 'guard';
+  if (id === 'wandererfly') {   // hovering: the flying frames when he moves, else floating in place (never the jump or fall frames)
+    if (Math.abs(f.vx) > 90) return 'run' + (1 + Math.floor(t * 9) % 4);
+    if (F.blink && (t + f.idx * 1.3) % 3.2 < 0.14) return 'blink';
+    return Math.floor(t * 1.4 + f.idx * 0.5) % 2 ? 'idle2' : 'idle1';
+  }
   if (air) return f.vy < 0 ? 'jump' : 'fall';
   if (moving) {   // characters drawn with run frames use them for walking as well as the dash (it reads better than their walk cycle)
     const run = !!F.run1, q = ph * (run ? 1 : A.walk || 1), c = ((q % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
@@ -8356,7 +8582,8 @@ function drawFighter(f, t, o = {}) {
   const ph = f.runPhase, swing = moving ? Math.sin(ph) : 0;
   const bob = pose ? 0 : moving ? -Math.abs(Math.sin(ph)) * 2 : Math.sin(t * 3 + f.idx) * 0.8;
   const fl = f.flash > 0 || !!o.tint, WH = o.tint || '#ffffff';
-  const anim = jackal && SPRITE_ANIM_IMG.cynojackal ? 'cynojackal' : waterBlades && SPRITE_ANIM_IMG.tartagliablades ? 'tartagliablades' : SPRITE_ANIM_IMG[d.id] ? d.id : null, spr = !anim && SPRITE_IMG[d.id] ? d.id : null; spriteBody = !!(spr || anim); animWeapon = !!anim;
+  const wfly = d.id === 'wanderer' && (!o.pose || o.pose === 'burst') && !!(f.buff && f.buff.fly);   // the Wanderer hovering: his hatless flying frames (his burst's cut-in too)
+  const anim = wfly && SPRITE_ANIM_IMG.wandererfly ? 'wandererfly' : jackal && SPRITE_ANIM_IMG.cynojackal ? 'cynojackal' : waterBlades && SPRITE_ANIM_IMG.tartagliablades ? 'tartagliablades' : SPRITE_ANIM_IMG[d.id] ? d.id : null, spr = !anim && SPRITE_IMG[d.id] ? d.id : null; spriteBody = !!(spr || anim); animWeapon = !!anim;
   const body = fl ? WH : (d.body || d.color), dark = fl ? WH : d.dark, skin = fl ? WH : d.skin, hair = fl ? WH : d.hair;
   const sw = pose ? 0 : f.sway;
 
@@ -8987,7 +9214,7 @@ function crimsonRibbon(rx, ry, a0, a1, w, al) {
   }
   ctx.globalCompositeOperation = 'lighter';
 }
-const UNDER = new Set(['polestar', 'bloodmoon', 'redcracks', 'abyssrift', 'jumpwings', 'nightsky', 'suigetsu']);   // effects painted beneath the fighters instead of over them
+const UNDER = new Set(['windfield', 'polestar', 'bloodmoon', 'redcracks', 'abyssrift', 'jumpwings', 'nightsky', 'suigetsu']);   // effects painted beneath the fighters instead of over them
 // Each burst in its character's own colours (main, second, highlight; dk: a dark streak or smoke; fx: a flourish thrown off it).
 // Fire is never one flat red: yellow at the heart, orange, red at the edge. Drawn over the burst's own blows (burstAura).
 const BURST_PAL_EL = { pyro: ['#ff3a1a', '#ff9a2e', '#ffe28a'], hydro: ['#2a8cff', '#6fd0ff', '#e6f8ff'], electro: ['#9a4cff', '#d08aff', '#ffffff'],
@@ -10318,6 +10545,61 @@ function drawHits(t, under = false) {
         }
         break;
       }
+      case 'windfield': {   // Venti's wind field: a column of rising air, glowing at its foot, streaks and leaves racing up it
+        const age = h.age - h.delay, fade = Math.max(0, Math.min(1, age * 5, (h.life - age) * 2)), W2 = h.w / 2, H2 = h.h / 2;
+        ctx.globalAlpha = fade;
+        const col = ctx.createLinearGradient(0, H2, 0, -H2); col.addColorStop(0, 'rgba(120,255,210,.32)'); col.addColorStop(0.6, 'rgba(120,255,210,.12)'); col.addColorStop(1, 'rgba(120,255,210,0)');
+        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-W2 * 0.8, H2); ctx.quadraticCurveTo(-W2 * 1.05, 0, -W2 * 0.7, -H2); ctx.lineTo(W2 * 0.7, -H2); ctx.quadraticCurveTo(W2 * 1.05, 0, W2 * 0.8, H2); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(200,255,235,.5)'; ctx.lineWidth = 2;
+        for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sd * W2 * 0.8, H2); ctx.quadraticCurveTo(sd * W2 * 1.05, 0, sd * W2 * 0.7, -H2); ctx.stroke(); }
+        ctx.lineCap = 'round';
+        for (let i = 0; i < 14; i++) {   // wind streaks rising
+          const u = ((h.age * 0.9 + i * 0.137) % 1), y = H2 - u * h.h, x = Math.sin(h.age * 3 + i * 2.1) * W2 * 0.55, len = 26 + (i % 3) * 12;
+          ctx.globalAlpha = fade * Math.sin(Math.PI * u) * 0.85; ctx.strokeStyle = i % 4 ? '#c8fff0' : '#ffffff'; ctx.lineWidth = 2 + (i % 2);
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 9, y - len * 0.5, x, y - len); ctx.stroke();
+        }
+        for (let i = 0; i < 6; i++) {   // leaves spiralling up
+          const u = ((h.age * 0.55 + i / 6) % 1), y = H2 - u * h.h, a = h.age * 4 + i * 1.3, x = Math.cos(a) * W2 * 0.6;
+          ctx.globalAlpha = fade * Math.sin(Math.PI * u); ctx.fillStyle = i % 2 ? '#7ed957' : '#b6ffe0';
+          ctx.save(); ctx.translate(x, y); ctx.rotate(a * 1.7); ctx.beginPath(); ctx.ellipse(0, 0, 6, 2.6, 0, 0, 7); ctx.fill(); ctx.restore();
+        }
+        ctx.globalAlpha = fade; ctx.strokeStyle = '#9ff2d0'; ctx.lineWidth = 3;   // the ring at its foot, turning
+        ctx.setLineDash([12, 8]); ctx.lineDashOffset = -h.age * 60; ctx.beginPath(); ctx.ellipse(0, H2 - 4, W2 * 0.95, 11, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        break;
+      }
+      case 'stormeye': {   // the Stormeye: a sphere of wind spinning hard, rings round it at different tilts, feathers and streaks drawn in
+        const age = h.age - h.delay, grow = easeOut(Math.min(1, age / 0.3)), end = Math.max(0, Math.min(1, (h.life - age) / 0.25)), R0 = h.r * grow * (0.75 + 0.25 * end);
+        const c1 = h.absorb ? EL[h.absorb].color : '#3fd6a8', c2 = h.absorb ? mixHex(EL[h.absorb].color, '#ffffff', 0.45) : '#a8ffe2', T = h.age;
+        ctx.save(); ctx.globalCompositeOperation = 'source-over';   // the body of the sphere blended normally (added light washed it out to white)
+        const gl = ctx.createRadialGradient(0, 0, R0 * 0.5, 0, 0, R0 * 1.6); gl.addColorStop(0, hexA(c1, 0.18)); gl.addColorStop(1, hexA(c1, 0));
+        ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0, 0, R0 * 1.6, 0, 7); ctx.fill();
+        const body = ctx.createRadialGradient(-R0 * 0.3, -R0 * 0.35, R0 * 0.05, 0, 0, R0); body.addColorStop(0, hexA(c2, 0.16)); body.addColorStop(0.7, hexA(c1, 0.14)); body.addColorStop(1, hexA(c1, 0.34));
+        ctx.fillStyle = body; ctx.beginPath(); ctx.arc(0, 0, R0, 0, 7); ctx.fill();
+        ctx.strokeStyle = hexA(c2, 0.55); ctx.lineWidth = 2; ctx.stroke();
+        ctx.lineCap = 'round';
+        for (let arm = 0; arm < 6; arm++) {   // spiral arms whirling inward
+          ctx.strokeStyle = arm % 2 ? hexA(c1, 0.75) : hexA('#ffffff', 0.6);
+          for (let i = 0; i < 18; i++) {
+            const u0 = i / 18, u1 = (i + 1) / 18, a0 = arm * 1.047 + T * 7 + u0 * 4.2, a1 = arm * 1.047 + T * 7 + u1 * 4.2, r0 = R0 * (0.98 - u0 * 0.8), r1 = R0 * (0.98 - u1 * 0.8);
+            ctx.lineWidth = 0.8 + 3.2 * (1 - u0); ctx.beginPath(); ctx.moveTo(Math.cos(a0) * r0, Math.sin(a0) * r0); ctx.lineTo(Math.cos(a1) * r1, Math.sin(a1) * r1); ctx.stroke();
+          }
+        }
+        for (let i = 0; i < 3; i++) {   // rings round the sphere, each at its own tilt, turning
+          ctx.save(); ctx.rotate(i * 1.05 + T * (0.8 + i * 0.4)); ctx.strokeStyle = i ? hexA(c2, 0.7) : hexA('#ffffff', 0.75); ctx.lineWidth = 2.2;
+          ctx.beginPath(); ctx.ellipse(0, 0, R0 * (1.15 + i * 0.12), R0 * 0.3, 0, 0, 7); ctx.stroke(); ctx.restore();
+        }
+        for (let i = 0; i < 12; i++) {   // feathers orbiting and falling in
+          const a = i / 12 * 6.283 + T * (2 + (i % 3) * 0.7), rr2 = R0 * (1.5 - ((T * 0.6 + i * 0.083) % 1) * 0.9);
+          ctx.save(); ctx.translate(Math.cos(a) * rr2, Math.sin(a) * rr2 * 0.75); ctx.rotate(a + 1.6);
+          ctx.fillStyle = i % 3 ? '#f2fffa' : c2; ctx.beginPath(); ctx.ellipse(0, 0, 7, 2.4, 0, 0, 7); ctx.fill();
+          ctx.strokeStyle = 'rgba(30,110,90,.7)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.stroke(); ctx.restore();
+        }
+        ctx.restore();
+        const core = ctx.createRadialGradient(0, 0, 0, 0, 0, R0 * 0.32); core.addColorStop(0, hexA('#ffffff', 0.85)); core.addColorStop(0.5, hexA(c2, 0.45)); core.addColorStop(1, hexA(c1, 0));
+        ctx.fillStyle = core; ctx.beginPath(); ctx.arc(0, 0, R0 * (0.3 + 0.04 * Math.sin(T * 20)), 0, 7); ctx.fill();   // (added light: the bright eye at its middle)
+        break;
+      }
       case 'polestar': {   // Stellar-Conduct's field: a pale disc on the ground, a ring of slowly turning stars, brighter with each stack
         const fade = Math.min(1, (h.age - h.delay) * 4, (h.life - (h.age - h.delay)) * 2), T = h.age, R0 = h.r, st = h.stack || 1;
         ctx.globalAlpha = Math.max(0, fade) * (0.55 + 0.15 * st);
@@ -11179,14 +11461,37 @@ function drawParticles(glowOnly = false) {   // glowOnly: the bloom pass, withou
     if (k < 0.25) { ctx.fillStyle = 'rgba(255,255,255,' + (1 - k / 0.25) + ')'; ctx.beginPath(); ctx.ellipse(0, 0, R * 0.5, R * 0.12, 0, 0, 7); ctx.fill(); }
     ctx.restore();
   }
+  ctx.globalAlpha = 1;
+}
+// Floating words and damage numbers, drawn after the reaction titles so a title never hides a number (see drawTexts' call in render)
+function drawTexts() {
+  const g = game; if (!g || !g.texts.length) return;
+  // Floating words and damage numbers: they spring in (elastic: too big, a little too small, settled), squashed wide at first, tilted and
+  // straightening, flash white for an instant, and at the end shrink as they fade. A big hit or a lunar / stellar number also throws a
+  // ring and rays of light behind itself, and a big one shakes.
   for (const t of g.texts) {
-    ctx.globalAlpha = clamp(t.life / t.max * 1.6, 0, 1);
-    if (t.dmg == null) { glowText(t.text, t.x, t.y, t.size, t.color); continue; }
-    // a damage number: pops in big and settles; the bigger the hit, the harder it pops, and a heavy one shakes for a moment
-    const age = t.max - t.life, pop = 1 + (0.5 + Math.min(0.6, t.dmg / 20)) * Math.max(0, 1 - age / 0.14), big = t.dmg >= 9;
-    ctx.save(); ctx.translate(t.x + (big && age < 0.25 ? Math.sin(age * 90) * 3 : 0), t.y); ctx.scale(pop, pop);
-    if (big) ctx.rotate(Math.sin(age * 60) * 0.08 * Math.max(0, 1 - age / 0.3));
-    glowText(t.text, 0, 0, t.size, t.color);
+    const age = t.max - t.life, out = clamp(t.life / (t.max * 0.3), 0, 1), dm = t.dmg != null;
+    const A = dm ? Math.min(0.9, 0.5 + t.dmg / 18) : 0.45;
+    let el = Math.exp(-age * 12) * Math.cos(age * 26); if (el < 0) el *= 0.5;
+    const sc = (1 + A * el) * (0.6 + 0.4 * out), sq = Math.exp(-age * 12) * 0.3;
+    const big = dm && t.dmg >= 9, rot = (t.rot0 || 0) * Math.exp(-age * 7) + clamp((t.vx || 0) / 900, -0.15, 0.15);
+    ctx.globalAlpha = Math.min(1, out * 1.3);
+    ctx.save(); ctx.translate(t.x + (big && age < 0.25 ? Math.sin(age * 90) * 3 : 0), t.y); ctx.rotate(rot);
+    if (big && age < 0.32) {   // the light thrown out behind it
+      const q = age / 0.32, col = t.fancy || t.color || '#ffffff', R0 = t.size * (0.5 + 1.6 * easeOut(q));
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - q) * 0.8;
+      ctx.strokeStyle = col; ctx.lineWidth = 4 * (1 - q) + 1; ctx.beginPath(); ctx.ellipse(0, 0, R0 * 1.3, R0 * 0.75, 0, 0, 7); ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283 + 0.2, r0 = R0 * 0.7, r1 = R0 * (1.5 + (i % 2) * 0.5); ctx.save(); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(r0, -2 * (1 - q) - 0.5); ctx.lineTo(r1, 0); ctx.lineTo(r0, 2 * (1 - q) + 0.5); ctx.closePath(); ctx.fill(); ctx.restore(); }
+      ctx.restore();
+    }
+    ctx.scale(sc * (1 + sq), sc * (1 - sq * 0.6));
+    if (t.fancy) fancyNum(t.text, t.size, t.fancy); else glowText(t.text, 0, 0, t.size, t.color);
+    if (age < 0.07) {   // the white flash it lands with
+      ctx.globalAlpha = (1 - age / 0.07) * 0.7;
+      if (t.fancy) fancySetup(t.size); else { ctx.font = t.size + 'px ' + DISPLAY; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; }
+      ctx.fillStyle = '#ffffff'; ctx.fillText(t.text, 0, 0);
+    }
     ctx.restore();
   }
   ctx.globalAlpha = 1;
@@ -11860,6 +12165,7 @@ Object.assign(CUTIN, {
       }
     } },
   nilou: { ...CUTIN.neuvillette, from: '#08203a', to: '#4ab0e0', line: '물결처럼, 한 번 더 춤을.' },
+  hilichurl: { ...CUTIN.diluc, from: '#2a1a0c', to: '#c08a5a', line: 'Ya! Dada!' },
   mavuika: { ...CUTIN.diluc, from: '#2a0a04', to: '#ff7a2a', line: '불꽃은 꺼지지 않는다!' },
   kinich: { ...CUTIN.tighnari, from: '#0c2410', to: '#8fd94a', line: '사냥은 벌써 끝났어.' },
   mualani: { ...CUTIN.xingqiu, from: '#062838', to: '#3fc0d8', line: '파도가 왔어, 올라타!' },
@@ -11952,6 +12258,7 @@ const CINE = {
   clorinde: { c: [-2.0, -2, -0.2], s: [1.4, 10, 0.4, 16] },
   wanderer: { c: [-1.4, 6, -0.1], s: [-0.3, 14, 0.12, 6] },
   nilou: { c: [-2.0, -2, -0.2], s: [1.3, 10, 0.35, 12] },
+  hilichurl: { c: [-2.5, -2, -0.2], s: [1.6, 10, 0.4, 14] },
   mavuika: { c: [-2.5, -2, -0.2], s: [1.6, 10, 0.4, 14] },
   kinich: { c: [-2.4, -2, -0.25], s: [0.1, 14, 0.3, 10] },
   mualani: { c: [-1.4, 6, -0.1], s: [-0.3, 14, 0.12, 6] },
@@ -12394,6 +12701,52 @@ function drawStageLit(t) {
 }
 // A fighter with a soft glow of its element around the outline, so it stands out from the picture behind: the fighter drawn small,
 // filled with the colour and stretched back out under it, twice (a tighter and a wider glow).
+// The Wanderer hovering: his hat is gone and in its place a ring of wind with the hat's pattern (seen from above) turns behind his head.
+// Flying forward, it splits into two smaller rings at his back, turned edge-on like jets, with wind streaming out of them.
+function hatRing(R, rot, a, sq) {   // drawn at the origin: the brim, the inner band, eight spokes, the crown, beads round the brim
+  ctx.save(); ctx.scale(sq, 1);
+  glow(0, 0, R * 1.5, '#62e6b4', 0.45 * a);
+  ctx.globalAlpha = a; ctx.lineCap = 'round';
+  ctx.strokeStyle = '#9ff2d0'; ctx.lineWidth = Math.max(1.5, R * 0.09); ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.stroke();
+  ctx.strokeStyle = '#e8fff6'; ctx.lineWidth = Math.max(1, R * 0.035); ctx.beginPath(); ctx.arc(0, 0, R * 0.92, 0, 7); ctx.stroke();
+  ctx.strokeStyle = '#62e6b4'; ctx.lineWidth = Math.max(1, R * 0.06); ctx.beginPath(); ctx.arc(0, 0, R * 0.6, 0, 7); ctx.stroke();
+  ctx.save(); ctx.rotate(rot);
+  ctx.strokeStyle = '#c8fff0'; ctx.lineWidth = Math.max(1, R * 0.045);
+  for (let i = 0; i < 8; i++) { const b = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(b) * R * 0.32, Math.sin(b) * R * 0.32); ctx.lineTo(Math.cos(b + 0.25) * R * 0.88, Math.sin(b + 0.25) * R * 0.88); ctx.stroke(); }
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 12; i++) { const b = -rot * 1.6 + i * Math.PI / 6; ctx.beginPath(); ctx.arc(Math.cos(b) * R, Math.sin(b) * R, Math.max(1, R * 0.06), 0, 7); ctx.fill(); }
+  ctx.restore();
+  const cr = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.32); cr.addColorStop(0, '#ffffff'); cr.addColorStop(0.6, '#b8ffe6'); cr.addColorStop(1, 'rgba(98,230,180,0)');
+  ctx.fillStyle = cr; ctx.beginPath(); ctx.arc(0, 0, R * 0.32, 0, 7); ctx.fill();
+  ctx.restore();
+}
+function drawFlyGauge(f, t) {   // an arc beside him: teal while there is plenty, amber then red as it runs out, shaking when nearly empty
+  const S = f.def.scale, q = clamp(f.buff.st / WFLY.max, 0, 1), d = f.dir, cx = f.x - d * 4 * S, cy = f.y - 40 * S, R = 42 * S;
+  const a0 = d > 0 ? Math.PI * 0.62 : Math.PI * 0.38, span = Math.PI * 0.76 * (d > 0 ? 1 : -1);   // the back side
+  const col = q > 0.5 ? '#62e6b4' : q > 0.25 ? '#ffcf5a' : '#ff6a5a', jit = q < 0.2 ? Math.sin(t * 60) * 1.2 : 0;
+  ctx.save(); ctx.translate(jit, 0); ctx.lineCap = 'round';
+  ctx.globalAlpha = 0.6; ctx.strokeStyle = '#0a1020'; ctx.lineWidth = 6 * S; ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + span, d < 0); ctx.stroke();
+  ctx.globalAlpha = 1; ctx.strokeStyle = col; ctx.lineWidth = 3.4 * S; ctx.beginPath(); ctx.arc(cx, cy, R, a0 + span * (1 - q), a0 + span, d < 0); ctx.stroke();
+  ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35; ctx.lineWidth = 7 * S; ctx.stroke();
+  ctx.restore();
+}
+function drawHatRing(f, t) {
+  const S = f.def.scale, d = f.dir, want = clamp((Math.abs(f.vx) - 90) / 240, 0, 1);
+  f.ringK = approach(f.ringK || 0, want, 0.08); const k = f.ringK;   // eased: one ring, or the two jets
+  const left = f.buff.st != null ? f.buff.st / WFLY.hover : f.buff.t, fade = Math.min(1, left / 0.3);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  if (k < 0.98) { ctx.save(); ctx.translate(f.x - d * 6 * S, f.y - 74 * S); hatRing(30 * S * (1 - 0.4 * k), t * 1.8, fade * (1 - k), 1); ctx.restore(); }
+  if (k > 0.02) for (const s of [-1, 1]) {
+    const x = f.x - d * (34 + 8 * k) * S - (s > 0 ? d * 6 * S : 0), y = f.y - 50 * S + s * 20 * S;   // one above the other at his back, apart
+    ctx.save(); ctx.translate(x, y); hatRing(13 * S, t * 7 * s, fade * k, 0.42); ctx.restore();
+    ctx.globalAlpha = 0.55 * fade * k; ctx.strokeStyle = '#b8ffe6'; ctx.lineCap = 'round';   // wind streaming out behind
+    for (let i = 0; i < 3; i++) {
+      const L = (30 + 26 * i) * S * (0.7 + 0.3 * Math.sin(t * 30 + i * 2)), w = 3 - i * 0.8;
+      ctx.lineWidth = Math.max(0.8, w * S); ctx.beginPath(); ctx.moveTo(x - d * 5 * S, y + (i - 1) * 4 * S); ctx.lineTo(x - d * (5 * S + L), y + (i - 1) * 6 * S); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
 function drawFighterLit(f, t) {
   const L = fighterCv[f.idx], w = Math.max(2, Math.ceil(cv.width / 5)), h = Math.max(2, Math.ceil(cv.height / 5)), wtr = ctx.getTransform();
   sizeTo(L, w, h);
@@ -12712,7 +13065,9 @@ function render(t) {
       const ux = f.vx / sp, uy = f.vy / sp, L = Math.min(64, sp * 0.034);
       for (let i = 3; i >= 1; i--) drawFighter(f, t, { x: f.x - ux * L * i / 3, y: f.y - uy * L * i / 3, fr: f.lastFr, dir: f.dir, alpha: 0.24 - i * 0.05, overlays: false });
     }
+    for (const f of g.fighters) if (!f.dead && f.def.id === 'wanderer' && f.buff && f.buff.fly) drawHatRing(f, t);   // behind him
     for (const f of g.fighters) if (!f.dead) { if (gfxHigh()) drawFighterLit(f, t); else drawFighter(f, t); }
+    for (const f of g.fighters) if (!f.dead && f.buff && f.buff.fly && f.buff.st != null) drawFlyGauge(f, t);   // his flight stamina
     ctx.save(); ctx.globalCompositeOperation = 'lighter';   // just hit: washed in the blow's colour as the white flash fades
     for (const f of g.fighters) if (!f.dead && f.hitColT > 0 && f.flash <= 0) drawFighter(f, t, { tint: f.hitCol, alpha: 0.55 * f.hitColT / 0.35, overlays: false });
     ctx.restore();
@@ -12729,6 +13084,7 @@ function render(t) {
     drawFx2(t);
     drawBarriers(t);
     drawReactTitles();
+    drawTexts();
     if (gfxHigh()) drawBloom(t);
     drawMapFx(t);
     drawSilhouette(t);
@@ -12881,7 +13237,7 @@ const PORTRAIT_SRC = { diluc: 'img/diluc.webp', mona: 'img/mona.webp', raiden: '
   nahida: 'img/nahida.webp', albedo: 'img/albedo.webp', eula: 'img/eula.webp', furina: 'img/furina.webp',
   navia: 'img/navia.webp', neuvillette: 'img/neuvillette.webp', wriothesley: 'img/wriothesley.webp', lyney: 'img/lyney.webp', yae: 'img/yae.webp',
   klee: 'img/klee.webp', clorinde: 'img/clorinde.webp', tighnari: 'img/tighnari.webp', xingqiu: 'img/xingqiu.webp',
-  wanderer: 'img/wanderer.webp', nilou: 'img/nilou.webp', mavuika: 'img/mavuika.webp', kinich: 'img/kinich.webp', mualani: 'img/mualani.webp', citlali: 'img/citlali.webp',
+  wanderer: 'img/wanderer.webp', nilou: 'img/nilou.webp', hilichurl: 'img/hilichurl.webp', mavuika: 'img/mavuika.webp', kinich: 'img/kinich.webp', mualani: 'img/mualani.webp', citlali: 'img/citlali.webp',
   skirk: 'img/skirk.webp', alhaitham: 'img/alhaitham.webp', cyno: 'img/cyno.webp', aether: 'img/aether.webp', lumine: 'img/lumine.webp',
   columbina: 'img/columbina.webp', sandrone: 'img/sandrone.webp', arlecchino: 'img/arlecchino.webp', sigewinne: 'img/sigewinne.webp',
   keqing: 'img/keqing.webp', tartaglia: 'img/tartaglia.webp', qiqi: 'img/qiqi.webp', shenhe: 'img/shenhe.webp', flins: 'img/flins.webp',
@@ -12982,6 +13338,7 @@ function pick(id, el) {
   else if (mode === 'arcade') arcadeStart();
   else if (mode === 'surv') survStart();
   else if (mode === 'tour') tourBegin(sel[0][0]);
+  else if (pickStep === 0 && mode === 'train') { sel[1] = ['hilichurl']; loadAnim('hilichurl'); transition(showMap); }   // the training ground: always against the hilichurl
   else if (pickStep === 0) { pickStep = 1; showSelect(); }
   else transition(showMap);
 }
@@ -13218,7 +13575,7 @@ const KIT = {   // short on purpose: one or two plain sentences per move (the de
   mona: { cd: 6.0, skill: '4초 동안 물의 허상을 세워 1초마다 물 구슬을 쏩니다.', burst: '피해 15% 회복. 앞의 적을 거품에 가뒀다가 1초 뒤 터뜨립니다.' },
   raiden: { cd: 4.2, skill: '뇌안을 띄워 2.4초 동안 주변 적을 감전시킵니다.', burst: '번개의 검으로 크게 벤 뒤, 5초 동안 그 검으로 번개 평타를 칩니다.' },
   ganyu: { cd: 1.7, skill: '멀리 날아가 터지는 서리꽃 화살을 쏩니다.', burst: '앞쪽 넓은 범위에 2.2초 동안 얼음비를 내립니다.' },
-  venti: { cd: 2.2, skill: '높이 솟구치며 주변 적을 띄웁니다. 복귀에도 좋습니다.', burst: '1초 동안 적을 빨아들이는 회오리를 만들고 터뜨립니다.' },
+  venti: { cd: 10.0, skill: '선 자리에 5초 동안 상승 기류 지대를 세웁니다. 안에서 공중에 뜨면 위로 날아오르고(복귀에 좋음), 들어온 적은 띄워지며 계속 피해를 받습니다.', burst: '앞으로 날아가 멈추는 거대한 바람의 눈을 만듭니다. 2초 동안 적을 강하게 빨아들여 계속 피해를 주고, 불·물·번개·얼음이 묻은 적을 빨아들이면 그 원소를 머금습니다. 마지막에 크게 터집니다.' },
   zhongli: { cd: 2.8, skill: '바위 기둥으로 적을 띄우고 방어막을 얻습니다.', burst: '상대에게 운석을 떨어뜨려 석화시키고 날려 보냅니다.' },
   hutao: { cd: 6.0, skill: '피해 6%를 내주고 4초 동안 불 평타 +25%, 이동이 빨라집니다.', burst: '주변 바닥에 불 충격파를 퍼뜨리고 회복합니다. 피해 80% 이상이면 더 셉니다.' },
   kazuha: { cd: 3.1, skill: '주변 적을 끌어당기며 높이 뛰어오릅니다.', burst: '땅까지 내리그은 뒤 5초 동안 바람 영역을 남깁니다. 닿은 원소를 흡수해 함께 줍니다.' },
@@ -13235,7 +13592,8 @@ const KIT = {   // short on purpose: one or two plain sentences per move (the de
   navia: { cd: 3.1, skill: '수정 파편 세 발을 쏘고 3초 동안 바위 평타. 결정을 주우면 스킬이 세집니다.', burst: '적 주변에 포탄 열 발이 떨어집니다.' },
   wriothesley: { cd: 6.0, skill: '짧게 돌진한 뒤 얼음 어퍼컷으로 위로 띄웁니다. 피해 2%를 내주고 5초 동안 주먹 +35%.', burst: '연속 주먹 뒤 거대한 얼음 주먹을 날려 멀리 날려 보냅니다.' },
   clorinde: { cd: 5.0, skill: '4초 사냥 태세: 평타가 번개 총알이 되고, 다시 누르면 찌르며 돌진합니다.', burst: '모습을 감추고(무적) 상대 자리를 여섯 번 베어 날려 보냅니다.' },
-  wanderer: { cd: 6.0, skill: '3초 동안 낮게 떠서 싸웁니다. 피해 +20%, 이동·평타가 빨라집니다.', burst: '상대를 바람 구체에 1초 동안 가두고 여러 번 맞힌 뒤 터뜨립니다.' },
+  wanderer: { cd: 6.0, skill: '낮게 떠서 날아다니며 싸웁니다(피해 +20%, 이동·평타 빨라짐). 전용 기력이 닳으면 내려옵니다: 떠 있기·평타는 천천히, 대시(방향키 두 번 누르고 유지)는 빨리, 점프(더 높이 상승)와 강공격(짧게 꾹)은 한 번에 크게 닳습니다.', burst: '상대를 바람 구체에 1초 동안 가두고 여러 번 맞힌 뒤 터뜨립니다.' },
+  hilichurl: { cd: 4.0, skill: '앞으로 폴짝 뛰어 몽둥이로 내려칩니다.', burst: '몽둥이로 주변 땅을 두 번 내리칩니다.' },
   nilou: { cd: 6.0, skill: '물을 휘두르고 5초 동안 물 평타 +15%. 강공격이 부채꼴 물결이 됩니다.', burst: '주변 바닥에 물결을 두 번 크게 퍼뜨립니다.' },
   mavuika: { cd: 3.6, skill: '오토바이로 상대 쪽으로 달리며 지나간 땅에 불길을 남기고, 끝에 앞바퀴를 들어 뛰어오릅니다.', burst: '불붙은 대검을 크게 한 바퀴 휘둘러 주변을 태웁니다.' },
   kinich: { cd: 6, skill: '갈고리로 8초 가호 상태: 평타가 회전 사격이 됩니다. 밤혼 20이면 관통포 발사.', burst: '충격파 뒤 용 아쥬가 10초 동안 따라다니며 2초마다 숨결을 쏩니다.' },
@@ -13616,10 +13974,39 @@ function setMode(m) {
 }
 // The title only has the start button (and the tutorial); the mode is chosen on the next scene.
 const MODE_ORDER = ['cpu', '2p', 'net', 'arcade', 'train', 'boss', 'surv', 'tour'];
+// The mode scene's five panels (keys 1-5 in reading order). Two of them group several modes and open a pop-up of cards (keys 1-3, Esc closes).
+const MODE_GROUPS = { brawl: ['cpu', '2p'], domain: ['arcade', 'boss', 'surv'] };
+const MM_ORDER = ['brawl', 'domain', 'tour', 'train', 'net'];
+const MM_NAME = { brawl: '대난투', domain: '비경 도전' };
+const MM_HINT = { brawl: '컴퓨터나 친구와 맞붙는 기본 대전입니다. 우선은 여기서 기본 플레이!',
+  domain: '혼자서 도전하는 비경입니다. <b>아케이드</b> · <b>보스전</b> · <b>생존</b> 중에서 고릅니다.' };
+const groupOf = m => Object.keys(MODE_GROUPS).find(g => MODE_GROUPS[g].includes(m)) || m;
+let modeSub = null;
+function panelHint(g) { if (MM_HINT[g]) $('menuHint').innerHTML = MM_HINT[g]; else renderMenuHint(g); }
+function openModeSub(g) {
+  modeSub = g; const list = MODE_GROUPS[g];
+  for (const b of document.querySelectorAll('#modeCards .pty')) {
+    const i = list.indexOf(b.dataset.mode); b.hidden = i < 0;
+    if (i >= 0) { b.querySelector('kbd').textContent = i + 1; b.style.order = i; }
+  }
+  $('modeCards').style.setProperty('--n', list.length); $('modeSubTitle').textContent = MM_NAME[g];
+  $('modeSub').hidden = false; SFX.play('tick');
+  const first = document.querySelector('#modeCards .pty[data-mode="' + (list.includes(mode) ? mode : list[0]) + '"]');
+  if (first) { first.focus({ preventScroll: true }); renderMenuHint(first.dataset.mode); }
+}
+function closeModeSub() {
+  if (!modeSub) return; const g = modeSub; modeSub = null; $('modeSub').hidden = true;
+  const b = document.querySelector('.mm-p[data-g="' + g + '"]'); if (b) b.focus({ preventScroll: true }); panelHint(g);
+}
+function choosePanel(g) {
+  if (state !== 'mode' || wiping) return;
+  if (MODE_GROUPS[g]) { SFX.init(); openModeSub(g); } else chooseMode(g);
+}
 function showModeSel() {
-  state = 'mode'; game = null; showOv('mode'); renderMenuHint();
-  const cur = document.querySelector('#modeCards .pty[data-mode="' + mode + '"]');
+  state = 'mode'; game = null; modeSub = null; $('modeSub').hidden = true; showOv('mode');
+  const g = groupOf(mode), cur = document.querySelector('.mm-p[data-g="' + g + '"]');
   if (cur) cur.focus({ preventScroll: true });
+  panelHint(g);
 }
 function chooseMode(m) {
   if (state !== 'mode' || wiping || !MODE_ORDER.includes(m)) return;
@@ -13630,14 +14017,19 @@ function chooseMode(m) {
 $('btnCpu').addEventListener('click', () => { SFX.init(); BGM.confirm(); transition(showModeSel); });
 $('modeCards').addEventListener('click', e => { const b = e.target.closest('.pty'); if (b) chooseMode(b.dataset.mode); });
 for (const ev of ['mouseover', 'focusin']) $('modeCards').addEventListener(ev, e => { const b = e.target.closest('.pty'); if (b) renderMenuHint(b.dataset.mode); });
-$('modeCards').addEventListener('mouseleave', () => renderMenuHint());
+$('modeMenu').addEventListener('click', e => { const b = e.target.closest('.mm-p'); if (b) choosePanel(b.dataset.g); });
+for (const ev of ['mouseover', 'focusin']) $('modeMenu').addEventListener(ev, e => { const b = e.target.closest('.mm-p'); if (b) panelHint(b.dataset.g); });
+$('btnSubBack').addEventListener('click', closeModeSub);
+$('modeSub').addEventListener('click', e => { if (e.target === e.currentTarget) closeModeSub(); });   // a click beside the cards closes it
+$('mmTut').addEventListener('click', () => { if (!wiping) $('btnTut').click(); });
+$('mmSet').addEventListener('click', () => $('btnSet').click());
 $('btnModeBack').addEventListener('click', () => { if (!wiping) transition(goMenu); });
 $('ptyCards').addEventListener('click', e => { const b = e.target.closest('.pty'); if (b) chooseParty(+b.dataset.n); });
 $('btnPartyBack').addEventListener('click', () => { if (!wiping) transition(showModeSel); });
 $('btnMapRand').addEventListener('click', () => { const m = MAPS[(Math.random() * MAPS.length) | 0]; goLineup(m.id); });
 $('btnLuSkip').addEventListener('click', endLineup);
 $('ovWin').addEventListener('click', endVictory);
-$('btnMapBack').addEventListener('click', () => { if (mode === 'net') { if (!wiping) netRepick(); return; } sel[1].pop(); pickStep = 1; transition(showSelect); });
+$('btnMapBack').addEventListener('click', () => { if (mode === 'net') { if (!wiping) netRepick(); return; } if (mode === 'train') { sel[1] = []; sel[0].pop(); pickStep = 0; transition(showSelect); return; } sel[1].pop(); pickStep = 1; transition(showSelect); });
 $('btnBack').addEventListener('click', () => {   // undo the last pick, stepping back to 1P's party or the party-size scene when there is none
   if (mode === 'net') { if (sel[pickStep].length) { sel[pickStep].pop(); netPickSync(false); showSelect(); } return; }   // online: only my own picks
   if (sel[pickStep].length) sel[pickStep].pop();
