@@ -980,15 +980,33 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
       <ul class="rx">
         <li><b><span class="dot" style="background:var(--pyro)"></span>증발</b><span>불 + 물, 피해 1.5배</span></li>
         <li><b><span class="dot" style="background:#ffb36b"></span>융해</b><span>불 + 얼음, 피해 1.5배</span></li>
-        <li><b><span class="dot" style="background:var(--cryo)"></span>빙결</b><span>물 + 얼음, 1.5초 동결 (맞으면 쇄빙 추가 피해)</span></li>
+        <li><b><span class="dot" style="background:var(--cryo)"></span>빙결</b><span>물 + 얼음, 1.5초 동결</span></li>
+        <li><b><span class="dot" style="background:#d8f6ff"></span>쇄빙</b><span>얼어붙은 적을 때리면 얼음이 깨지며 추가 피해와 큰 밀치기</span></li>
         <li><b><span class="dot" style="background:var(--electro)"></span>감전</b><span>번개 + 물, 3초 동안 지속 피해</span></li>
         <li><b><span class="dot" style="background:#ff9a5a"></span>과부하</b><span>번개 + 불, 폭발과 큰 밀치기</span></li>
         <li><b><span class="dot" style="background:#9a8cff"></span>초전도</b><span>번개 + 얼음, 5초 동안 더 멀리 날아감</span></li>
         <li><b><span class="dot" style="background:var(--anemo)"></span>확산</b><span>바람 + 원소, 추가 피해와 큰 밀치기</span></li>
         <li><b><span class="dot" style="background:var(--geo)"></span>결정</b><span>바위 + 불·물·번개·얼음, 적 자리에 결정이 떨어지고 주우면 방어막</span></li>
         <li><b><span class="dot" style="background:var(--dendro)"></span>개화</b><span>풀 + 물, 잠시 뒤 터지는 풀 씨앗</span></li>
+        <li><b><span class="dot" style="background:#ff7a3a"></span>발화</b><span>씨앗이 터지기 전에 근처에 불 공격, 씨앗이 넓게 폭발</span></li>
+        <li><b><span class="dot" style="background:#c8ff7a"></span>만개</b><span>씨앗이 터지기 전에 근처에 번개 공격, 씨앗이 적에게 날아감</span></li>
         <li><b><span class="dot" style="background:#ff8a3d"></span>연소</b><span>풀 + 불, 3초 동안 지속 피해</span></li>
-        <li><b><span class="dot" style="background:#b9e05a"></span>촉진</b><span>풀 + 번개, 6초 동안 번개·풀 공격 추가 피해</span></li>
+        <li><b><span class="dot" style="background:#b9e05a"></span>촉진</b><span>풀 + 번개, 6초 동안 촉진 상태</span></li>
+        <li><b><span class="dot" style="background:#d8b4ff"></span>활성</b><span>촉진 상태인 적을 번개로 때리면 추가 피해</span></li>
+        <li><b><span class="dot" style="background:#8fd94a"></span>발산</b><span>촉진 상태인 적을 풀로 때리면 추가 피해</span></li>
+      </ul>
+      <h3>별 반응</h3>
+      <p>파티(1:1이면 자기 자신)에 아래 캐릭터가 있으면 반응이 별 반응으로 바뀝니다.</p>
+      <ul class="rx">
+        <li><b><span class="dot" style="background:#a8c8ff"></span>별 초전도</b><span>산드로네·오데트·얼음 여행자. 번개 + 얼음, 6초 동안 별 영역이 생기고 그 안에서 우리 편 얼음·번개 공격 피해 +15% (겹치면 최대 +25%)</span></li>
+        <li><b><span class="dot" style="background:#bfe0ff"></span>별 확산</b><span>오데트·베스나·얼음 여행자. 바람 + 얼음, 적 자리에 별 소용돌이가 생겨 1.2초 뒤 폭발 (근처에서 또 일으키면 바로 터짐, 보댜니차가 있으면 적을 따라감)</span></li>
+      </ul>
+      <h3>달 반응</h3>
+      <p>파티(1:1이면 자기 자신)에 아래 캐릭터가 있으면 반응이 달 반응으로 바뀝니다.</p>
+      <ul class="rx">
+        <li><b><span class="dot" style="background:#b49cff"></span>달감전</b><span>이네파·플린스·콜롬비나. 감전에 더해 적 머리 위 뇌운이 3번 내리침</span></li>
+        <li><b><span class="dot" style="background:#9ff0c8"></span>달개화</b><span>라우마·네페르·콜롬비나. 씨앗 없이 달빛 꽃잎이 바로 터짐</span></li>
+        <li><b><span class="dot" style="background:#f0e6b0"></span>달결정</b><span>자백·콜롬비나. 바위 + 물, 결정 대신 달빛 파편이 3번 떨어짐</span></li>
       </ul>
       <p>기본 공격 3타째와 스킬에 원소가 실립니다. 상대에게 원소를 묻힌 뒤 다른 원소로 때리면 반응합니다. 피해(%)가 높을수록 멀리 날아갑니다.</p>
     </div>
@@ -1899,7 +1917,11 @@ function reactBurst(t, a, b, name) {
   switch (name) {
     case '확산': fx2({ k: 'tornado', x, y: t.y, col: c1, h: 150 * t.def.scale, life: 0.8 }); break;
     case '초전도': fx2({ k: 'sring', x, y, life: 0.6 }); break;
-    case '감전': fx2({ k: 'cring', x, y, f: t, life: 0.9 }); break;
+    case '감전': case '달감전': fx2({ k: 'cring', x, y, f: t, life: 0.9 }); break;
+    case '별 초전도': fx2({ k: 'sring', x, y, life: 0.7 }); fx2({ k: 'el', el: 'cryo', x, y, s: 1.6, ang: 0, life: 0.5 }); break;
+    case '별 확산': fx2({ k: 'tornado', x, y: t.y, col: '#bfe0ff', h: 160 * t.def.scale, life: 0.9 }); break;
+    case '달개화': fx2({ k: 'el', el: 'dendro', x, y, s: 1.9, ang: 0, life: 0.55 }); fx2({ k: 'el', el: 'hydro', x, y, s: 1.2, ang: 0.6, life: 0.45 }); break;
+    case '달결정': fx2({ k: 'el', el: 'geo', x, y, s: 1.7, ang: 0, life: 0.55 }); break;
     case '과부하':
       fx2({ k: 'el', el: 'pyro', x, y, s: 2.1, ang: 0, life: 0.55 });
       for (let i = 0; i < FXN(16); i++) { const an = NATIVE_RND() * 6.283, v = 220 + NATIVE_RND() * 380; P({ k: 'ember', vx: Math.cos(an) * v, vy: Math.sin(an) * v - 120, grav: 500, life: 0.5 + NATIVE_RND() * 0.4, max: 0.9, size: 2 + NATIVE_RND() * 2, color: i % 3 ? '#ff9a5a' : '#c077ff' }); }
@@ -2736,10 +2758,47 @@ function updateHits(dt) {
   g.hits = g.hits.filter(h => !h.dead);
 }
 
+function starPath(x, y, r) {   // a four-pointed star (for the stellar reactions)
+  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.quadraticCurveTo(x, y, x, y + r); ctx.quadraticCurveTo(x, y, x - r, y); ctx.quadraticCurveTo(x, y, x, y - r); ctx.closePath();
+}
 // The look of each reaction, drawn over the one it happened to and following them for a moment (vis 'react', rk: which reaction).
 function reactFx(o, t, rk, el2, life = 0.6) {
   hb({ owner: o, x: t.x, y: t.y - 34 * t.def.scale, w: 0, h: 0, life, harmless: true, persist: true, vis: 'react', rk, el2, rseed: rnd(0, 6.3),
        onTick: h => { if (!t.dead) { h.x = t.x; h.y = t.y - 34 * t.def.scale; } } });
+}
+// Lunar reactions (Nod-Krai): with one of these in the attacker's party, the reaction turns into its lunar form.
+const MOON = { charged: ['ineffa', 'flins', 'columbina'], bloom: ['lauma', 'nefer', 'columbina'], crystal: ['zibai', 'columbina'] };
+function moonParty(o, kind) {
+  const team = (game.teams && o.idx >= 0 && game.teams[o.idx]) || [o];
+  return team.some(m => m.def && MOON[kind].includes(m.def.id));
+}
+// Stellar reactions (Snezhnaya): with one of these in the attacker's party, Superconduct and Cryo Swirl turn into their stellar forms.
+// The Cryo Traveler counts too. Vodyanitsa in the party makes the star vortex wander after the foe.
+const STAR = { conduct: ['sandrone', 'odette'], swirl: ['odette', 'vesna'] };
+function starParty(o, kind) {
+  const team = (game.teams && o.idx >= 0 && game.teams[o.idx]) || [o];
+  return team.some(m => m.def && (STAR[kind].includes(m.def.id) || (isTrav(m.def.id) && m.def.el === 'cryo')));
+}
+const POLESTAR_R = 170, POLESTAR_T = 6;
+function polestarAt(o) {   // the stellar field of o's side, if there is one
+  return game.hits.find(x => x.polestar && !x.dead && x.owner.idx === o.idx);
+}
+// A bloom seed still waiting (core hb) near where a pyro or electro hit lands: pyro bursts it wide (Burgeon), electro sends it at the foe (Hyperbloom).
+function coreHit(o, t, el) {
+  const g = game, ty = t.y - 34 * t.def.scale;
+  const core = g.hits.find(x => x.core && !x.dead && x.age < x.delay && x.owner.idx === o.idx && Math.hypot(x.x - t.x, x.y - ty) < 220);
+  if (!core) return;
+  core.dead = true;
+  if (el === 'pyro') {
+    hb({ owner: o, shape: 'circle', x: core.x, y: core.y, r: 150, delay: 0.02, life: 0.1, dmg: 8, kb: 1.35, ang: 50, radial: true, persist: true, vis: 'boom', color: '#ff7a3a' });
+    puff(core.x, core.y, '#ffb070', 22, 320, 0.6, 5, -120); g.shake = Math.max(g.shake, 7);
+    reactTitle(core.x, core.y - 70, '발화', 'dendro', 'pyro'); reactFx(o, t, 'burning', null, 0.6);
+  } else {
+    bolt(core.x, core.y, t.x, ty, '#c8ff7a'); bolt(core.x, core.y - 8, t.x, ty - 6, '#d8b4ff');
+    hb({ owner: o, shape: 'circle', x: t.x, y: ty, r: 50, delay: 0.08, life: 0.08, dmg: 7, kb: 0.9, ang: 60, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#b9e05a' });
+    reactTitle(t.x, t.y - 104, '만개', 'dendro', 'electro'); reactFx(o, t, 'quicken', null, 0.5);
+  }
+  o.stat.react++; BGM.react();
 }
 function reaction(o, t, aura, inc) {
   const r = { name: '', color: '#fff', dmgMul: 1, kbMul: 1, dmgAdd: 0 };
@@ -2747,8 +2806,14 @@ function reaction(o, t, aura, inc) {
   if (aura === 'dendro' || inc === 'dendro') {
     switch ([aura, inc].sort().join('+')) {
       case 'dendro+hydro':
-        r.name = '개화'; r.color = EL.dendro.color; r.dmgAdd = 1; reactFx(o, t, 'bloom');
-        hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 90, delay: 0.6, life: 0.1, dmg: 7, kb: 1.2, ang: 50, radial: true, persist: true, core: true, vis: 'boom', color: EL.dendro.color });
+        if (moonParty(o, 'bloom')) {   // Lunar-Bloom: no seed to wait for, moonlit petals burst at once
+          r.name = '달개화'; r.color = '#9ff0c8'; r.dmgAdd = 2; reactFx(o, t, 'bloom', null, 0.4); puff(cx, cy, '#e8fff4', 14, 240, 0.5, 4);
+          hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 85, delay: 0.22, life: 0.1, dmg: 6, kb: 1.0, ang: 55, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#bff5dc' });
+          break;
+        }
+        r.name = '개화'; r.color = EL.dendro.color; r.dmgAdd = 1; reactFx(o, t, 'bloom', null, 0.9);
+        // the seed waits 0.9 s: hit by pyro it bursts big (Burgeon), hit by electro it shoots at the foe (Hyperbloom) - see coreHit
+        hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 90, delay: 0.9, life: 0.1, dmg: 7, kb: 1.2, ang: 50, radial: true, persist: true, core: true, vis: 'boom', color: EL.dendro.color });
         break;
       case 'dendro+pyro': r.name = '연소'; r.color = '#ff8a3d'; r.dmgAdd = 2; t.burn = 3; t.burnTick = 0.3; reactFx(o, t, 'burning', null, 0.9); puff(cx, cy, '#ff8a3d', 12, 200, 0.6, 4, -150); break;
       case 'dendro+electro': r.name = '촉진'; r.color = '#b9e05a'; r.dmgAdd = 2; t.quicken = 6; reactFx(o, t, 'quicken', null, 0.8); puff(cx, cy, '#d8f08a', 12, 220, 0.5, 3); break;
@@ -2756,6 +2821,16 @@ function reaction(o, t, aura, inc) {
     }
   } else if (inc === 'anemo') {
     r.name = '확산'; r.color = EL.anemo.color; r.dmgAdd = 3; r.kbMul = 1.3; reactFx(o, t, 'swirl', aura);
+    if (aura === 'cryo' && starParty(o, 'swirl')) {   // Stellar-Swirl: a star vortex at their spot that bursts after a moment; another one nearby sets it off at once
+      r.name = '별 확산'; r.color = '#bfe0ff';
+      const old = game.hits.find(x => x.starVortex && !x.dead && x.age < x.delay && x.owner.idx === o.idx && Math.hypot(x.x - t.x, x.y - cy) < 220);
+      if (old) { old.delay = old.age + 0.04; old.dmg += 2; }
+      else {
+        const wander = (game.teams && game.teams[o.idx] || []).some(m => m.def.id === 'vodyanitsa');
+        hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 120, delay: 1.2, life: 0.12, dmg: 7, kb: 1.25, ang: 55, radial: true, persist: true, starVortex: true, vis: 'starvortex', track: wander ? t : null, trackY: wander,
+             onStart: h => { const c = hbCenter(h); puff(c.x, c.y, '#dff4ff', 18, 300, 0.6, 4); game.shake = Math.max(game.shake, 6); } });
+      }
+    }
     puff(cx, cy, EL[aura].color, 14, 260, 0.6, 5);
     for (const f of game.fighters) {
       if (f === o || f === t || f.dead) continue;
@@ -2764,23 +2839,51 @@ function reaction(o, t, aura, inc) {
   } else if (inc === 'geo') {
     // Crystallize: geo meeting pyro, hydro, electro or cryo drops a crystal by the target. The aura is only worn down, so repeated geo hits keep producing crystals.
     r.name = '결정'; r.color = EL.geo.color; r.keep = true;
-    if (game.pickups.length < 8 && game.time - (t.lastCrystal ?? -9) > 0.22) {
-      t.lastCrystal = game.time; reactFx(o, t, 'crystallize', null, 0.5);
-      game.pickups.push({ x: t.x + rnd(-14, 14), y: cy, vy: -240, side: o.idx, el: aura, life: 8 });
+    if (aura === 'hydro' && o.def.id !== 'navia' && moonParty(o, 'crystal')) {   // Lunar-Crystallize: a moondrift instead of a crystal, raining shards on them
+      r.name = '달결정'; r.color = '#f0e6b0'; r.dmgAdd = 1;
+      if (game.time - (t.lastCrystal ?? -9) > 0.6) {
+        t.lastCrystal = game.time; reactFx(o, t, 'crystallize', null, 0.6);
+        for (let i = 0; i < 3; i++) hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 48, delay: 0.35 + i * 0.3, life: 0.08, dmg: 2.5, kb: 0.35, ang: 80, radial: true, persist: true, track: t, trackY: true, vis: 'boom', color: '#f5e6a8',
+          onStart: h => { const c = hbCenter(h); bolt(c.x + rnd(-30, 30), c.y - 220, c.x, c.y, '#f5e6a8'); puff(c.x, c.y, '#fff6d0', 6, 160, 0.35, 3); } });
+      }
+      puff(cx, cy, '#cfe8ff', 8, 160, 0.4, 3);
+    } else {
+      if (game.pickups.length < 8 && game.time - (t.lastCrystal ?? -9) > 0.22) {
+        t.lastCrystal = game.time; reactFx(o, t, 'crystallize', null, 0.5);
+        game.pickups.push({ x: t.x + rnd(-14, 14), y: cy, vy: -240, side: o.idx, el: aura, life: 8 });
+      }
+      puff(cx, cy, EL[aura].color, 8, 160, 0.4, 3);
     }
-    puff(cx, cy, EL[aura].color, 8, 160, 0.4, 3);
   } else {
     switch ([aura, inc].sort().join('+')) {
       case 'hydro+pyro': r.name = '증발'; r.color = '#ffc58a'; r.dmgMul = 1.5; r.kbMul = 1.15; reactFx(o, t, 'vaporize'); puff(cx, cy, '#ffe3c4', 14, 200, 0.6, 6); break;
       case 'cryo+pyro': r.name = '융해'; r.color = '#ffb36b'; r.dmgMul = 1.5; r.kbMul = 1.15; reactFx(o, t, 'melt'); puff(cx, cy, '#ffd2a0', 14, 200, 0.6, 6); break;
       case 'cryo+hydro': r.name = '빙결'; r.color = EL.cryo.color; r.dmgAdd = 1; r.kbMul = 0.12; t.frozen = 1.5; reactFx(o, t, 'frozen', null, 0.5); puff(cx, cy, '#d8f6ff', 16, 180, 0.6, 5); break;
-      case 'electro+hydro': r.name = '감전'; r.color = EL.electro.color; r.dmgAdd = 2; t.shock = 3; t.shockTick = 0.3; reactFx(o, t, 'charged', null, 0.9); puff(cx, cy, '#e6c9ff', 12, 220, 0.4, 3); break;
+      case 'electro+hydro':
+        r.name = '감전'; r.color = EL.electro.color; r.dmgAdd = 2; t.shock = 3; t.shockTick = 0.3; reactFx(o, t, 'charged', null, 0.9); puff(cx, cy, '#e6c9ff', 12, 220, 0.4, 3);
+        if (moonParty(o, 'charged')) {   // Lunar-Charged: a thundercloud gathers over them and strikes three times
+          r.name = '달감전'; r.color = '#b49cff'; r.dmgAdd = 3;
+          if (game.time - (t.lastMoonCloud ?? -9) > 1.2) {
+            t.lastMoonCloud = game.time;
+            for (let i = 0; i < 3; i++) hb({ owner: o, x: t.x, y: t.y - 200, w: 70, h: 440, delay: 0.5 + i * 0.5, life: 0.08, dmg: 2.5, kb: 0.35, ang: 80, persist: true, track: t, vis: 'thunder',
+              onStart: () => { game.shake = Math.max(game.shake, 4); } });
+          }
+        }
+        break;
       case 'electro+pyro': {
         r.name = '과부하'; r.color = '#ff9a5a'; r.kbMul = 1.2; reactFx(o, t, 'overload', null, 0.55);
         hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 95, delay: 0.02, life: 0.08, dmg: 7, kb: 1.3, ang: 45, radial: true, persist: true, vis: 'boom', color: '#ff9a5a' });
         break;
       }
-      case 'cryo+electro': r.name = '초전도'; r.color = '#9a8cff'; r.dmgAdd = 3; t.vuln = 5; reactFx(o, t, 'superconduct', null, 0.7); puff(cx, cy, '#cbbfff', 12, 200, 0.5, 4); break;
+      case 'cryo+electro':
+        r.name = '초전도'; r.color = '#9a8cff'; r.dmgAdd = 3; t.vuln = 5; reactFx(o, t, 'superconduct', null, 0.7); puff(cx, cy, '#cbbfff', 12, 200, 0.5, 4);
+        if (starParty(o, 'conduct')) {   // Stellar-Conduct: a stellar field where it happened; inside it, the party's cryo and electro hit harder
+          r.name = '별 초전도'; r.color = '#a8c8ff'; r.dmgAdd = 2;
+          const f0 = polestarAt(o);
+          if (f0) { f0.x = t.x; f0.y = t.y; f0.life = f0.age + POLESTAR_T; f0.stack = Math.min(3, f0.stack + 1); }
+          else hb({ owner: o, shape: 'circle', x: t.x, y: t.y, r: POLESTAR_R, life: POLESTAR_T, harmless: true, persist: true, polestar: true, stack: 1, vis: 'polestar' });
+        }
+        break;
     }
   }
   if (!r.name) return null;
@@ -3048,6 +3151,11 @@ function applyHit(h, t) {
     }
   }
 
+  if ((h.el === 'pyro' || h.el === 'electro') && !h.noAura && o.idx >= 0) coreHit(o, t, h.el);   // Burgeon / Hyperbloom
+  if ((h.el === 'cryo' || h.el === 'electro') && o.idx >= 0) {   // inside the stellar field: +15% (+5% for each further Stellar-Conduct, up to +25%)
+    const pf = polestarAt(o);
+    if (pf && (Math.hypot(o.x - pf.x, o.y - pf.y) < pf.r || Math.hypot(t.x - pf.x, t.y - pf.y) < pf.r)) { dmg *= 1.1 + 0.05 * pf.stack; kbMul *= 1.1; }
+  }
   if (t.quicken > 0 && (h.el === 'electro' || h.el === 'dendro')) {
     dmg += 3; ftext(t.x, t.y - 112, h.el === 'electro' ? '활성' : '발산', '#d8f08a', 16, 0.8);
   }
@@ -8879,7 +8987,7 @@ function crimsonRibbon(rx, ry, a0, a1, w, al) {
   }
   ctx.globalCompositeOperation = 'lighter';
 }
-const UNDER = new Set(['bloodmoon', 'redcracks', 'abyssrift', 'jumpwings', 'nightsky', 'suigetsu']);   // effects painted beneath the fighters instead of over them
+const UNDER = new Set(['polestar', 'bloodmoon', 'redcracks', 'abyssrift', 'jumpwings', 'nightsky', 'suigetsu']);   // effects painted beneath the fighters instead of over them
 // Each burst in its character's own colours (main, second, highlight; dk: a dark streak or smoke; fx: a flourish thrown off it).
 // Fire is never one flat red: yellow at the heart, orange, red at the edge. Drawn over the burst's own blows (burstAura).
 const BURST_PAL_EL = { pyro: ['#ff3a1a', '#ff9a2e', '#ffe28a'], hydro: ['#2a8cff', '#6fd0ff', '#e6f8ff'], electro: ['#9a4cff', '#d08aff', '#ffffff'],
@@ -9050,6 +9158,16 @@ function drawHits(t, under = false) {
         ctx.fillStyle = 'rgba(160,220,255,' + (0.15 + 0.3 * p) + ')'; ctx.beginPath(); ctx.ellipse(c.x, gy, 14 + 30 * p, 5 + 3 * p, 0, 0, 7); ctx.fill();
         ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#dff4ff'; ctx.beginPath(); ctx.moveTo(c.x - 12, y - 46); ctx.lineTo(c.x + 12, y - 46); ctx.lineTo(c.x, y + 20); ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#ffffff'; ctx.fillRect(c.x - 4, y - 44, 3, 40); ctx.restore();
+      }
+      if (h.vis === 'starvortex') {   // Stellar-Swirl's vortex gathering: a ring of stars turning faster and tighter until it bursts
+        const p = clamp(h.age / h.delay, 0, 1), R0 = 70 - 30 * p, n = 7;
+        ctx.save(); ctx.translate(c.x, c.y);
+        const g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, R0 * 1.6); g2.addColorStop(0, 'rgba(220,240,255,' + (0.25 + 0.4 * p) + ')'); g2.addColorStop(1, 'rgba(120,170,255,0)');
+        ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(0, 0, R0 * 1.6, 0, 7); ctx.fill();
+        ctx.strokeStyle = 'rgba(191,224,255,' + (0.5 + 0.4 * p) + ')'; ctx.lineWidth = 2;
+        for (let arm = 0; arm < 3; arm++) { ctx.beginPath(); for (let i = 0; i <= 16; i++) { const u = i / 16, a = arm * 2.09 + u * 3.2 + h.age * (4 + 10 * p), r2 = R0 * (0.2 + 0.8 * u); i ? ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2 * 0.6) : ctx.moveTo(Math.cos(a) * r2, Math.sin(a) * r2 * 0.6); } ctx.stroke(); }
+        for (let i = 0; i < n; i++) { const a = i / n * 6.283 + h.age * (3 + 9 * p); starPath(Math.cos(a) * R0, Math.sin(a) * R0 * 0.6, 4 + 3 * p); ctx.fillStyle = i % 2 ? '#ffffff' : '#bfe0ff'; ctx.fill(); }
+        ctx.restore();
       }
       if (h.vis === 'meteor') {
         const p = clamp(h.age / h.delay, 0, 1), gy = 400, y = lerp(-90, gy - 30, p * p);
@@ -10198,6 +10316,25 @@ function drawHits(t, under = false) {
           const a = T * 4 + i * 0.8, x = Math.cos(a) * R * 0.6, y = ground - 20 - (i * 17) % 90;
           ctx.fillStyle = i % 2 ? col : '#ffffff'; ctx.fillRect(x - 2, y - 2, 4, 4);
         }
+        break;
+      }
+      case 'polestar': {   // Stellar-Conduct's field: a pale disc on the ground, a ring of slowly turning stars, brighter with each stack
+        const fade = Math.min(1, (h.age - h.delay) * 4, (h.life - (h.age - h.delay)) * 2), T = h.age, R0 = h.r, st = h.stack || 1;
+        ctx.globalAlpha = Math.max(0, fade) * (0.55 + 0.15 * st);
+        const g2 = ctx.createRadialGradient(0, -6, 0, 0, -6, R0); g2.addColorStop(0, 'rgba(150,190,255,0)'); g2.addColorStop(0.75, 'rgba(150,190,255,.18)'); g2.addColorStop(1, 'rgba(200,220,255,.35)');
+        ctx.fillStyle = g2; ctx.beginPath(); ctx.ellipse(0, -6, R0, R0 * 0.3, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = '#cfe0ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -6, R0, R0 * 0.3, 0, 0, 7); ctx.stroke();
+        ctx.setLineDash([4, 10]); ctx.lineDashOffset = -T * 30; ctx.beginPath(); ctx.ellipse(0, -6, R0 * 0.8, R0 * 0.24, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+        for (let i = 0; i < 6 + 2 * st; i++) { const a = i / (6 + 2 * st) * 6.283 + T * 0.6, y0 = -30 - 40 * hash1(i * 3.3) - 10 * Math.sin(T * 2 + i); starPath(Math.cos(a) * R0 * 0.9, y0 + Math.sin(a) * R0 * 0.27, 3 + 2 * hash1(i)); ctx.fillStyle = i % 3 ? '#dfe9ff' : '#9fc0ff'; ctx.fill(); }
+        starPath(0, -70 - 6 * Math.sin(T * 3), 9 + 2 * st); ctx.fillStyle = '#ffffff'; ctx.fill();   // the Polestar itself
+        ctx.globalAlpha = 1;
+        break;
+      }
+      case 'starvortex': {   // the vortex bursting: a flash of white and a ring of stars thrown out
+        const e = easeOut(k);
+        ctx.globalAlpha = 1 - k; ctx.strokeStyle = '#dff4ff'; ctx.lineWidth = 6 * (1 - k) + 1; ctx.beginPath(); ctx.arc(0, 0, 20 + h.r * e, 0, 7); ctx.stroke();
+        for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; starPath(Math.cos(a) * h.r * e, Math.sin(a) * h.r * e * 0.7, 7 * (1 - k) + 2); ctx.fillStyle = i % 2 ? '#ffffff' : '#bfe0ff'; ctx.fill(); }
+        ctx.globalAlpha = 1;
         break;
       }
       case 'react': {   // each reaction's own look (see reactFx), q: how far through it
@@ -13653,6 +13790,17 @@ function netScreen(o) {   // the online screen: the lobby, a wait, or a message
 // (join, presence, onPeers, leave), so everything above and below works unchanged. The first browser to take a room code owns that name
 // on the PeerJS server and waits; the second one finds the name taken and connects to it. Each side's presence is sent whole on every change.
 const P2P_LIB = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js', P2P_PREFIX = 'wdbrawl-g3n5h1n-';
+// Ways for two browsers to find a path to each other. STUN: learn your public address (works for most home networks). TURN: a relay for
+// when no direct path exists (some mobile networks, school or office Wi-Fi). PeerJS's own free relays are kept; add a paid or personal
+// TURN to P2P_TURN_EXTRA if those are ever down: { urls: ['turn:host:443?transport=tcp'], username: '...', credential: '...' }.
+const P2P_TURN_EXTRA = [];
+const P2P_OPTS = { debug: 0, config: { iceCandidatePoolSize: 4, iceServers: [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' },
+  ...P2P_TURN_EXTRA,
+] } };
+const P2P_WAIT = 15000;   // how long one try to reach the room's owner may take before starting over (a far-away connection can need 5-10 s)
 let p2pLoading = null;
 function p2pLoad() {
   if (window.Peer) return Promise.resolve();
@@ -13668,14 +13816,14 @@ function p2pRoomApi() {
       await p2pLoad();
       const want = P2P_PREFIX + name.replace(/[^a-z0-9-]/gi, '');
       const open = id => new Promise((ok, fail) => {   // a connection to the PeerJS server under this id (or any id)
-        const p = id ? new window.Peer(id) : new window.Peer();
+        const p = id ? new window.Peer(id, P2P_OPTS) : new window.Peer(P2P_OPTS);
         const bad = e => { p.off('open', good); p.destroy(); fail(e); }, good = () => { p.off('error', bad); ok(p); };
         p.once('open', good); p.once('error', bad);
       });
       let peer, owner = true;
       try { peer = await open(want); }
       catch (e) { if (e && e.type === 'unavailable-id') { owner = false; peer = await open(null).catch(e2 => { throw { code: (e2 && e2.type) || 'p2p-server' }; }); } else throw { code: (e && e.type) || 'p2p-server' }; }
-      let mine = {}, dead = false, retry = 0;
+      let mine = {}, dead = false, retry = 0, stage = owner ? 'open' : 'looking', dialAt = 0, missAt = -1;   // guest: looking (no such room yet) → connecting (found, linking) → open
       const conns = new Map(), theirs = new Map(), subs = new Set(), errs = new Set();
       const tell = () => {
         const peers = [{ peer: peer.id, sameTab: true, kind: 'viewer', presence: mine }];
@@ -13685,22 +13833,31 @@ function p2pRoomApi() {
       const send = c => { if (c.open) try { c.send(JSON.stringify(mine)); } catch (e) { /* closing */ } };
       const adopt = c => {
         conns.set(c.peer, c);
-        c.on('open', () => { send(c); tell(); });
+        c.on('open', () => { if (!owner) { stage = 'open'; clearTimeout(retry); } send(c); tell(); });
         c.on('data', d => { try { const v = typeof d === 'string' ? JSON.parse(d) : d; if (v && typeof v === 'object') { theirs.set(c.peer, v); tell(); } } catch (e) { /* not ours */ } });
-        c.on('close', () => { conns.delete(c.peer); theirs.delete(c.peer); tell(); if (!owner && !dead) dial(); });
+        c.on('close', () => { if (conns.get(c.peer) !== c) return; conns.delete(c.peer); theirs.delete(c.peer); tell(); if (!owner && !dead) { if (stage === 'open') stage = 'connecting'; clearTimeout(retry); retry = setTimeout(dial, 1000); } });
         c.on('error', () => {});
       };
-      const dial = () => {   // the second browser: keep trying the room's owner until it answers (it may not have made the room yet)
+      // The second browser: keep trying the room's owner until it answers. When the server says there is no such room yet, try again
+      // in 2 s; when the room is there, give the connection P2P_WAIT to come up (a far-away one is slow) instead of cutting it off early.
+      const dial = () => {
         if (dead || owner || [...conns.values()].some(c => c.open)) return;
-        adopt(peer.connect(want, { reliable: true }));
-        clearTimeout(retry); retry = setTimeout(() => { if (![...conns.values()].some(c => c.open)) { for (const c of conns.values()) c.close(); conns.clear(); dial(); } }, 3000);
+        for (const c of conns.values()) try { c.close(); } catch (e) { /* closed */ }
+        conns.clear();
+        if (peer.disconnected) try { peer.reconnect(); } catch (e) { /* gone */ }
+        dialAt = performance.now(); adopt(peer.connect(want, { reliable: true }));
+        clearTimeout(retry); retry = setTimeout(dial, P2P_WAIT);
       };
       peer.on('connection', c => { if (owner) adopt(c); else c.close(); });
-      peer.on('error', e => { if (e && e.type === 'peer-unavailable') return; if (['network', 'server-error', 'socket-error', 'socket-closed'].includes(e && e.type) && !dead) for (const fn of errs) fn({ code: 'p2p-' + e.type }); });
+      peer.on('error', e => {
+        if (e && e.type === 'peer-unavailable') { if (!owner && !dead && stage !== 'open') { stage = 'looking'; missAt = performance.now(); clearTimeout(retry); retry = setTimeout(dial, 2000); } return; }
+        if (['network', 'server-error', 'socket-error', 'socket-closed'].includes(e && e.type) && !dead) for (const fn of errs) fn({ code: 'p2p-' + e.type }); });
       peer.on('disconnected', () => { if (!dead) try { peer.reconnect(); } catch (e) { /* gone */ } });   // the introduction server dropped us; open connections carry on
       dial();
       return {
         presence(patch) { mine = Object.assign({}, mine, patch); for (const c of conns.values()) send(c); tell(); return Promise.resolve(); },
+        // guest only: 'looking' (the server knows no such room) · 'connecting' (the room is there, the link is still coming up) · 'open'
+        state() { return stage === 'open' ? 'open' : missAt >= dialAt || performance.now() - dialAt < 2500 ? 'looking' : 'connecting'; },
         onPeers(fn, onErr) { subs.add(fn); if (onErr) errs.add(onErr); tell(); return () => { subs.delete(fn); if (onErr) errs.delete(onErr); }; },
         leave() { dead = true; clearTimeout(retry); subs.clear(); errs.clear(); for (const c of conns.values()) try { c.close(); } catch (e) { /* closed */ } try { peer.destroy(); } catch (e) { /* gone */ } return Promise.resolve(); },
       };
@@ -13750,7 +13907,14 @@ async function netJoin(code, host) {
     else netSet({ hb: ++NET.pingK });
   }, 500);
   if (!host) {
-    NET.findTimer = setTimeout(() => { if (!NET.peer && NET.phase === 'lobby') netLobby('그 코드의 방을 아직 찾지 못했습니다. 코드를 확인해 보세요. (계속 기다리는 중)'); }, 8000);
+    const find = n => { NET.findTimer = setTimeout(() => {   // still not in: say whether the room is missing or only slow to link up
+      if (NET.peer || NET.phase !== 'lobby' || NET.room !== r) return;
+      const st = r.state ? r.state() : 'looking';
+      if (NET.rand) { if (st === 'connecting' && n < 4) { netLobby(); find(n + 1); } else netLobby('retry'); return; }   // random match: a slow link gets ~25 s before looking for someone else
+      netLobby(st === 'connecting' ? '방을 찾았습니다. 멀리 떨어져 있으면 연결에 10초쯤 걸릴 수 있어요. (연결하는 중)' : '그 코드의 방을 아직 찾지 못했습니다. 코드를 확인해 보세요. (계속 기다리는 중)');
+      if (n < 12) find(n + 1);
+    }, n ? 5000 : 6000); };
+    find(0);
   }
   netLobby();
 }
