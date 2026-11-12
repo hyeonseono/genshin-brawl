@@ -1199,7 +1199,7 @@ const CHARS = [
     speed: 300, jump: 740, weight: 1.0, atk: 1.0, jumps: 2, grav: 1, scale: 1, reach: 1.05, aiRange: 120,
     skill: '창생술 · 바다', burst: '탄생식 · 대지의 꽃', desc: '한손검 설치형. 발밑에 꽃의 진을 깔아, 안에 들어온 적을 주기적으로 바위 꽃으로 띄웁니다.' },
   { id: 'yae', name: '야에 미코', title: '나루카미 대사의 궁사', el: 'electro', color: '#d27ad8', body: '#f4eef0', dark: '#a8324f', hair: '#f2a7c8', eye: '#c077ff', skin: '#ffe7e0',
-    speed: 300, jump: 750, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 200,
+    speed: 300, jump: 750, weight: 0.85, atk: 0.82, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 200,   // (atk 0.95 → 0.82, 2026-11-11: the user wanted her damage lower)
     skill: '야호 · 살생앵', burst: '대밀법 · 천호현진', desc: '법구 설치형. 번개를 떨어뜨리는 살생앵을 최대 3그루 심고, 필살기로 살생앵을 터뜨려 천둥을 더 내립니다.' },
   { id: 'tighnari', name: '타이나리', title: '숲의 레인저', el: 'dendro', color: '#7ed957', body: '#2f6b4a', dark: '#1f2a33', hair: '#2b3245', eye: '#7ed957', skin: '#ffe0cc',
     speed: 320, jump: 770, weight: 0.85, atk: 0.95, jumps: 2, grav: 1, scale: 1, reach: 1, aiRange: 230,
@@ -1347,7 +1347,7 @@ const CHARS = [
     speed: 310, jump: 760, weight: 0.9, atk: 1.0, jumps: 2, grav: 1, scale: 1.0, reach: 1.0, aiRange: 190,
     skill: '레치타티프: 울리는 새벽', burst: '코다: 너와 함께 가라앉으리', desc: '법구 지원형. 노래하는 물방울이 따라다니며 물 구슬을 쏘고 그때마다 회복하며, 필살기로 큰 물결을 일으킵니다(물방울이 있으면 더 강함).' },
   { id: 'mitya', name: '미탸', title: '규칙 파괴자', el: 'electro', color: '#a970ff', body: '#2a2f4a', dark: '#141828', hair: '#e6e2f0', eye: '#b98cff', skin: '#fdeee8',
-    speed: 320, jump: 770, weight: 0.95, atk: 1.0, jumps: 2, grav: 1, scale: 1.0, reach: 1.0, aiRange: 200,
+    speed: 320, jump: 770, weight: 0.95, atk: 1.15, jumps: 2, grav: 1, scale: 1.0, reach: 1.0, aiRange: 200,   // (atk 1.0 → 1.15, 2026-11-11: the user wanted more damage)
     skill: '법칙·변수 탐지', burst: '해석·융합의 이치', desc: '법구 번개형(스네즈나야 에너지 협회). 탐지 융합로를 띄워 융합 비콘을 모읍니다. 안정 모드는 비콘으로 별 초전도 사격을, 과열 모드는 강공격 「융합 폭발」로 비콘을 한꺼번에 터뜨립니다.' },
   { id: 'vesna', name: '베스나', title: '봄의 검', el: 'anemo', color: '#62e6b4', body: '#2a7a7a', dark: '#163a3a', hair: '#f2d27a', eye: '#4ab0c0', skin: '#fdeee8',
     speed: 340, jump: 790, weight: 1.0, atk: 1.2, jumps: 2, grav: 1, scale: 1.0, reach: 1.05, aiRange: 76,
@@ -3014,6 +3014,12 @@ function reaction(o, t, aura, inc) {
         r.name = '초전도'; r.color = '#9a8cff'; r.dmgAdd = 3; t.vuln = 5; reactFx(o, t, 'superconduct', null, 0.7); puff(cx, cy, '#cbbfff', 12, 200, 0.5, 4);
         if (starParty(o, 'conduct')) {   // Stellar-Conduct: a stellar field where it happened; inside it, the party's cryo and electro hit harder
           r.name = '별 초전도'; r.color = '#a8c8ff'; r.dmgAdd = 2;
+          if (sideHas(o, 'mitya')) {   // (2026-11-11) with Mitya on the side it hits much harder, and a star bursts on them
+            r.dmgAdd = 6;
+            hb({ owner: o, shape: 'circle', x: t.x, y: cy, r: 80, delay: 0.08, life: 0.08, dmg: 4, kb: 0.8, ang: 55, el: 'electro', noAura: true, radial: true, persist: true, mityaFx: true,
+                 track: t, trackY: true, vis: 'boom', color: '#bcd0ff', fancy: '#7f9cff' });
+            flare(t.x, cy, 80, '#bcd0ff', { rays: 10, life: 0.4 });
+          }
           const f0 = polestarAt(o);
           if (f0) { f0.x = t.x; f0.y = t.y; f0.life = f0.age + POLESTAR_T; f0.stack = Math.min(3, f0.stack + 1); }
           else hb({ owner: o, shape: 'circle', x: t.x, y: t.y, r: POLESTAR_R, life: POLESTAR_T, harmless: true, persist: true, polestar: true, stack: 1, vis: 'polestar' });
@@ -3314,7 +3320,7 @@ function applyHit(h, t) {
   if ((h.el === 'pyro' || h.el === 'electro') && !h.noAura && o.idx >= 0) coreHit(o, t, h.el);   // Burgeon / Hyperbloom
   if ((h.el === 'cryo' || h.el === 'electro') && o.idx >= 0) {   // inside the stellar field: +15% (+5% for each further Stellar-Conduct, up to +25%)
     const pf = polestarAt(o);
-    if (pf && (Math.hypot(o.x - pf.x, o.y - pf.y) < pf.r || Math.hypot(t.x - pf.x, t.y - pf.y) < pf.r)) { dmg *= 1.1 + 0.05 * pf.stack; kbMul *= 1.1; }
+    if (pf && (Math.hypot(o.x - pf.x, o.y - pf.y) < pf.r || Math.hypot(t.x - pf.x, t.y - pf.y) < pf.r)) { dmg *= (1.1 + 0.05 * pf.stack) * (sideHas(o, 'mitya') ? 1.15 : 1); kbMul *= 1.1; }
   }
   if (t.quicken > 0 && (h.el === 'electro' || h.el === 'dendro')) {
     dmg += 3; ftext(t.x, t.y - 112, h.el === 'electro' ? '활성' : '발산', '#d8f08a', 16, 0.8);
@@ -4955,7 +4961,7 @@ const SKILLS = {
            if ((own.beacons || 0) > 0) {   // a beacon spent: a stellar superconduct shot
              own.beacons--; h.fire = 1.2;
              bolt(h.x, h.y, foe.x, foe.y - 34, '#bcd0ff'); bolt(h.x, h.y, foe.x, foe.y - 30, '#7f9cff');
-             hb({ owner: own, shape: 'circle', x: foe.x, y: foe.y - 34, r: 58, delay: 0.06, life: 0.08, dmg: 3, kb: 0.5, ang: 55, el: 'electro', radial: true, persist: true, mityaFx: true,
+             hb({ owner: own, shape: 'circle', x: foe.x, y: foe.y - 34, r: 58, delay: 0.06, life: 0.08, dmg: 5, kb: 0.55, ang: 55, el: 'electro', radial: true, persist: true, mityaFx: true,
                   track: foe, trackY: true, vis: 'boom', color: '#9db4ff', fancy: '#7f9cff' });
              flare(foe.x, foe.y - 34, 60, '#9db4ff', { rays: 8, life: 0.35 });
            } else {   // no beacon: a small zap
@@ -5970,7 +5976,9 @@ const BURSTS = {
          onStart: () => { game.shake = Math.max(game.shake, 9); SFX.play('heavy'); } });
   } },
   mitya: { name: '해석·융합의 이치', fn(f) {   // an electro blast all round him, and three Fusion Beacons at once
-    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 200, delay: 0.1, life: 0.14, dmg: 9, kb: 1.45, ang: 52, el: 'electro', radial: true, persist: true, vis: 'boom', color: '#c8a8ff',
+    hb({ owner: f, x: f.x, y: f.y - 46, life: 1.9, harmless: true, persist: true, vis: 'shOver', show: 'mityaBurst', sdir: f.dir });   // (looks: after his test-server burst)
+    hb({ owner: f, follow: true, ox: 0, oy: 142, x: f.x, y: f.y, delay: 0.5, life: 4, harmless: true, persist: true, vis: 'shOver', show: 'mityaStar' });
+    hb({ owner: f, shape: 'circle', follow: true, ox: 0, oy: 40, r: 200, delay: 0.45, life: 0.14, dmg: 11, kb: 1.5, ang: 52, el: 'electro', radial: true, persist: true, vis: 'boom', color: '#c8a8ff',
          onStart: h => { for (let i = 0; i < 10; i++) { const a = i * 0.628; bolt(h.owner.x, h.owner.y - 40, h.owner.x + Math.cos(a) * 190, h.owner.y - 40 + Math.sin(a) * 120, i % 2 ? '#a970ff' : '#bcd0ff'); } game.shake = Math.max(game.shake, 11); SFX.play('heavy'); } });
     game.waves.push({ x: f.x, y: f.y - 40, r: 30, R: 280, life: 0.5, max: 0.5, color: '#a970ff' });
     mityaBeacon(f, 3);
@@ -13426,6 +13434,71 @@ function drawShow(h, t) {
       glow(0, 0, 26 + n * 4, '#7fd0ff', 0.5 * fade);
       for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + (i - 2.5) * 0.42; ctx.save(); ctx.rotate(a + Math.PI / 2); ctx.globalAlpha = fade * (i < n ? 1 : 0.35); ctx.fillStyle = i < n ? '#ffffff' : '#7fd0ff'; ctx.beginPath(); ctx.ellipse(0, -12, 4.5, 10, 0, 0, 7); ctx.fill(); ctx.restore(); }
       ctx.globalAlpha = fade; ctx.strokeStyle = '#bfe9ff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 24, -Math.PI / 2, -Math.PI / 2 + left * Math.PI * 2); ctx.stroke();
+      break;
+    }
+    case 'mityaBurst': {   // Mitya's burst: an eclipse orb and a sweeping crescent, a wave of linked lights, the flash and the great four-point star
+                           // between two eclipse orbs over a violet-dark world with waveforms on the ground, then a graph axis with crossing curves
+      const a = age, dd = d, dk = a < 0.25 ? a / 0.25 : a > 1.45 ? Math.max(0, 1 - (a - 1.45) / 0.4) : 1;
+      ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 0.5 * dk; ctx.fillStyle = '#0e0628'; ctx.fillRect(-2600, -1800, 5200, 3600); ctx.restore();
+      const eclipse = (x, y, r, al) => {   // a black orb with a bright rim and a violet halo
+        glow(x, y, r * 2.6, '#9a6cff', 0.6 * al);
+        ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = al; ctx.fillStyle = '#07040f'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.restore();
+        ctx.globalAlpha = al; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke();
+        ctx.strokeStyle = '#c8b4ff'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, r * 1.35, 0, 7); ctx.stroke();
+      };
+      const star4 = (x, y, R0, rot, al, col) => {   // a slim four-point sparkle
+        ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.globalAlpha = al; ctx.fillStyle = col; ctx.beginPath();
+        for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4, r = i % 2 ? R0 * 0.16 : R0; ctx.lineTo(Math.cos(an - Math.PI / 2) * r, Math.sin(an - Math.PI / 2) * r); }
+        ctx.closePath(); ctx.fill(); ctx.restore();
+      };
+      // 1. the eclipse orb in front of him, a crescent of light sweeping round it
+      if (a < 0.62) {
+        const u = clamp(a / 0.5, 0, 1), al = a < 0.5 ? 1 : 1 - (a - 0.5) / 0.12, ox = dd * 70;
+        eclipse(ox, 0, 20 + 6 * u, al);
+        ctx.globalAlpha = al; ctx.lineCap = 'round';
+        for (const [w, c] of [[16, 'rgba(160,120,255,.55)'], [7, '#e8dcff'], [2.5, '#ffffff']]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(ox, 0, 46, -Math.PI * 0.9 + u * 0.6, -Math.PI * 0.9 + u * 0.6 + Math.PI * 1.25 * u); ctx.stroke(); }
+      }
+      // 2. a wave of light across the field with glowing nodes threaded on it
+      if (a > 0.2) {
+        const u = clamp((a - 0.2) / 0.35, 0, 1), al = dk, L = 700, reach = -L + 2 * L * u;
+        ctx.globalAlpha = al * 0.9; ctx.strokeStyle = '#d8c8ff'; ctx.lineWidth = 2.5; ctx.beginPath();
+        for (let x = -L; x <= reach; x += 8) { const y = Math.sin(x * 0.018 + a * 5) * 20; x === -L ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.stroke();
+        for (let x = -L + 70; x <= reach; x += 140) { const y = Math.sin(x * 0.018 + a * 5) * 20; glow(x, y, 16, '#b08cff', 0.8 * al); ctx.globalAlpha = al; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, 4, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(200,180,255,.7)'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+      }
+      // 3. the flash, the great star and the two eclipse orbs; waveforms along the ground
+      if (a > 0.42) {
+        const u = a - 0.42, pop = u < 0.12 ? u / 0.12 : Math.max(0.55, 1 - (u - 0.12) * 0.5), al = dk;
+        if (u < 0.25) glow(0, -30, 260 * (1 - u * 2), '#ffffff', 0.9 * (1 - u / 0.25));
+        glow(0, -30, 120 * pop, '#c8a8ff', 0.7 * al);
+        star4(0, -30, 120 * pop, 0, al, '#ffffff'); star4(0, -30, 70 * pop, Math.PI / 4, al * 0.7, '#d8c8ff');
+        for (const sx of [-1, 1]) eclipse(sx * (90 + 40 * Math.min(1, u * 3)), -30, 22, al);
+        ctx.globalAlpha = al * 0.75; ctx.strokeStyle = '#9a7cff'; ctx.lineWidth = 2;
+        for (let k = 0; k < 3; k++) { ctx.beginPath(); for (let x = -700; x <= 700; x += 10) { const y = 92 + k * 10 - Math.abs(Math.sin(x * 0.03 + k + a * 9)) * (14 - k * 4) * Math.exp(-Math.abs(x) / 420); x === -700 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); }
+      }
+      // 4. the graph: an axis across the field with ticks and nodes, two curves crossing, a few marks
+      if (a > 0.6) {
+        const u = clamp((a - 0.6) / 0.4, 0, 1), al = dk * u, ay = -70;
+        ctx.globalAlpha = al; ctx.strokeStyle = '#e0d4ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-720, ay); ctx.lineTo(720, ay); ctx.stroke();
+        ctx.lineWidth = 1; for (let x = -720; x <= 720; x += 40) { ctx.beginPath(); ctx.moveTo(x, ay - (x % 200 === 0 ? 7 : 3)); ctx.lineTo(x, ay + (x % 200 === 0 ? 7 : 3)); ctx.stroke(); }
+        ctx.strokeStyle = 'rgba(200,180,255,.8)'; ctx.lineWidth = 1.8;
+        for (const ph of [0, Math.PI]) { ctx.beginPath(); for (let x = -720; x <= 720; x += 8) { const y = ay + Math.sin(x * 0.009 + ph + a * 1.5) * 60; x === -720 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); }
+        for (const nx of [-480, -240, 240, 480]) { glow(nx, ay, 12, '#b08cff', al); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(nx, ay, 3.5, 0, 7); ctx.fill(); star4(nx, ay, 11, 0, al, '#ffffff'); }
+        ctx.font = '11px ' + BODY; ctx.fillStyle = 'rgba(220,210,255,.85)'; ctx.textAlign = 'left';
+        for (const [tx, tt] of [[-600, 'Δφ'], [-330, 'λ = 0.618'], [150, 'ψ(t)'], [520, 'Σ E']]) ctx.fillText(tt, tx, ay - 12);
+      }
+      break;
+    }
+    case 'mityaStar': {   // the ornate four-point star left floating above him after his burst
+      const bob = Math.sin(T * 2.4) * 4, al = fade, R0 = 30;
+      ctx.translate(0, bob); glow(0, 0, 44, '#a970ff', 0.55 * al);
+      ctx.globalAlpha = al; ctx.strokeStyle = '#e0d4ff'; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 4; i++) { const an = i * Math.PI / 2; ctx.beginPath(); ctx.arc(Math.cos(an) * R0 * 0.95, Math.sin(an) * R0 * 0.95, 5, 0, 7); ctx.stroke(); }
+      ctx.save(); ctx.rotate(Math.PI / 4); ctx.strokeStyle = 'rgba(200,180,255,.7)'; ctx.beginPath(); ctx.ellipse(0, 0, R0 * 0.55, R0 * 0.25, 0, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.ellipse(0, 0, R0 * 0.25, R0 * 0.55, 0, 0, 7); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = '#ffffff'; ctx.beginPath();
+      for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4, r = i % 2 ? R0 * 0.18 : R0 * 0.8; ctx.lineTo(Math.cos(an - Math.PI / 2) * r, Math.sin(an - Math.PI / 2) * r); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffd36a'; ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, 7); ctx.fill();
       break;
     }
     case 'reactor': {   // Mitya's detection fusion reactor: a hexagonal core in turning rings (violet when stable, orange when overheated); beacons as pips
