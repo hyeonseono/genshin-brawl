@@ -569,6 +569,33 @@ button { font-family: inherit; }
 .set-key kbd { min-width: 2.2em; text-align: center; }
 .set-key.wait { border-color: var(--gold); color: var(--gold); }
 .set-note { margin: 4px 0 6px; font-size: 12px; opacity: .7; }
+.rec-dlg { max-height: 92dvh; overflow-y: auto; }
+.rec-who { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.rec-dot { width: 9px; height: 9px; border-radius: 50%; background: #7a8099; flex: none; }
+.rec-dot.on { background: #5fd38a; box-shadow: 0 0 6px #5fd38a; }
+.rec-btns { display: flex; gap: 8px; margin: 8px 0 4px; flex-wrap: wrap; }
+#recLogin { display: inline-flex; align-items: center; gap: 7px; }
+#recLogin svg { background: #fff; border-radius: 50%; padding: 2px; }
+.rec-name { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: 13px; margin: 6px 0; }
+.rec-name input { min-width: 0; font: inherit; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--fg); }
+.rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.rec-grid div { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 10px; padding: 7px 9px; }
+.rec-grid dt { font-size: 11px; opacity: .7; }
+.rec-grid dd { margin: 2px 0 0; font-size: 16px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+.rec-chars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.rec-ch { display: flex; align-items: center; gap: 6px; font-size: 12px; background: rgba(255,255,255,.05); border-radius: 999px; padding: 3px 10px 3px 3px; }
+.rec-ch img, .rec-ch canvas { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: rgba(0,0,0,.3); }
+.rec-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.rec-tabs button { flex: 1; font: inherit; font-size: 13px; padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: none; color: var(--fg); cursor: pointer; }
+.rec-tabs button[aria-pressed="true"] { background: var(--gold); color: #1d1600; border-color: var(--gold); }
+.rec-rank { list-style: none; margin: 0; padding: 0; min-height: 3em; font-size: 13px; }
+.rec-rank li { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 6px; padding: 5px 8px; border-radius: 8px; }
+.rec-rank li:nth-child(odd) { background: rgba(255,255,255,.04); }
+.rec-rank li.me { background: rgba(242, 212, 138, .16); outline: 1px solid rgba(242, 212, 138, .5); }
+.rec-rank li b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.rec-rank li span:last-child { font-variant-numeric: tabular-nums; }
+.rec-rank .rec-empty { display: block; opacity: .7; }
+@media (max-width: 480px) { .rec-grid { grid-template-columns: repeat(2, 1fr); } }
 .set-foot { display: flex; justify-content: flex-end; margin-top: 14px; }
 .set-dlg button:focus-visible, .set-dlg input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .info-btn {
@@ -749,6 +776,24 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
     </section>
     <div class="set-foot"><button type="button" class="btn primary" id="setClose">닫기</button></div>
   </dialog>
+  <dialog class="set-dlg rec-dlg" id="dlgRec" aria-labelledby="recTitle">
+    <h2 id="recTitle">기록 · 랭킹</h2>
+    <section class="rec-acc" id="recAcc">
+      <div class="rec-who"><span class="rec-dot" id="recDot" aria-hidden="true"></span><span id="recStatus">로그인하지 않음 · 기록은 이 기기에만 저장됩니다</span></div>
+      <div class="rec-btns">
+        <button type="button" class="btn primary small" id="recLogin"><svg viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1C42.6 36.8 45 31.2 45 24.5z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41 15.5 46 24 46z"/><path fill="#FBBC05" d="M11.8 28.2c-.4-1.3-.7-2.7-.7-4.2s.3-2.9.7-4.2v-5.7H4.5C3 17.1 2 20.4 2 24s1 6.9 2.5 9.9l7.3-5.7z"/><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 29.9 2 24 2 15.5 2 8.1 7 4.5 14.1l7.3 5.7c1.7-5.2 6.5-9 12.2-9z"/></svg>Google로 로그인</button>
+        <button type="button" class="btn ghost small" id="recLogout" hidden>로그아웃</button>
+      </div>
+      <label class="rec-name" id="recNameRow" hidden><span>랭킹 이름</span><input id="recName" maxlength="10" autocomplete="off" spellcheck="false"><button type="button" class="btn ghost small" id="recNameSave">저장</button></label>
+      <p class="set-note" id="recNote"></p>
+    </section>
+    <section><h3>내 기록</h3><div class="rec-grid" id="recMine"></div><div class="rec-chars" id="recChars"></div></section>
+    <section id="recRankSec"><h3>랭킹 <small>(상위 20명)</small></h3>
+      <div class="seg rec-tabs" role="group" aria-label="랭킹 종류"><button type="button" data-b="surv" aria-pressed="true">생존</button><button type="button" data-b="arcade" aria-pressed="false">아케이드</button><button type="button" data-b="wins" aria-pressed="false">통산 승리</button></div>
+      <ol class="rec-rank" id="recRank"></ol>
+    </section>
+    <div class="set-foot"><button type="button" class="btn primary" id="recClose">닫기</button></div>
+  </dialog>
   <dialog class="set-dlg" id="dlgInstall" aria-labelledby="instTitle">
     <h2 id="instTitle">앱으로 설치하기</h2>
     <section><p class="set-note" id="instHow"></p></section>
@@ -782,6 +827,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 12px; backgroun
         <nav class="mm-side" aria-label="메뉴">
           <button type="button" id="btnModeBack"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 23L24 8l17 15v18H7z"/><path d="M19 41V29h10v12"/></svg><span>처음으로</span></button>
           <button type="button" id="mmTut"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="17"/><path d="M18 19q0-7 6-7t6 7q0 5-6 6v4"/><path d="M24 35v.5"/></svg><span>튜토리얼</span></button>
+          <button type="button" id="mmRec"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7h18v10q0 10-9 11q-9-1-9-11z"/><path d="M15 11H8q0 8 8 9M33 11h7q0 8-8 9"/><path d="M24 28v7M16 41h16M19 35h10v6H19z"/></svg><span>기록</span></button>
           <button type="button" id="mmSet"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="7"/><path d="M24 5v6M24 37v6M5 24h6M37 24h6M10.6 10.6l4.2 4.2M33.2 33.2l4.2 4.2M10.6 37.4l4.2-4.2M33.2 14.8l4.2-4.2"/></svg><span>설정</span></button>
         </nav>
       </div>
@@ -1667,7 +1713,7 @@ function humanInput(f) {
 }
 addEventListener('keydown', e => {
   if (keyWait) { e.preventDefault(); e.stopPropagation(); setKeyFor(keyWait, e.code); return; }
-  if ($('dlgSet').open) return;   // the settings are open: keys are theirs
+  if ($('dlgSet').open || $('dlgRec').open) return;   // the settings or the records are open: keys are theirs
   if (state === 'fight' || state === 'paused') {
     if (GAME_CODES.has(e.code)) e.preventDefault();
   }
@@ -14804,7 +14850,7 @@ function endVictory() {
 // match; and the training ground's best combo damage. Read with loadRec(), written once per match.
 const MOVE_KO = { atk: '평타', heavy: '강공격', skill: '스킬', burst: '필살기' };
 function loadRec() { try { return JSON.parse(localStorage.getItem('wd-rec') || '{}'); } catch (e) { return {}; } }
-function saveRec(r) { try { localStorage.setItem('wd-rec', JSON.stringify(r)); } catch (e) { /* storage unavailable */ } }
+function saveRec(r) { try { localStorage.setItem('wd-rec', JSON.stringify(r)); } catch (e) { /* storage unavailable */ } cloudQueue(); }
 const humanSide = side => mode === 'net' ? side === NET.side : mode === '2p' ? true : mode === 'train' ? false : mode === 'tour' ? side === 0 && !!TOUR.human : side === 0;
 function recordMatch(g) {
   if (g.recorded) return; g.recorded = true;
@@ -14817,6 +14863,134 @@ function recordMatch(g) {
     } });
   saveRec(r);
 }
+// Google sign-in, cloud records and rankings (Firebase). Only on the web address (GitHub Pages) and on localhost: the Android app's web
+// view and the Claude page cannot open Google's sign-in, so there the records stay on the device. The SDK is loaded only when the
+// records window opens, so the game itself never waits for it or needs a connection.
+// Firestore: users/{uid} = { name, rec } (only its owner reads it); ranks/{surv|arcade|wins}/e/{uid} = { name, score, at } (anyone reads).
+const FB_CONFIG = { apiKey: 'AIzaSyC4YWEPor_wC89Lwbv7nLcdV1GB1aix8uA', authDomain: 'genshinbrawl123.firebaseapp.com', projectId: 'genshinbrawl123',
+  storageBucket: 'genshinbrawl123.firebasestorage.app', messagingSenderId: '679704534812', appId: '1:679704534812:web:161e5ebd9aba922245e4d9' };
+const FB_VER = '10.12.2', FB_URL = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
+const CLOUD = { ok: /(^|\.)github\.io$/.test(location.hostname) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname),
+  sdk: null, loading: null, user: null, name: '', timer: 0, board: 'surv', err: '' };
+function cloudLoad() {   // the Firebase modules, once
+  if (!CLOUD.ok) return Promise.resolve(null);
+  if (CLOUD.loading) return CLOUD.loading;
+  CLOUD.loading = Promise.all(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(FB_URL + f))).then(([A, U, F]) => {
+    const app = A.initializeApp(FB_CONFIG), auth = U.getAuth(app), db = F.getFirestore(app);
+    CLOUD.sdk = { U, F, auth, db };
+    U.onAuthStateChanged(auth, u => {
+      CLOUD.user = u;
+      try { if (u) localStorage.setItem('wd-signed', '1'); else localStorage.removeItem('wd-signed'); } catch (e) { /* storage unavailable */ }
+      if (u) cloudSync(); else { CLOUD.name = ''; recRender(); }
+    });
+    return CLOUD.sdk;
+  }).catch(e => { CLOUD.loading = null; CLOUD.err = '로그인 기능을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'; recRender(); return null; });
+  return CLOUD.loading;
+}
+const recWins = r => Object.values(r.chars || {}).reduce((a, c) => a + (c.w || 0), 0);
+const recGames = r => Object.values(r.chars || {}).reduce((a, c) => a + (c.n || 0), 0);
+function recMerge(a, b) {   // two copies of the records (this device and the cloud): the larger of each number
+  const o = { ...a };
+  for (const k of Object.keys(b || {})) if (k !== 'chars' && typeof b[k] === 'number') o[k] = Math.max(o[k] || 0, b[k]);
+  o.chars = { ...(a.chars || {}) };
+  for (const [id, c] of Object.entries((b && b.chars) || {})) {
+    const m = o.chars[id] || { n: 0, w: 0, combo: 0, dealt: 0 };
+    o.chars[id] = { n: Math.max(m.n || 0, c.n || 0), w: Math.max(m.w || 0, c.w || 0), combo: Math.max(m.combo || 0, c.combo || 0), dealt: Math.max(m.dealt || 0, c.dealt || 0) };
+  }
+  return o;
+}
+const cleanName = t => String(t || '').replace(/[<>&"'`\u0000-\u001f]/g, '').trim().slice(0, 10);
+async function cloudSync() {   // right after signing in: pull the cloud copy, merge it with this device's, push the result
+  const S = CLOUD.sdk, u = CLOUD.user; if (!S || !u) return;
+  try {
+    const ref = S.F.doc(S.db, 'users', u.uid), snap = await S.F.getDoc(ref), d = snap.exists() ? snap.data() : {};
+    CLOUD.name = cleanName(d.name) || '여행자' + String(Math.floor(1000 + Math.random() * 9000));
+    const merged = recMerge(loadRec(), d.rec || {});
+    try { localStorage.setItem('wd-rec', JSON.stringify(merged)); } catch (e) { /* storage unavailable */ }
+    CLOUD.err = ''; await cloudPush();
+  } catch (e) { CLOUD.err = cloudErrText(e); }
+  recRender();
+}
+function cloudQueue() { if (CLOUD.user) { clearTimeout(CLOUD.timer); CLOUD.timer = setTimeout(cloudPush, 1500); } }
+async function cloudPush() {   // the records to users/{uid}, and the three ranking entries
+  const S = CLOUD.sdk, u = CLOUD.user; if (!S || !u) return;
+  const r = loadRec(), F = S.F, name = CLOUD.name || '여행자';
+  try {
+    await F.setDoc(F.doc(S.db, 'users', u.uid), { name, rec: r, at: F.serverTimestamp() });
+    const score = { surv: r.surv || 0, arcade: (r.arcade || 0) * 1000 + Math.min(999, r.arcadeClears || 0), wins: recWins(r) };
+    await Promise.all(Object.entries(score).filter(([, v]) => v > 0).map(([b, v]) => F.setDoc(F.doc(S.db, 'ranks', b, 'e', u.uid), { name, score: v, at: F.serverTimestamp() })));
+    CLOUD.err = '';
+  } catch (e) { CLOUD.err = cloudErrText(e); }
+  if ($('dlgRec').open) { recRender(); recLoadRank(); }
+}
+function cloudErrText(e) {
+  const c = (e && e.code) || '';
+  if (c === 'auth/popup-blocked') return '팝업이 막혔습니다. 브라우저에서 이 사이트의 팝업을 허용한 뒤 다시 눌러 주세요.';
+  if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '';
+  if (c === 'auth/unauthorized-domain') return '이 주소는 Firebase의 승인된 도메인에 없습니다.';
+  if (c === 'permission-denied') return 'Firebase 보안 규칙에 막혔습니다. Firestore 규칙을 게시했는지 확인해 주세요.';
+  if (c === 'unavailable' || c === 'auth/network-request-failed') return '인터넷 연결이 없어 지금은 이 기기에만 저장했습니다.';
+  return '오류: ' + (c || (e && e.message) || '알 수 없음');
+}
+function recRender() {   // the records window: account line, my numbers, my most played characters
+  if (!$('dlgRec').open) return;
+  const r = loadRec(), u = CLOUD.user, g = recGames(r), w = recWins(r);
+  $('recDot').classList.toggle('on', !!u);
+  $('recStatus').textContent = u ? (CLOUD.name || '여행자') + ' (으)로 로그인됨 · 기록이 클라우드에 저장됩니다' : '로그인하지 않음 · 기록은 이 기기에만 저장됩니다';
+  $('recLogin').hidden = !!u || !CLOUD.ok; $('recLogout').hidden = !u;
+  $('recNameRow').hidden = !u; if (u && document.activeElement !== $('recName')) $('recName').value = CLOUD.name;
+  $('recNote').textContent = CLOUD.err || (!CLOUD.ok ? '구글 로그인과 랭킹은 웹 주소(hyeonseono.github.io/genshin-brawl)에서 쓸 수 있습니다. 여기서는 기록이 이 기기에만 저장됩니다.'
+    : u ? '랭킹에는 구글 이름이 아니라 위의 랭킹 이름만 보입니다.' : '로그인하면 다른 기기에서도 기록을 이어 보고, 랭킹에 오를 수 있습니다.');
+  const cell = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
+  $('recMine').innerHTML = '<dl style="display:contents">' + cell('통산 전적', w + '승 ' + (g - w) + '패') + cell('승률', g ? Math.round(w / g * 100) + '%' : '-') +
+    cell('생존 최고', (r.surv || 0) + '명') + cell('아케이드', (r.arcade || 0) + ' / ' + ARC_STAGES + (r.arcadeClears ? ' · 클리어 ' + r.arcadeClears : '')) +
+    cell('보스 격파', (r.bossWins || 0) + '회') + cell('토너먼트 우승', (r.tourWins || 0) + '회') + cell('훈련장 최고 콤보', (r.trainBest || 0) + '%') + '</dl>';
+  const top = Object.entries(r.chars || {}).filter(([id]) => CHAR[id]).sort((a, b) => b[1].n - a[1].n).slice(0, 6);
+  $('recChars').innerHTML = top.length ? top.map(([id, c]) => '<span class="rec-ch" data-id="' + id + '">' + (PORTRAIT_SRC[id] ? '<img alt="" src="' + PORTRAIT_SRC[id] + '">' : '<canvas width="52" height="52"></canvas>') +
+    CHAR[id].name + ' · ' + c.w + '승 ' + (c.n - c.w) + '패</span>').join('') : '<span class="set-note">아직 플레이 기록이 없습니다.</span>';
+  $('recChars').querySelectorAll('canvas').forEach(c => drawPortrait(c, CHAR[c.closest('.rec-ch').dataset.id]));
+  $('recRankSec').hidden = !CLOUD.ok;
+}
+async function recLoadRank() {
+  const list = $('recRank'), b = CLOUD.board;
+  document.querySelectorAll('.rec-tabs button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.b === b)));
+  if (!CLOUD.ok) return;
+  list.innerHTML = '<li class="rec-empty">불러오는 중…</li>';
+  const S = await cloudLoad(); if (!S) { list.innerHTML = '<li class="rec-empty">랭킹을 불러오지 못했습니다.</li>'; return; }
+  try {
+    const F = S.F, q = F.query(F.collection(S.db, 'ranks', b, 'e'), F.orderBy('score', 'desc'), F.limit(20)), snap = await F.getDocs(q);
+    if (CLOUD.board !== b) return;
+    const me = CLOUD.user && CLOUD.user.uid, fmt = v => b === 'surv' ? v + '명' : b === 'wins' ? v + '승' : Math.floor(v / 1000) + '스테이지' + (v % 1000 ? ' · 클리어 ' + (v % 1000) : '');
+    const rows = []; let i = 0;
+    snap.forEach(d => { const x = d.data(); i++;
+      const li = document.createElement('li'); if (d.id === me) li.className = 'me';
+      const a = document.createElement('b'), n = document.createElement('span'), v = document.createElement('span');
+      a.textContent = i; n.textContent = cleanName(x.name) || '여행자'; v.textContent = fmt(+x.score || 0);
+      li.append(a, n, v); rows.push(li); });
+    list.replaceChildren(...rows);
+    if (!rows.length) list.innerHTML = '<li class="rec-empty">아직 아무도 없습니다. 첫 기록을 남겨 보세요!</li>';
+  } catch (e) { list.innerHTML = ''; const li = document.createElement('li'); li.className = 'rec-empty'; li.textContent = cloudErrText(e) || '랭킹을 불러오지 못했습니다.'; list.append(li); }
+}
+function openRec() {
+  SFX.init(); held.clear(); edges.clear();
+  $('dlgRec').showModal(); recRender(); recLoadRank();
+  if (CLOUD.ok) cloudLoad().then(recRender);
+}
+$('mmRec').addEventListener('click', openRec);
+$('recClose').addEventListener('click', () => $('dlgRec').close());
+$('dlgRec').addEventListener('close', () => { held.clear(); edges.clear(); });
+$('recName').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); $('recNameSave').click(); } });
+document.querySelectorAll('.rec-tabs button').forEach(x => x.addEventListener('click', () => { CLOUD.board = x.dataset.b; recLoadRank(); }));
+$('recLogin').addEventListener('click', async () => {
+  const S = await cloudLoad(); if (!S) return;
+  try { await S.U.signInWithPopup(S.auth, new S.U.GoogleAuthProvider()); } catch (e) { CLOUD.err = cloudErrText(e); recRender(); }
+});
+$('recLogout').addEventListener('click', async () => { const S = CLOUD.sdk; if (S) { await S.U.signOut(S.auth); CLOUD.err = ''; recRender(); recLoadRank(); } });
+$('recNameSave').addEventListener('click', () => {
+  const n = cleanName($('recName').value); if (!n || !CLOUD.user) return;
+  CLOUD.name = n; $('recName').value = n; cloudPush();
+});
+if (CLOUD.ok) { try { if (localStorage.getItem('wd-signed')) cloudLoad(); } catch (e) { /* storage unavailable */ } }   // was signed in before: reconnect quietly
 function showResult() {
   const g = game; state = 'result';
   recordMatch(g); const rec = loadRec();
