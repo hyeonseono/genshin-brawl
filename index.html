@@ -7564,7 +7564,7 @@ function drawBackdrop(t) {
     g.addColorStop(0, 'rgba(' + curMap.glow + ',.10)'); g.addColorStop(1, 'rgba(' + curMap.glow + ',0)');
     ctx.fillStyle = g; ctx.fillRect(x - 150, y - 70, 300, 140);
   }
-  drawSkyLife(t);
+  drawSkyLife(t); drawAtmosBack(t);
   ctx.fillStyle = curMap.mote;   // drifting motes: petals, embers, snow
   for (const e of embers) {
     e.y += e.s * 0.016 * curMap.fall; e.x += Math.sin(t * 0.8 + e.p) * 0.15;
@@ -7607,9 +7607,162 @@ const WEATHER = {
   chasm: { n: 18, kind: 'dust', col: '#9fd8ff', vx: 6, vy: 6 }, dragonspine: { n: 34, kind: 'flake', col: '#ffffff', vx: 10, vy: 44 },
   oldsea: { n: 22, kind: 'bubble', col: '#bfefff', vx: 0, vy: -40 }, void: { n: 0 },
 };
+// Each map's weather and atmosphere (2026-11-18): a layer behind the fight, in the sky (drawAtmosBack, from drawBackdrop) and a layer in front
+// of everything (drawAtmosFront, from drawWeather), both in screen space and drawn from the time alone. 'low' graphics leave them out,
+// 'mid' draws fewer. Flashes respect the flash setting.
+const atmosLv = () => gfx === 'low' ? 0 : gfx === 'mid' ? 1 : 2;
+const wrapX = (v, m) => ((v % m) + m) % m;
+function atmosGust(t, P, len) { const u = wrapX(t, P); return u < len ? Math.sin(u / len * Math.PI) : 0; }   // a gust every P s, lasting len s: 0..1..0
+function drawAtmosBack(t) {
+  const lv = atmosLv(); if (!lv || !game) return;
+  const id = curMap.id;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  switch (id) {
+    case 'mond': {   // a flock of birds crossing the sky now and then
+      const P = 14, u = wrapX(t, P) / P; if (u > 0.6) break;
+      const k = u / 0.6, bx = -80 + (W + 160) * k, by = 80 + 20 * Math.sin(t * 0.6);
+      ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = 'rgba(30,40,64,.5)'; ctx.lineWidth = 1.6;
+      for (let i = 0; i < 6; i++) { const x = bx - i * 16, y = by + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 8, fl = Math.sin(t * 10 + i) * 3;
+        ctx.beginPath(); ctx.moveTo(x - 6, y - 2 - fl); ctx.quadraticCurveTo(x - 3, y - 3, x, y); ctx.quadraticCurveTo(x + 3, y - 3, x + 6, y - 2 - fl); ctx.stroke(); }
+      break;
+    }
+    case 'liyue': {   // lanterns drifting up into the sky
+      const n = lv > 1 ? 8 : 4;
+      for (let i = 0; i < n; i++) { const x = hash1(i * 3.1) * W + Math.sin(t * 0.3 + i) * 18, y = H + 40 - wrapX(t * (10 + 4 * hash1(i)) + hash1(i * 7.7) * (H + 140), H + 140), s = 0.7 + 0.5 * hash1(i * 1.9);
+        ctx.globalAlpha = 0.45; ctx.drawImage(glowSpr('#ffb050'), x - 14 * s, y - 14 * s, 28 * s, 28 * s);
+        ctx.globalAlpha = 0.55; ctx.fillStyle = '#ffcf7a'; ctx.fillRect(x - 3 * s, y - 4 * s, 6 * s, 8 * s); }
+      break;
+    }
+    case 'inazuma': {   // lightning far off in the clouds, lighting them up
+      const P = 6.5, cyc = Math.floor(t / P), u = wrapX(t, P);
+      if (u < 0.32) {
+        const x = 80 + hash1(cyc * 3.3) * (W - 160), y1 = 150 + hash1(cyc * 5.1) * 120, fl = u < 0.06 ? 1 : u < 0.12 ? 0.3 : u < 0.18 ? 0.8 : Math.max(0, 1 - (u - 0.18) / 0.14);
+        ctx.globalAlpha = 0.45 * fl; ctx.drawImage(glowSpr('#c8a0ff'), x - 220, -120, 440, 360);
+        strokeBolt(boltPath(x + (hash1(cyc) - 0.5) * 60, -10, x, y1, 5, 26, cyc * 7 + Math.floor(u * 30)), 0.6 * fl, 1.1);
+        if (OPT.flash && !REDUCED) { ctx.globalAlpha = 0.07 * fl; ctx.fillStyle = '#d8c8ff'; ctx.fillRect(0, 0, W, H); }
+      }
+      break;
+    }
+    case 'sumeru': {   // light falling green through the canopy, swaying
+      for (let i = 0; i < (lv > 1 ? 5 : 3); i++) { const a = 0.25 + 0.08 * Math.sin(t * 0.3 + i * 1.7), x = 80 + i * 190 + Math.sin(t * 0.2 + i) * 24;
+        ctx.save(); ctx.translate(x, -30); ctx.rotate(a); ctx.globalAlpha = 0.14 + 0.05 * Math.sin(t * 0.7 + i); ctx.drawImage(glowSpr('#c8ff9a'), -34, 0, 68, H * 1.2); ctx.restore(); }
+      break;
+    }
+    case 'fontaine': {   // a faint rainbow
+      const cx = W * 0.72, cy = H * 1.05;
+      ['255,90,90', '255,180,80', '255,240,120', '120,240,140', '110,180,255', '170,120,255'].forEach((c, i) => { ctx.globalAlpha = 1; ctx.strokeStyle = 'rgba(' + c + ',' + (0.11 + 0.03 * Math.sin(t * 0.4)) + ')'; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(cx, cy, 470 - i * 7, Math.PI * 1.08, Math.PI * 1.62); ctx.stroke(); });
+      break;
+    }
+    case 'natlan': {   // the glow of the volcano on the horizon, breathing
+      ctx.globalAlpha = 0.16 + 0.07 * Math.sin(t * 0.8) + 0.04 * Math.sin(t * 2.3); ctx.drawImage(glowSpr('#ff6a2a'), W * 0.1, H * 0.55, W * 0.8, H * 0.7);
+      break;
+    }
+    case 'nodkrai': case 'snezhnaya': {   // Nod-Krai: the aurora. Snezhnaya: mist and snow streaming through the sky
+      if (id === 'snezhnaya') { for (let i = 0; i < 4; i++) { const x = wrapX(t * (18 + i * 6) + hash1(i) * W, W + 600) - 300; ctx.globalAlpha = 0.09; ctx.drawImage(glowSpr('#e8f4ff'), x - 260, 50 + i * 55, 520, 70); } break; }
+      const step = lv > 1 ? 7 : 12;
+      for (let k = 0; k < (lv > 1 ? 3 : 2); k++) { const col = ['#7affc8', '#b08aff', '#7ad8ff'][k];
+        ctx.strokeStyle = col; ctx.lineWidth = step * 1.15; ctx.lineCap = 'butt';
+        for (let x = 0; x <= W; x += step) { const y = 50 + k * 34 + Math.sin(x * 0.007 + t * 0.35 + k * 1.7) * 26 + Math.sin(x * 0.019 - t * 0.5) * 8, h = 50 + 40 * (0.5 + 0.5 * Math.sin(x * 0.013 + t * 0.6 + k));
+          ctx.globalAlpha = 0.1 + 0.06 * Math.sin(x * 0.03 + t * 1.3 + k); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.stroke(); } }
+      break;
+    }
+    case 'dragonspine': {   // ice glinting on the slopes
+      ctx.fillStyle = '#eaf8ff';
+      for (let i = 0; i < (lv > 1 ? 10 : 5); i++) { const b = Math.max(0, Math.sin(t * (0.8 + hash1(i)) + i * 2.3)); ctx.globalAlpha = 0.7 * b * b; cgStar(hash1(i * 4.4) * W, H * 0.45 + hash1(i * 2.2) * H * 0.4, 3 + 5 * b, 0.4); }
+      break;
+    }
+    case 'chasm': {   // shafts of light from the cracks above, crystals glowing in the dark
+      for (let i = 0; i < 3; i++) { const x = 160 + i * 300 + Math.sin(t * 0.15 + i) * 20; ctx.save(); ctx.translate(x, -20); ctx.rotate(0.12 * (i - 1)); ctx.globalAlpha = 0.07 + 0.03 * Math.sin(t * 0.6 + i); ctx.drawImage(glowSpr('#9fd8ff'), -16, 0, 32, H * 1.1); ctx.restore(); }
+      for (let i = 0; i < (lv > 1 ? 7 : 4); i++) { const b = 0.5 + 0.5 * Math.sin(t * (0.7 + hash1(i * 3)) + i); ctx.globalAlpha = 0.35 * b; ctx.drawImage(glowSpr('#6fc0ff'), hash1(i * 5.5) * W - 12, H * 0.5 + hash1(i * 6.6) * H * 0.4 - 12, 24, 24); }
+      break;
+    }
+    case 'oldsea': {   // shafts of blue light from the surface, fish passing far off
+      for (let i = 0; i < 4; i++) { const x = 100 + i * 240 + Math.sin(t * 0.25 + i * 1.4) * 30; ctx.save(); ctx.translate(x, -30); ctx.rotate(0.18 + 0.05 * Math.sin(t * 0.3 + i)); ctx.globalAlpha = 0.08 + 0.03 * Math.sin(t * 0.8 + i); ctx.drawImage(glowSpr('#7fd0ff'), -24, 0, 48, H * 1.2); ctx.restore(); }
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(8,26,56,.45)';
+      for (let i = 0; i < (lv > 1 ? 7 : 4); i++) { const d = i % 2 ? 1 : -1, sp = 14 + 10 * hash1(i), x = d > 0 ? wrapX(t * sp + hash1(i) * W, W + 80) - 40 : W + 40 - wrapX(t * sp + hash1(i) * W, W + 80), y = 90 + hash1(i * 3.7) * 220 + Math.sin(t + i) * 6, s = 0.6 + 0.6 * hash1(i * 2.2), wg = Math.sin(t * 6 + i) * 2;
+        ctx.beginPath(); ctx.ellipse(x, y, 10 * s, 4 * s, 0, 0, 7); ctx.moveTo(x - d * 9 * s, y); ctx.lineTo(x - d * 16 * s, y - 5 * s + wg); ctx.lineTo(x - d * 16 * s, y + 5 * s + wg); ctx.closePath(); ctx.fill(); }
+      break;
+    }
+  }
+  ctx.restore();
+}
+function atmosCaustics(t, col, y0, a, n) {   // a net of rippling light (water seen from below, or light on water)
+  ctx.strokeStyle = col; ctx.lineWidth = 1.4;
+  for (let k = 0; k < 2; k++) for (let i = 0; i < n; i++) {
+    const base = y0 + (i / n) * (H - y0); ctx.globalAlpha = a; ctx.beginPath();
+    for (let x = -10; x <= W + 10; x += 24) { const y = base + Math.sin(x * 0.02 * (k ? 1.3 : 1) + t * (k ? -1.1 : 0.9) + i * 1.7) * 12; x < 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+}
+function atmosStreaks(t, n, col, a, vx, vy, len, w) {   // straight streaks moving across: rain, or snow blown sideways
+  ctx.strokeStyle = col; ctx.lineWidth = w; ctx.globalAlpha = a; ctx.beginPath();
+  const L = Math.hypot(vx, vy) || 1;
+  for (let i = 0; i < n; i++) { const x = wrapX(hash1(i * 1.7) * (W + 200) + t * vx, W + 200) - 100, y = wrapX(hash1(i * 3.1) * (H + 100) + t * vy, H + 100) - 50;
+    ctx.moveTo(x, y); ctx.lineTo(x - vx / L * len, y - vy / L * len); }
+  ctx.stroke();
+}
+function atmosFrost(a) {   // frost creeping in from the corners of the screen
+  if (a <= 0.01) return;
+  for (const [x, y] of [[0, 0], [W, 0], [0, H], [W, H]]) { ctx.globalAlpha = a; ctx.drawImage(glowSpr('#e8f4ff'), x - 220, y - 160, 440, 320); }
+}
+function drawAtmosFront(t) {
+  const lv = atmosLv(); if (!lv || !game) return;
+  const id = curMap.id;
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  switch (id) {
+    case 'mond': case 'liyue': {   // a gust of wind sweeping across now and then (golden over Liyue, leaves caught in it)
+      const P = id === 'mond' ? 5.5 : 7, u = wrapX(t, P), len = 1.6; if (u > len) break;
+      const p = u / len, s = Math.sin(p * Math.PI), col = id === 'mond' ? '#ffffff' : '#ffd88a';
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      for (let i = 0; i < (lv > 1 ? 5 : 3); i++) { const x = -260 + (W + 520) * p + i * 30, y = 110 + i * 85 + Math.sin(t * 2 + i) * 10;
+        ctx.globalAlpha = 0.28 * s; ctx.beginPath(); ctx.moveTo(x - 220, y + 10); ctx.bezierCurveTo(x - 140, y - 12, x - 60, y + 14, x, y); ctx.arc(x - 8, y - 10, 12, Math.PI * 0.5, Math.PI * 2.1, true); ctx.stroke(); }
+      if (id === 'liyue') { ctx.fillStyle = '#ffcf6a'; for (let i = 0; i < 10; i++) { const x = -100 + (W + 200) * p + (hash1(i) - 0.5) * 300, y = 100 + hash1(i * 3.3) * 300 + Math.sin(t * 4 + i) * 20;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(t * 6 + i); ctx.globalAlpha = 0.6 * s; ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.5, 0, 0, 7); ctx.fill(); ctx.restore(); } }
+      break;
+    }
+    case 'inazuma':   // rain, slanting
+      atmosStreaks(t, lv > 1 ? 70 : 36, '#cfc4ff', 0.3, -130, 760, 20, 1.2); break;
+    case 'sumeru': {   // spores of light floating up, pulsing
+      for (let i = 0; i < (lv > 1 ? 16 : 8); i++) { const x = wrapX(hash1(i * 2.9) * W + Math.sin(t * 0.4 + i) * 40 + t * 6, W), y = H + 20 - wrapX(t * (8 + 6 * hash1(i)) + hash1(i * 5.3) * (H + 40), H + 40), s = 8 + 10 * hash1(i * 1.3);
+        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.3 + 0.3 * Math.sin(t * 2 + i * 1.7); ctx.drawImage(glowSpr('#d8ffa0'), x - s / 2, y - s / 2, s, s); }
+      break;
+    }
+    case 'fontaine': ctx.globalCompositeOperation = 'lighter'; atmosCaustics(t, '#dff4ff', H * 0.62, 0.07, lv > 1 ? 6 : 3); break;
+    case 'oldsea': ctx.globalCompositeOperation = 'lighter'; atmosCaustics(t, '#bfe8ff', 0, 0.05, lv > 1 ? 9 : 5); break;
+    case 'natlan': {   // ash coming down, heat shimmering up from below
+      ctx.globalCompositeOperation = 'lighter';
+      for (let k = 0; k < 3; k++) { const y = H - wrapX(t * 40 + k * 120, 360); ctx.globalAlpha = 0.05 * Math.sin(wrapX(t * 40 + k * 120, 360) / 360 * Math.PI); ctx.drawImage(glowSpr('#ff9a4a'), -100, y - 40, W + 200, 80); }
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(70,58,56,.55)';
+      for (let i = 0; i < (lv > 1 ? 24 : 12); i++) { const x = wrapX(hash1(i * 1.9) * W + t * 10 + Math.sin(t + i) * 12, W), y = wrapX(hash1(i * 4.1) * H + t * (24 + 16 * hash1(i)), H);
+        ctx.save(); ctx.translate(x, y); ctx.rotate(t * 2 + i); ctx.fillRect(-1.5, -1, 3, 2); ctx.restore(); }
+      break;
+    }
+    case 'nodkrai': {   // mist drifting low over the ground
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 3; i++) { const x = wrapX(t * (14 + i * 5) + hash1(i) * W, W + 600) - 300; ctx.globalAlpha = 0.07; ctx.drawImage(glowSpr('#b8c8ff'), x - 300, H * 0.72 + i * 30, 600, 90); }
+      break;
+    }
+    case 'snezhnaya': case 'dragonspine': {   // gusts of snow blown sideways, frost at the corners
+      const g = atmosGust(t, id === 'snezhnaya' ? 6 : 8, 2.2), strong = id === 'snezhnaya';
+      if (g > 0.02) atmosStreaks(t, Math.round((strong ? 60 : 36) * (lv > 1 ? 1 : 0.5) * g), '#ffffff', 0.3 * g, strong ? 900 : 620, 120, 26, 1.4);
+      ctx.globalCompositeOperation = 'lighter'; atmosFrost((strong ? 0.22 : 0.14) + 0.08 * g);
+      break;
+    }
+    case 'chasm': {   // drips falling from the dark above, a little ring where each lands; now and then a trickle of grit
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < (lv > 1 ? 5 : 3); i++) { const P = 2.2 + hash1(i) * 1.6, u = wrapX(t + hash1(i * 7) * P, P) / P, x = 60 + hash1(i * 3.9) * (W - 120), gy = H * 0.86;
+        if (u < 0.6) { const y = (u / 0.6) ** 2 * gy; ctx.globalAlpha = 0.6; ctx.fillStyle = '#bfe8ff'; ctx.beginPath(); ctx.ellipse(x, y, 1.4, 3, 0, 0, 7); ctx.fill(); }
+        else { const v = (u - 0.6) / 0.4; ctx.globalAlpha = 0.5 * (1 - v); ctx.strokeStyle = '#bfe8ff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, gy, 2 + 16 * v, 1 + 3 * v, 0, 0, 7); ctx.stroke(); } }
+      const tr = atmosGust(t, 9, 1.8); if (tr > 0.02) { const x = 200 + hash1(Math.floor(t / 9)) * (W - 400); ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(150,160,180,.5)';
+        for (let i = 0; i < 18; i++) { const y = wrapX(hash1(i * 2.3) * H + t * 300, H * 0.9); ctx.globalAlpha = tr; ctx.fillRect(x + (hash1(i) - 0.5) * 10, y, 1.6, 1.6); } }
+      break;
+    }
+  }
+  ctx.restore();
+}
 function drawWeather(t) {
   const w = WEATHER[curMap.id]; if (!w || !w.n) return;
-  ctx.save(); ctx.setTransform(view.s, 0, 0, view.s, 0, 0); ctx.globalCompositeOperation = 'lighter';
+  ctx.save(); ctx.setTransform(view.s, 0, 0, view.s, 0, 0); drawAtmosFront(t); ctx.globalCompositeOperation = 'lighter';
   for (let i = 0; i < w.n; i++) {
     const h1 = hash1(i * 1.37 + 0.5), h2 = hash1(i * 2.71 + 1.3), h3 = hash1(i * 4.13 + 2.2), sp = 0.6 + 0.8 * h3;
     let x = h1 * (W + 80) + t * w.vx * sp, y = h2 * (H + 80) + t * w.vy * sp;
@@ -8462,6 +8615,35 @@ function applyCamera() { const c = camNow(); ctx.translate(W / 2, H / 2); ctx.sc
 function toScreen(x, y) { const c = camNow(); return [(x - c.x) * c.z + W / 2, (y - c.y) * c.z + H / 2]; }
 // Black flash impact frame, drawn over everything: darkness, a red glare from the point of impact, streaks along the launch line,
 // black cracks rimmed in red, and the fighters redrawn on top in full colour.
+// Black flash lightning (2026-11-18): black-cored bolts edged in red, with a fork or two each and red sparks, out of (x, y); la the launch
+// direction (most bolts go along it, both ways), a the strength, seed changes its shape, sc its size (1 on the impact frame).
+function bfLightning(x, y, la, a, seed, sc) {
+  if (a <= 0.01) return;
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const bolt = (pts, w) => {
+    const line = () => { ctx.beginPath(); pts.forEach(([px, py], j) => j ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.stroke(); };
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.3 * a; ctx.strokeStyle = '#ff1a2a'; ctx.lineWidth = w * 4.2; line();   // a red haze round it
+    ctx.globalAlpha = 0.85 * a; ctx.strokeStyle = '#ff3a3a'; ctx.lineWidth = w * 1.9; line();   // its red edge
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = a; ctx.strokeStyle = '#080004'; ctx.lineWidth = w * 0.9; line();   // and its black heart
+  };
+  for (let i = 0; i < 11; i++) {
+    const s0 = seed * 3.1 + i * 17.3, along = i < 6;
+    const an = along ? la + (i % 2 ? Math.PI : 0) + (hash1(s0) - 0.5) * 0.7 : hash1(s0) * Math.PI * 2;
+    const L = (along ? 260 + 300 * hash1(s0 + 1) : 140 + 160 * hash1(s0 + 1)) * sc, r0 = 22 * sc;
+    const x0 = x + Math.cos(an) * r0, y0 = y + Math.sin(an) * r0, x1 = x + Math.cos(an) * (r0 + L), y1 = y + Math.sin(an) * (r0 + L);
+    const pts = boltPath(x0, y0, x1, y1, 5, L * 0.13, s0), w = (along ? 3.4 : 2.4) * Math.max(0.6, sc);
+    bolt(pts, w);
+    for (let f = 0; f < 2; f++) {   // forks
+      const m = pts[8 + Math.floor(hash1(s0 + 5 + f) * 14)], fa = an + (hash1(s0 + 7 + f) < 0.5 ? -0.8 : 0.8), fl = L * (0.2 + 0.2 * hash1(s0 + 9 + f));
+      bolt(boltPath(m[0], m[1], m[0] + Math.cos(fa) * fl, m[1] + Math.sin(fa) * fl, 3, fl * 0.2, s0 + 11 + f), w * 0.55);
+    }
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = '#ff7a5a';   // red sparks thrown off along it
+    for (let j = 0; j < 3; j++) { const p = pts[Math.floor(hash1(s0 + 20 + j) * pts.length)]; ctx.globalAlpha = a * hash1(s0 + 30 + j); ctx.beginPath(); ctx.arc(p[0] + (hash1(s0 + 40 + j) - 0.5) * 14 * sc, p[1] + (hash1(s0 + 50 + j) - 0.5) * 14 * sc, 1.6 + 1.6 * sc, 0, 7); ctx.fill(); }
+  }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+}
 function drawBlackFlash(t) {
   const g = game, b = g.bf, k = clamp((1 - b.t / b.dur) / 0.1, 0, 1) * clamp(b.t / 0.1, 0, 1);
   const [sx, sy] = toScreen(b.x, b.y), seed = Math.floor(t * 24), cs = Math.floor(t * 12), j = REDUCED ? 0 : 5;
@@ -8473,26 +8655,13 @@ function drawBlackFlash(t) {
   gl.addColorStop(0, 'rgba(255,70,40,' + 0.85 * k + ')'); gl.addColorStop(0.35, 'rgba(200,10,20,' + 0.55 * k + ')'); gl.addColorStop(1, 'rgba(120,0,10,0)');
   ctx.fillStyle = gl; ctx.fillRect(-20, -20, W + 40, H + 40);
   const la = Math.atan2(-Math.sin(b.a), Math.cos(b.a) * b.dir);   // direction of the launch
-  for (let i = 0; i < 76; i++) {
-    const h1 = hash1(i * 3.7 + seed * 0.37), h2 = hash1(i * 9.1 + seed), along = i % 3 === 0;
-    const an = along ? la + (i % 2 ? Math.PI : 0) + (h1 - 0.5) * 0.5 : h1 * Math.PI * 2;
-    const r0 = 34 + h2 * 150, r1 = r0 + 160 + hash1(i + seed * 1.3) * (along ? 950 : 520);
-    ctx.strokeStyle = ['rgba(255,60,40,', 'rgba(255,140,60,', 'rgba(255,230,210,', 'rgba(200,0,20,'][i % 4] + (0.35 + 0.5 * h2) * k + ')';
-    ctx.lineWidth = 1 + h2 * (along ? 10 : 4);
-    ctx.beginPath(); ctx.moveTo(sx + Math.cos(an) * r0, sy + Math.sin(an) * r0); ctx.lineTo(sx + Math.cos(an) * r1, sy + Math.sin(an) * r1); ctx.stroke();
-  }
+  // (2026-11-18, the user's request: lightning, not a shockwave) black lightning edged in red bursting out of the blow, most of it along
+  // the launch; natural forks (boltPath), flickering to a new shape 18 times a second, with red sparks along it
+  bfLightning(sx, sy, la, k, Math.floor(t * 18), 1);
   const core = ctx.createRadialGradient(sx, sy, 2, sx, sy, 120 + 20 * Math.sin(t * 40));
   core.addColorStop(0, 'rgba(255,255,255,' + 0.9 * k + ')'); core.addColorStop(0.3, 'rgba(255,120,80,' + 0.6 * k + ')'); core.addColorStop(1, 'rgba(255,40,20,0)');
   ctx.fillStyle = core; ctx.beginPath(); ctx.arc(sx, sy, 140, 0, 7); ctx.fill();
-  ctx.globalCompositeOperation = 'source-over'; ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
-  for (let i = 0; i < 10; i++) {
-    let an = hash1(i * 5.1 + cs) * Math.PI * 2, x = sx + Math.cos(an) * 26, y = sy + Math.sin(an) * 26;
-    const len = 130 + hash1(i * 2.3 + cs) * 340, pts = [[x, y]];
-    for (let q = 0; q < 6; q++) { an += (hash1(i * 13 + q * 7 + cs) - 0.5) * 1.3; x += Math.cos(an) * len / 6; y += Math.sin(an) * len / 6; pts.push([x, y]); }
-    for (const [w, col] of [[10, 'rgba(255,40,40,' + 0.7 * k + ')'], [5, 'rgba(4,0,2,' + k + ')']]) {
-      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); pts.forEach(([px, py], q) => (q ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); ctx.stroke();
-    }
-  }
+  ctx.globalCompositeOperation = 'source-over';
   // The fighters are drawn again over the darkness in their own colours, so only the surroundings go dark.
   // The one being hit gets a red rim instead of the usual white hit-flash.
   ctx.save(); applyCamera();
@@ -12167,20 +12336,10 @@ function drawParticles(glowOnly = false) {   // glowOnly: the bloom pass, withou
   }
   ctx.restore();
   if (glowOnly) { ctx.globalAlpha = 1; return; }
-  for (const r of g.rifts) {   // black flash: a jagged black burst edged in red, torn open along the direction of the launch
-    const k = 1 - r.life / r.max, R = 70 + 260 * easeOut(k), al = 1 - k * k;
-    ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(Math.atan2(-Math.sin(r.a), Math.cos(r.a) * r.dir));
-    ctx.beginPath();
-    for (let i = 0; i < 28; i++) {
-      const an = i / 28 * Math.PI * 2, long = Math.abs(Math.cos(an)) > 0.8;
-      const rr2 = (i % 2 ? 0.22 : 0.55 + 0.45 * hash1(i * 5.3)) * R * (long ? 1.9 : 1) * (i % 2 ? 1 : 0.8 + 0.2 * Math.sin(k * 30 + i));
-      ctx.lineTo(Math.cos(an) * rr2, Math.sin(an) * rr2 * 0.6);
-    }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(3,1,6,' + al + ')'; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,42,58,' + al + ')'; ctx.lineWidth = 3.5; ctx.lineJoin = 'miter'; ctx.stroke();
-    if (k < 0.25) { ctx.fillStyle = 'rgba(255,255,255,' + (1 - k / 0.25) + ')'; ctx.beginPath(); ctx.ellipse(0, 0, R * 0.5, R * 0.12, 0, 0, 7); ctx.fill(); }
-    ctx.restore();
+  for (const r of g.rifts) {   // black flash, afterwards (2026-11-18): black lightning still crackling round where it landed, shrinking away
+    const k = 1 - r.life / r.max, al = (1 - k) * (1 - k);
+    ctx.save(); bfLightning(r.x, r.y, Math.atan2(-Math.sin(r.a), Math.cos(r.a) * r.dir), al, Math.floor((game ? game.time : 0) * 20), 0.32 * (1 - 0.5 * k)); ctx.restore();
+    if (k < 0.2) glow(r.x, r.y, 60 * (1 - k / 0.2), '#ff3a2a', 1 - k / 0.2);
   }
   ctx.globalAlpha = 1;
 }
