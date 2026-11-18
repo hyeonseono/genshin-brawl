@@ -1869,6 +1869,12 @@ addEventListener('blur', () => { held.clear(); if (state === 'fight' && !netOn()
 /* ------------------------------------------------------------------ game state */
 let state = 'menu';          // menu | party | select | map | lineup | fight | paused | info | victory | result | net (the online screens)
 let game = null;
+/* (V299, 2026-11-18) The user: the screen should shake only when an attack lands on the opponent, and less. A rise in game.shake is
+   taken only while a hit is being applied (SHAKE_HIT), or as a black flash goes off; casts, landings, KO beams, wall bounces and skill
+   starts no longer shake it. Falls (decay, a reset to 0) always go through. SHAKE_MAX caps it: under the old heat rule every blow
+   doubled it, so a long trade grew it without end and the view was thrown out of the arena. */
+let SHAKE_HIT = 0;
+const SHAKE_MAX = 20, SHAKE_SCALE = 0.45, KICK_SCALE = 0.5, ROLL_SCALE = 0.5;
 let mode = 'cpu', pickStep = 0, level = 1;   // mode: 'cpu' (1P against the computer), '2p' (two people on one keyboard) or 'net' (two devices)
 const sideName = side => mode === 'tour' ? (TOUR.human && side === 0 ? '1P' : 'CPU') : side === 0 ? '1P' : mode === 'boss' ? '보스' : mode === 'surv' ? '적' : mode === 'cpu' || mode === 'train' || mode === 'arcade' ? 'CPU' : '2P';
 const sel = [[], []];   // character ids picked for each side's party
@@ -1907,7 +1913,7 @@ function startMatch(mapId) {
     env: { grav: curMap.grav || 1, ice: !!curMap.ice, wind: 0, water: null },
     fighters: [teams[0][0], teams[1][0]],
     hits: [], particles: [], texts: [], bolts: [], sparks: [], blasts: [], rifts: [], waves: [], marks: [], pickups: [], flares: [], runes: [], clash: [], slines: [], punch: 0, focus: { x: W / 2, y: H / 2 },
-    hitstop: 0, shake: 0, flash: 0, dark: 0, bf: null, intro: 3.4, loadWait: 8, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
+    hitstop: 0, _shk: 0, get shake() { return this._shk; }, set shake(v) { v = +v || 0; if (SHAKE_HIT > 0 || v <= this._shk) this._shk = Math.min(SHAKE_MAX, Math.max(0, v)); }, flash: 0, dark: 0, bf: null, intro: 3.4, loadWait: 8, over: false, endT: 0, winner: null, cut: null, time: 0, combo: null,
   };
   for (const team of game.teams) {   // elemental resonance: two of a party sharing an element (see RESO)
     const n = {}; for (const m of team) n[m.def.el] = (n[m.def.el] || 0) + 1;
@@ -2999,8 +3005,7 @@ function updateHits(dt) {
       if (h.hit.has(f) || f.inv > 0) continue;
       if (overlaps(h, c, f)) {
         h.hit.add(f);
-        applyHit(h, f);
-        if (h.onHit) h.onHit(h, f);
+        SHAKE_HIT++; try { applyHit(h, f); if (h.onHit) h.onHit(h, f); } finally { SHAKE_HIT--; }
         if (h.owner && h.owner.mir) alhaithamProject(h.owner, f, h);
         if (h.proj && !h.pierce) { h.dead = true; if (h.onEnd) h.onEnd(h); break; }
       }
@@ -3345,8 +3350,13 @@ function linger(t, el, pw) {   // what an element leaves on the one it hit for a
 }
 function stepKick(dt) {   // the camera kick: a stiff spring that overshoots once
   const g = game; if (!g.kx && !g.ky) return;
-  g.kvx += (-950 * g.kx - 30 * g.kvx) * dt; g.kvy += (-950 * g.ky - 30 * g.kvy) * dt;
-  g.kx += g.kvx * dt; g.ky += g.kvy * dt;
+  if (!isFinite(g.kx) || !isFinite(g.ky) || !isFinite(g.kvx) || !isFinite(g.kvy)) { g.kx = g.ky = g.kvx = g.kvy = 0; return; }
+  const n = Math.min(40, Math.ceil(dt / (1 / 240)) || 1), h = dt / n;   // (V299) small steps: one big step made the spring blow up
+  for (let i = 0; i < n; i++) {
+    g.kvx += (-950 * g.kx - 30 * g.kvx) * h; g.kvy += (-950 * g.ky - 30 * g.kvy) * h;
+    g.kx += g.kvx * h; g.ky += g.kvy * h;
+  }
+  g.kx = clamp(g.kx, -40, 40); g.ky = clamp(g.ky, -40, 40);
   if (Math.abs(g.kx) + Math.abs(g.ky) < 0.05 && Math.abs(g.kvx) + Math.abs(g.kvy) < 1) g.kx = g.ky = g.kvx = g.kvy = 0;
 }
 function drawHitLines(t) {   // focus lines from the screen's edges toward a heavy blow
@@ -3499,7 +3509,7 @@ function applyHit(h, t) {
 
   g.hitstop = Math.min(0.14, 0.04 + dmg * 0.006 + (h.src && h.src.kind === 'heavy' ? 0.02 : 0));
   g.shake = Math.max(g.shake, Math.min(20, dmg * 1.15 + v / 130));
-  if (o.idx >= 0 && t.idx >= 0 && o.idx !== t.idx) { (g.heatHit || (g.heatHit = [-9, -9]))[o.idx] = g.time; if (g.heat) g.shake *= 1 + 1.0 * g.heat; }   // (heat: who hit lately; blows shake harder in it)
+  if (o.idx >= 0 && t.idx >= 0 && o.idx !== t.idx) { (g.heatHit || (g.heatHit = [-9, -9]))[o.idx] = g.time; }   // (heat: who hit lately; V299: blows no longer shake harder in it, which compounded without end)
   const la = Math.hypot(t.vx, t.vy) > 60 ? Math.atan2(t.vy, t.vx) : (dirX > 0 ? 0 : Math.PI);   // the way they are sent
   g.shakeA = la;   // the screen shakes along it
   puff(t.x, t.y - 34, h.color, h.el ? 4 : 8, 220, 0.35, 4);
@@ -7308,7 +7318,7 @@ function step(dt) {
     if (g.burstHold.t <= 0) { const b = g.burstHold; g.burstHold = null; burstRelease(b); }
     return;
   }
-  if (g.bf) { g.bf.t -= dt; if (g.bf.t <= 0) { if (g.bf.finale) g.slow = { scale: 0.4, real: 0, after: 0 }; g.bf = null; g.shake = 26; g.dark = 0.35; g.flash = 0.2; } }
+  if (g.bf) { g.bf.t -= dt; if (g.bf.t <= 0) { if (g.bf.finale) g.slow = { scale: 0.4, real: 0, after: 0 }; g.bf = null; SHAKE_HIT++; g.shake = 20; SHAKE_HIT--; g.dark = 0.35; g.flash = 0.2; } }
   if (g.hitstop > 0) { g.hitstop -= dt; return; }
   if (g.loadWait > 0 && g.intro > 0) {   // before the countdown: up to 8 s for the fighters' frames to arrive (not online, where both sides must keep step)
     if (g.mode !== 'net' && framesMissing(g).length) { g.loadWait -= dt; return; }
@@ -8571,7 +8581,7 @@ function drawMapFx(t) {
 }
 // (2026-11-11) Heat: the two fighters trading blows in about the same spot for a while. It builds over HEAT_RISE s of that and drains when
 // they part, move the fight elsewhere or stop hitting each other; the view creeps in with it and the screen starts to tremble.
-const HEAT_RISE = 6, HEAT_FALL = 0.45, HEAT_NEAR = 340, HEAT_ZOOM = 0.34, HEAT_RUMBLE = 5.5;   // (rumble 2.8 → 5.5 px, 2026-11-11: the user wanted it stronger)
+const HEAT_RISE = 6, HEAT_FALL = 0.45, HEAT_NEAR = 340, HEAT_ZOOM = 0.34, HEAT_RUMBLE = 0;   // (V299: rumble off, the user wants shaking only on hits)   // (rumble 2.8 → 5.5 px, 2026-11-11: the user wanted it stronger)
 function stepHeat(g, dt) {
   const [a, b] = g.fighters, live = a && b && !a.dead && !b.dead && !g.over && !(g.intro > 0) && !g.bf && !g.cut;
   const mx = live ? (a.x + b.x) / 2 : (g.heatAx ?? 0);
@@ -15442,14 +15452,14 @@ function render(t) {
   if (g) drawBurstTint();
   if (g) { updateCamera(); drawSideArt(); }
   ctx.save();
-  if (g && g.roll && !REDUCED && OPT.shake) { ctx.translate(W / 2, H / 2); ctx.rotate(g.roll); ctx.translate(-W / 2, -H / 2); }
+  if (g && g.roll && !REDUCED && OPT.shake) { ctx.translate(W / 2, H / 2); ctx.rotate(g.roll * ROLL_SCALE); ctx.translate(-W / 2, -H / 2); }
   if (g) applyCamera();
   if (g && g.shake > 0.3 && OPT.shake) {   // mostly back and forth along the way the last blow sent someone, with a little jitter across it
-    const m = g.shake * (REDUCED ? 0.25 : 1), a = g.shakeA ?? rnd(0, 6.3), o = Math.sin(t * 70) * m * 0.85;
+    const m = Math.min(SHAKE_MAX, g.shake) * SHAKE_SCALE * (REDUCED ? 0.25 : 1), a = g.shakeA ?? rnd(0, 6.3), o = Math.sin(t * 70) * m * 0.85;
     ctx.translate(Math.cos(a) * o + rnd(-m, m) * 0.3, Math.sin(a) * o + rnd(-m, m) * 0.3);
   }
-  if (g && (g.kx || g.ky) && OPT.shake) { const m = REDUCED ? 0.3 : 1; ctx.translate(g.kx * m, g.ky * m); }   // knocked along the last blow
-  if (g && g.heat > 0.15 && OPT.shake && !REDUCED) {   // the heat: a low rumble that grows with it
+  if (g && (g.kx || g.ky) && OPT.shake) { const m = (REDUCED ? 0.3 : 1) * KICK_SCALE; ctx.translate(g.kx * m, g.ky * m); }   // knocked along the last blow
+  if (g && HEAT_RUMBLE > 0 && g.heat > 0.15 && OPT.shake && !REDUCED) {   // the heat: a low rumble that grows with it
     const m = HEAT_RUMBLE * (g.heat - 0.15) / 0.85;
     ctx.translate((Math.sin(t * 37) + 0.5 * Math.sin(t * 61 + 1)) * m, (Math.cos(t * 43) + 0.4 * Math.sin(t * 29)) * m * 0.7);
   }
