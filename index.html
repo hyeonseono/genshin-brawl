@@ -1330,7 +1330,7 @@ const CHARS = [
     skill: '한병의 귀신', burst: '구고천익', desc: '한손검 회복형. 주위를 도는 얼음 귀신으로 가까운 적을 얼리며 회복하고, 필살기로 상대에게 부적을 붙여 때릴 때마다 회복합니다.' },
   { id: 'shenhe', name: '신학', title: '고독한 선인의 제자', el: 'cryo', color: '#a8d8f0', body: '#1f2530', dark: '#12151c', hair: '#e8eef6', eye: '#8ab0d0', skin: '#fdeee8',
     speed: 315, jump: 755, weight: 0.95, atk: 1.05, jumps: 2, grav: 1, scale: 1.03, reach: 1.3, aiRange: 76,
-    skill: '초혼 강령', burst: '신녀 강림', desc: '장병기 강화형. 얼음 돌진 뒤 5초 동안 평타에 얼음이 실리고, 필살기로 상대 자리에 4초짜리 서리 결계를 펼칩니다.' },
+    skill: '초혼 강령', burst: '신녀 강림', desc: '장병기 강화형. 부적 영혼으로 적을 끌어오고 5초 동안 평타에 얼음이 실리고, 필살기로 상대 자리에 4초짜리 서리 결계를 펼칩니다.' },
   { id: 'flins', name: '플린스', title: '등불지기', el: 'electro', color: '#7a8cf0', body: '#23233a', dark: '#12121f', hair: '#3a4ad0', eye: '#e6d28a', skin: '#f1e4e6',
     speed: 310, jump: 750, weight: 1.0, atk: 1.08, jumps: 2, grav: 1, scale: 1.05, reach: 1.3, aiRange: 76,
     skill: '현현의 불꽃', burst: '밤의 강림', desc: '장병기 강화형. 스킬로 5초 동안 푸른 불꽃을 두르고 평타에 번개를 싣습니다. 필살기로 상대 자리에 밤을 내리고 번개를 떨어뜨립니다.' },
@@ -1342,7 +1342,7 @@ const CHARS = [
     skill: '용의 날개', burst: '검은 용의 강림', desc: '한손검 기동형. 점프를 세 번 할 수 있고 뛸 때마다 날개를 칩니다. 날개를 펴고 비스듬히 날아오르며 들이받고, 필살기로 검은 용을 상대 자리에 내리꽂아 땅을 불태웁니다.' },
   { id: 'varka', name: '바르카', title: '북풍의 기사', el: 'anemo', color: '#4fd0c8', body: '#1f2a3a', dark: '#121a26', hair: '#e8c860', eye: '#58c0e0', skin: '#f6dcc8',
     speed: 300, jump: 745, weight: 1.15, atk: 1.12, jumps: 2, grav: 1, scale: 1.1, reach: 1.2, aiRange: 70,
-    skill: '북풍 늑대의 돌진', burst: '서풍의 쌍검', desc: '쌍대검 돌격형. 바람 늑대와 함께 돌진하고, 필살기로 두 자루 대검을 X자로 벤 뒤 늑대의 포효로 날려 보냅니다.' },
+    skill: '북풍 늑대의 도약', burst: '서풍의 쌍검', desc: '쌍대검 돌격형. 높이 뛰어올라 내려찍어 착지한 곳에 불과 바람 피해를 주고, 필살기로 두 자루 대검을 X자로 벤 뒤 늑대의 포효로 날려 보냅니다.' },
   { id: 'zibai', name: '자백', title: '달빛 선인', el: 'geo', color: '#e8d48a', body: '#3f8a6a', dark: '#1f4a3a', hair: '#f2f2f6', eye: '#e8c040', skin: '#fdeee6',
     speed: 325, jump: 770, weight: 0.9, atk: 1.03, jumps: 2, grav: 1, scale: 1, reach: 1.08, aiRange: 66,
     skill: '천지 현현', burst: '삼원 진광', desc: '한손검 돌격형. 스킬로 월상 전이 상태가 되어 평타가 바위 원소가 되고, 광휘를 모아 옥빛 영마를 타고 돌진하는 선마의 질주를 씁니다. 필살기는 옥빛 천개를 펼쳐 두 번 내리칩니다.' },
@@ -3371,6 +3371,7 @@ function drawHitLines(t) {   // focus lines from the screen's edges toward a hea
   ctx.restore();
 }
 const BF_TIME = 0.8, BF_FROM = 140, BF_FULL = 210;   // danger zone: the chance is 15% at BF_FROM and reaches its 70% cap at BF_FULL   // how long a black flash holds the screen
+const WLIE = 0.5;   // (V301) how long a blow lays the flying Wanderer out
 function applyHit(h, t) {
   const g = game, o = h.owner, c = hbCenter(h);
   const dirX = h.radial ? (Math.sign(t.x - c.x) || o.dir) : (h.proj ? (Math.sign(h.vx) || h.sdir) : h.sdir);
@@ -3502,6 +3503,13 @@ function applyHit(h, t) {
   t.flash = 0.12;
   if (broke) t.hitstun = Math.max(t.hitstun, 0.5);
   if (bf) t.hitstun = Math.max(t.hitstun, 0.9);
+  if (t.def.id === 'wanderer' && t.buff && t.buff.fly && !trainFixed(t)) {   // (V301, the user) flying, any blow at all knocks him back and lays him
+    // out on his back in the air: 0.5 s until he can act again, held up there (no fall) while the push runs out
+    if (Math.hypot(t.vx, t.vy) < 300) { t.vx = dirX * 380; t.vy = -70; }
+    t.hitstun = bf || h.stun || h.suspend ? Math.max(t.hitstun, WLIE) : WLIE; t.wLie = t.hitstun; t.onGround = false;
+    t.act = null; t.combo = 0; t.comboT = 0; t.buf.atk = t.buf.skill = 0; t.run = 0;
+    for (const x of g.hits) if (x.owner === t && !x.persist && !x.keep && (x.follow || x.age < x.delay)) x.dead = true;
+  }
   if ((!(h.noKb || armor) || broke || bf) && !h.noLaunch) {
     t.act = null; t.combo = 0; t.comboT = 0; t.buf.atk = t.buf.skill = 0;
     for (const x of g.hits) if (x.owner === t && !x.persist && !x.keep && (x.follow || x.age < x.delay)) x.dead = true;
@@ -3919,6 +3927,24 @@ function plunge(f) {
          dust(o.x, o.y, 12, 260); puff(o.x, o.y - 10, EL[el].color, 20, 320, 0.5, 4, -150); game.shake = Math.max(game.shake, 9); SFX.play('heavy');
        } });
   SFX.play('swing');
+}
+// (V300, the user) Shenhe's skill drags the one it hits back to just in front of her over ~0.32 s, frost trailing them.
+// Done by steering their speed each tick, so walls and platforms still stop them; bosses and the fixed training dummy are not moved.
+function shenPull(f, t) {
+  if (!t || t.dead || t.boss || trainFixed(t) || t === f) return;
+  t.act = null; t.combo = 0; t.hitstun = Math.max(t.hitstun, 0.42); t.hang = null;
+  ftext(t.x, t.y - 96, '끌어당김', '#dff6ff', 14, 0.6);
+  hb({ owner: f, x: t.x, y: t.y, w: 0, h: 0, life: 0.32, harmless: true, persist: true, vis: 'none',
+       onTick: h => {
+         if (t.dead || f.dead) { h.dead = true; return; }
+         const gx = f.x + f.dir * 64 * f.def.scale, dx = gx - t.x, dy = f.y - t.y;
+         if (Math.abs(dx) < 14 && Math.abs(dy) < 30) { t.vx *= 0.2; h.dead = true; return; }
+         t.hitstun = Math.max(t.hitstun, 0.2);
+         t.vx = clamp(dx * 9, -1500, 1500);
+         t.vy = t.onGround && dy > -20 ? Math.min(t.vy, 0) : clamp(dy * 7 - 80, -900, 900);
+         if (Math.random() < 0.7) puff(t.x + rnd(-10, 10), t.y - rnd(16, 60), Math.random() < 0.5 ? '#dff6ff' : '#a8d8f0', 1, 40, 0.4, 3);
+       } });
+  hb({ owner: f, x: f.x, y: f.y, w: 0, h: 0, life: 0.32, harmless: true, persist: true, vis: 'shenTether', tgt: t, from: f });
 }
 // A second infusion (Varka's skill): right behind each swing's hit comes a light one carrying the other element, so both land on the target.
 function secondEl(f, h) {
@@ -4813,7 +4839,8 @@ const SKILLS = {
   shenhe(f) {   // Spring Spirit Summoning: she stays put and her talisman spirit flies out ahead, cutting all it passes; then icy quills on her attacks for 5 s
     startAct(f, 'skill', 0.28, { slow: 0.3 }); f.cd = 6;
     f.buff = { t: 5, mul: 1.15, el: 'cryo' };
-    hb({ owner: f, proj: true, pierce: true, anchor: true, ox: 30, oy: 44, w: 96, h: 70, vx: f.dir * 900, delay: 0.08, life: 0.5, dmg: 5.5, kb: 0.9, ang: 32, el: 'cryo', vis: 'shenspirit', color: '#dff6ff', trail: true });
+    hb({ owner: f, proj: true, pierce: true, anchor: true, ox: 30, oy: 44, w: 96, h: 70, vx: f.dir * 900, delay: 0.08, life: 0.5, dmg: 5.5, kb: 0.9, noKb: true, ang: 32, el: 'cryo', vis: 'shenspirit', color: '#dff6ff', trail: true,
+         onHit: (h, t) => shenPull(f, t) });   // (V300) whoever it strikes is dragged back to her
   },
   flins(f) {   // Manifest Flame for 5 seconds: electro on every basic attack. Pressed again while it burns, a storm of spear thrusts
     if (f.buff && f.buff.flame) {
@@ -4860,10 +4887,28 @@ const SKILLS = {
            fx2({ k: 'gring', x: f.x, y: f.y, R: 150, col: '#ff8a3d', life: 0.4 }); game.shake = Math.max(game.shake, 7); SFX.play('heavy');
          } });
   },
-  varka(f) {   // a charge with a wolf of wind at his shoulder
-    startAct(f, 'dash', 0.3, { slow: 0 }); f.cd = 3.5; f.vx = f.dir * 900; f.vy = 0;
-    hb({ owner: f, follow: true, ox: 30, oy: 38, w: 130, h: 84, life: 0.3, dmg: 8, kb: 1.25, ang: 38, el: 'anemo', vis: 'wolf' });
-    f.buff = { t: 6, mul: 1, el: 'pyro', el2: 'anemo' };   // then 6 seconds of fire and wind on every basic attack
+  varka(f) {   // (V300, the user) he leaps high and comes down hard: where he lands, a blast of fire and a gale of wind.
+    // Then 6 seconds of fire and wind on every basic attack (this skill is the only way he gets them).
+    const foe = game.fighters[1 - f.idx], dx = foe && !foe.dead ? foe.x - f.x : 0;
+    startAct(f, 'skill', 0.32, { slow: 0 }); f.cd = 3.5;
+    f.vy = -1000; f.onGround = false; f.hang = null;
+    f.vx = foe && !foe.dead && Math.abs(dx) < 420 && sgn(dx) === f.dir ? clamp(dx / 0.8, -520, 520) : f.dir * 200;   // drifts toward the foe in front of him
+    f.buff = { t: 6, mul: 1, el: 'pyro', el2: 'anemo' };
+    puff(f.x, f.y - 6, '#b6fff4', 14, 260, 0.45, 4, 200); puff(f.x, f.y - 6, '#ffb04d', 8, 200, 0.4, 3, 200); dust(f.x, f.y, 10, 240); SFX.play('jump');
+    hb({ owner: f, follow: true, ox: 0, oy: 40, w: 90, h: 100, life: 0.3, dmg: 3, kb: 0.9, ang: 80, el: 'anemo', vis: 'wolf' });   // the take-off clips whoever stands over him
+    for (const h of game.hits) if (h.owner === f && h.varkaLand) h.dead = true;
+    hb({ owner: f, x: f.x, y: f.y, w: 0, h: 0, delay: 0.18, life: 2.5, harmless: true, persist: true, varkaLand: true, vis: 'none',
+         onTick: h => {
+           if (f.dead || f.hitstun > 0) { h.dead = true; return; }
+           if (!f.onGround) { if (f.vy > 0) f.vy = Math.max(f.vy, 1250); if (Math.random() < 0.6) puff(f.x + rnd(-12, 12), f.y - rnd(10, 70), Math.random() < 0.5 ? '#ffb04d' : '#7fe0cc', 1, 40, 0.35, 3, -100); return; }
+           h.dead = true;
+           const S = f.def.scale;
+           hb({ owner: f, shape: 'circle', x: f.x, y: f.y - 30, r: 165 * S, life: 0.14, dmg: 6, kb: 1.0, ang: 55, el: 'pyro', radial: true, persist: true, vis: 'boom' });
+           hb({ owner: f, shape: 'circle', x: f.x, y: f.y - 40, r: 175 * S, delay: 0.08, life: 0.14, dmg: 4, kb: 1.35, ang: 62, el: 'anemo', radial: true, persist: true, vis: 'boom', color: '#9ff2e0' });
+           puff(f.x, f.y - 16, '#ffb04d', 22, 340, 0.55, 5, -150); puff(f.x, f.y - 24, '#b6fff4', 18, 380, 0.5, 4, -60); dust(f.x, f.y, 14, 280); debris(f.x, f.y, 1.4, groundBelow(f));
+           fx2({ k: 'gring', x: f.x, y: f.y, R: 165 * S, col: '#ff8a3d', life: 0.4 }); fx2({ k: 'gring', x: f.x, y: f.y, R: 200 * S, col: '#7fe0cc', life: 0.5 });
+           SFX.play('heavy');
+         } });
   },
   zibai(f) {   // (2026-11-15, as in the game) Heaven and Earth Made Manifest: into Lunar Phase Shift; pressed again in it, Spirit Steed's Stride
     const b = f.buff && f.buff.zb ? f.buff : null, S = f.def.scale;
@@ -6586,7 +6631,7 @@ function aiInput(f, foe, dt) {
           else if (d.id === 'flins') ok = f.buff && f.buff.flame ? aligned && adx < 170 : adx < 220;
           else if (d.id === 'nefer') ok = adx < 600;
           else if (d.id === 'durin') ok = aligned && adx > 80 && adx < 300;
-          else if (d.id === 'varka') ok = aligned && adx > 70 && adx < 300;
+          else if (d.id === 'varka') ok = aligned && adx < 340;
           else if (d.id === 'zibai') ok = aligned && adx > 50 && adx < 250;
           else if (d.id === 'yelan') ok = aligned && adx > 60 && adx < 250;
           else if (d.id === 'xiao') ok = aligned && adx > 70 && adx < 230;
@@ -6639,7 +6684,7 @@ function stepFighter(f, foe, dt) {
   if (f.shield > 0 && !(f._sh > 0)) BGM.shieldUp();   // a shield coming up
   f._sh = f.shield;
   f.wasFrozen = f.frozen > 0;   // (for breaking out of ice: see below)
-  for (const k of ['hitstun', 'inv', 'cd', 'comboT', 'frozen', 'suspend', 'stone', 'vuln', 'drop', 'flash', 'landT', 'jumpT', 'quicken', 'seed', 'guardLock', 'counterT']) f[k] = Math.max(0, f[k] - dt);
+  for (const k of ['hitstun', 'inv', 'cd', 'comboT', 'frozen', 'suspend', 'stone', 'vuln', 'drop', 'flash', 'landT', 'jumpT', 'quicken', 'seed', 'guardLock', 'counterT', 'wLie']) f[k] = Math.max(0, (f[k] || 0) - dt);
   for (const k in f.buf) f.buf[k] = Math.max(0, f.buf[k] - dt);
   if (f.aura) { f.aura.t -= dt; if (f.aura.t <= 0) f.aura = null; }
   if (f.shield > 0) { f.shieldT -= dt; if (f.shieldT <= 0) f.shield = 0; }
@@ -6798,7 +6843,8 @@ function stepFighter(f, foe, dt) {
   else if (!dashing) {
     const wet = env.water != null && f.y - 24 > env.water;   // under the tide: sink slowly, swim with repeated jumps
     const fly = f.buff && f.buff.fly && f.hitstun <= 0;   // Wanderer's hover: held at one fixed height; jumping does not take him higher
-    if (fly) { f.vy = clamp((f.buff.hy - f.y) * 9, -420, 420); f.jumps = d.jumps; }
+    if (f.wLie > 0 && f.buff && f.buff.fly) { f.vy *= Math.pow(0.2, dt); f.vx *= Math.pow(0.35, dt); }   // (V301) lying in the air
+    else if (fly) { f.vy = clamp((f.buff.hy - f.y) * 9, -420, 420); f.jumps = d.jumps; }
     else f.vy += GRAV * d.grav * env.grav * (wet ? 0.3 : 1) * dt;
     const cap = wet ? 230 : (inp.down && free && !f.onGround) ? 1200 : 900;
     if ((wet || f.hitstun <= 0) && f.vy > cap) f.vy = cap;
@@ -6906,7 +6952,8 @@ function stepVisual(f, dt) {
   f.sqT = Math.max(0, (f.sqT || 0) - dt); f.hitColT = Math.max(0, (f.hitColT || 0) - dt);
   if (f.onGround) f.runPhase += Math.abs(f.vx) * dt * 0.05;
   f.sway += (clamp(f.vx * f.dir / 420, -1, 1) - f.sway) * Math.min(1, dt * 9);
-  if (f.hitstun > 0 && spd > 650) { f.rot += dt * clamp(spd / 80, 0, 14) * (f.vx * f.dir < 0 ? -1 : 1); f.tumble = true; }
+  if (f.wLie > 0) { f.rot = 0; f.tumble = false; }
+  else if (f.hitstun > 0 && spd > 650) { f.rot += dt * clamp(spd / 80, 0, 14) * (f.vx * f.dir < 0 ? -1 : 1); f.tumble = true; }
   else {
     if (f.tumble) { f.rot = Math.atan2(Math.sin(f.rot), Math.cos(f.rot)); f.tumble = false; }
     f.rot *= Math.pow(0.0008, dt);
@@ -9433,6 +9480,10 @@ function drawFighter(f, t, o = {}) {
     lean += f.rot;
   } else { lean = ap.lean; lunge = ap.lunge; }
   if (anim) { if (!pose && f.hitstun <= 0) lean = f.rot; lunge = 0; }   // the frames already lean into their swings
+  if (!pose && f.wLie > 0 && f.buff && f.buff.fly) {   // (V301) the flying Wanderer knocked flat: on his back in the air, head away from the blow
+    const q = Math.min(1, (WLIE - f.wLie) / 0.08, f.wLie / 0.1);
+    lean = -Math.PI / 2 * easeOut(clamp(q, 0, 1)); lunge = 0;
+  }
 
   ctx.save(); ctx.translate(X, Y);
   if (!plain && f.flash > 0 && game && !REDUCED) {   // shudders in place while the hit holds, settling as the flash fades
@@ -11988,6 +12039,19 @@ function drawHits(t, under = false) {
         ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(-L / 2, 0); ctx.lineTo(0, -10 * a); ctx.lineTo(L / 2, 0); ctx.lineTo(0, 10 * a); ctx.closePath(); ctx.fill();
         for (let i = 0; i < 8; i++) { const x = (i / 7 - 0.5) * L; ctx.strokeStyle = i % 2 ? '#c8d8ff' : '#8aa8ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + (hash1(i) - 0.5) * 30, -30 - 30 * k); ctx.stroke(); }
         break;
+      }
+      case 'shenTether': {   // (V300) the frost line her spirit leaves while it drags someone back to her
+        const a0 = h.from, b0 = h.tgt; if (!a0 || !b0 || b0.dead) break;
+        const k = clamp(h.age / Math.max(0.01, h.life), 0, 1), al = (1 - k) * 0.9;
+        const x0 = a0.x + a0.dir * 20, y0 = a0.y - 44 * a0.def.scale, x1 = b0.x, y1 = b0.y - 40 * b0.def.scale;
+        ctx.save(); ctx.translate(-c.x, -c.y); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+        ctx.globalAlpha = al * 0.45; ctx.strokeStyle = '#a8d8f0'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        ctx.globalAlpha = al; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        for (let i = 1; i < 6; i++) {   // little paper talismans strung along it
+          const q = i / 6, px = lerp(x0, x1, q), py = lerp(y0, y1, q) + Math.sin(h.age * 30 + i) * 3;
+          ctx.globalAlpha = al; ctx.fillStyle = i % 2 ? '#fff6f0' : '#ffd6dc'; ctx.fillRect(px - 3, py - 5, 6, 10);
+        }
+        ctx.restore(); break;
       }
       case 'shenspirit': {   // Shenhe's talisman spirit: a pale ghostly crane-shape with paper talismans streaming behind
         ctx.scale(dx, 1);
@@ -16133,11 +16197,11 @@ const KIT = {   // short on purpose: one or two plain sentences per move (the de
   keqing: { cd: 5.6, skill: '번개 쐐기를 던지고, 다시 누르면 쐐기로 순간이동해 벱니다.', burst: '모습을 감추고(무적) 분신 여덟이 베어 댄 뒤 크게 벱니다.' },
   tartaglia: { cd: 6.0, skill: '5초 동안 물의 쌍검 근접 태세. 다시 누르면 돌진하며 세 번 엇갈려 베고 마지막에 날려 보냅니다.', burst: '활이면 물 화살을 터뜨리고, 쌍검이면 양옆을 크게 휩쓸습니다.' },
   qiqi: { cd: 7.0, skill: '피해 5% 회복. 5초 동안 얼음 귀신이 주위를 돌며 공격합니다.', burst: '피해 8% 회복. 상대에게 부적을 붙여, 맞힐 때마다 회복합니다.' },
-  shenhe: { cd: 6.0, skill: '제자리에서 부적 영혼을 앞으로 날려 지나가는 적을 모두 벱니다. 5초 동안 얼음 평타 +15%.', burst: '상대 자리에 4초 동안 서리 결계를 펼칩니다.' },
+  shenhe: { cd: 6.0, skill: '제자리에서 부적 영혼을 앞으로 날려, 맞은 적을 자기 앞으로 끌어옵니다. 5초 동안 얼음 평타 +15%.', burst: '상대 자리에 4초 동안 서리 결계를 펼칩니다.' },
   flins: { cd: 6.0, skill: '5초 동안 번개 평타 +20%. 다시 누르면 세 번 연달아 찌릅니다.', burst: '상대 자리를 베고 번개를 내린 뒤 반대로 한 번 더 크게 벱니다.' },
   nefer: { cd: 5.0, skill: '상대 양옆에서 그림자 둘이 덮칩니다. 6초 동안 강공격이 빨라집니다.', burst: '상대 자리에 거대한 눈이 열려 끌어당기며 맞힌 뒤 터집니다.' },
   durin: { cd: 4.9, skill: '날개를 펴고 앞쪽 위로 날아오르며 들이받고, 착지할 때 불이 터져 주변 적을 밀쳐냅니다(복귀 가능).', burst: '높이 날아올라 상대에게 1.8초 동안 불을 내뿜어 계속 불 피해를 주고, 내리꽂히듯 착지하며 넓게 불을 터뜨려 상대를 밀쳐냅니다.' },
-  varka: { cd: 4.9, skill: '늑대와 함께 돌진하고 6초 동안 불+바람 평타.', burst: '대검으로 X자 두 번, 이어 늑대의 포효로 날려 보냅니다.' },
+  varka: { cd: 4.9, skill: '위로 뛰어올라 내려찍고, 착지한 곳에 불+바람 피해. 이후 6초 동안만 평타에 불+바람이 실립니다.', burst: '대검으로 X자 두 번, 이어 늑대의 포효로 날려 보냅니다.' },
   zibai: { cd: 9, skill: '12초 동안 월상 전이: 평타가 바위 원소가 되고 3타에 달결정 조각이 터지며, 맞힐 때마다 광휘가 찹니다. 이때 스킬을 다시 누르면 광휘 70으로 선마의 질주(옥빛 영마 돌진 2타, 둘째 타는 달결정, 물 원소가 묻은 상대에게 추가 피해)를 최대 4번 씁니다.', burst: '상대 위에 옥빛 구슬 셋의 천개를 펼쳐 바위 일격과 달결정 일격을 내리칩니다. 월상 전이 중이면 1.7초 늘어납니다.' },
   yelan: { cd: 4.2, skill: '실을 끌며 질주하고, 멈추면 지나친 적 자리가 터집니다.', burst: '물 폭발. 6초 동안 주사위가 물 화살을 쏩니다(교체해도 유지).' },
   ayaka: { cd: 3.5, skill: '얼음꽃으로 적을 끌어당겨 띄우고 5초 동안 얼음 평타 +12%.', burst: '눈보라 구체를 천천히 날려 3초 동안 베고 터뜨립니다.' },
